@@ -1,0 +1,180 @@
+############################################################################
+#  This file is part of the 4D Light Field Benchmark.                      #
+#                                                                          #
+#  This work is licensed under the Creative Commons                        #
+#  Attribution-NonCommercial-ShareAlike 4.0 International License.         #
+#  To view a copy of this license,                                         #
+#  visit http://creativecommons.org/licenses/by-nc-sa/4.0/.                #
+#                                                                          #
+#  Authors: Katrin Honauer & Ole Johannsen                                 #
+#  Contact: contact@lightfield-analysis.net                                #
+#  Website: www.lightfield-analysis.net                                    #
+#                                                                          #
+#  The 4D Light Field Benchmark was jointly created by the University of   #
+#  Konstanz and the HCI at Heidelberg University. If you use any part of   #
+#  the benchmark, please cite our paper "A dataset and evaluation          #
+#  methodology for depth estimation on 4D light fields". Thanks!           #
+#                                                                          #
+#  @inproceedings{honauer2016benchmark,                                    #
+#    title={A dataset and evaluation methodology for depth estimation on   #
+#           4D light fields},                                              #
+#    author={Honauer, Katrin and Johannsen, Ole and Kondermann, Daniel     #
+#            and Goldluecke, Bastian},                                     #
+#    booktitle={Asian Conference on Computer Vision},                      #
+#    year={2016},                                                          #
+#    organization={Springer}                                               #
+#    }                                                                     #
+#                                                                          #
+#    Version 1.0                                                           #
+############################################################################
+
+
+INTRODUCTION
+============
+
+This file provides toolkit information for the 4D Light Field Benchmark.
+
+You may use the toolkit to:
+1. evaluate disparity maps
+2. validate submissions
+3. reproduce figures of the ACCV paper
+4. export point clouds
+
+You may use the Linux/Windows binaries as provided in the "Tools" section
+of our website to run the scripts without further dependencies. Make sure
+to place them directly into the provided "binaries" directory. Call the
+executables with the same arguments as described below for the Python
+scripts.
+
+You may use the Python code in the "source" directory to run the scripts,
+make custom adaptations, or just have a look at the implementation that is
+used on our evaluation server. The scripts are tested with Python 2.7.
+They require numpy, matplotlib, scikit-image, scipy and their respective
+dependencies as listed in the requirements.txt
+
+
+FILE STRUCTURE
+==============
+
+The evaluation scripts expect the following file structure:
+
+|-- data
+    |-- stratified
+    |-- training
+    |-- test
+|-- algo_results
+    |-- epi1
+       |-- disp_maps
+         |-- backgammon.pfm
+         |-- boxes.pfm
+         |-- ...
+       |-- runtimes
+         |-- backgammon.txt
+         |-- ...
+|-- evaluation
+|-- source
+|-- binaries
+
+
+It already contains the following directories:
+
+algo_results/
+  Contains runtimes and disparity maps of five baseline algorithms for
+  the training and stratified scenes.
+
+data/
+  Contains the config files for all scenes, but no light field data.
+  If you want to run the evaluation please download the scene data from 
+  our website and place it into this directory. The easiest way is to 
+  download and extract the "benchmark.zip" from the list of download 
+  links that you receive via email.
+
+evaluation/
+  The target directory for scores and figures that will be created during
+  the evaluation.
+
+source/
+  Contains the Python 2.7 source code. You may alternatively use the
+  provided binaries.
+
+binaries/
+  Download the appropriate binaries for your platform from the "Tools"
+  section on our website and place them into this directory to run the
+  evaluation and the submission validation without further dependencies.
+
+
+
+1. EVALUATING YOUR ALGORITHM
+============================
+
+To evaluate your method, copy your results next to the baseline results in
+the "algo_results" directory.  Make sure that the directory name of your
+results matches the algorithm name that you use as a command line argument.
+
+
+For the full evaluation including visualizations, run:
+$ python run_evaluation.py -a your_algo -m all --visualize
+
+To compute only the MSE and BadPix(0.07) scores on the training scenes, run:
+$ python run_evaluation.py -m general -a your_algo -s boxes,cotton,dino,sideboard
+    
+Please refer to the usage for further options:
+$ python run_evaluation.py -h
+
+
+
+2. VALIDATING A SUBMISSION
+==========================
+
+To validate your submission, run:
+$ python validate_submission.py -i some/path/to/submission.zip
+
+Please not that your zip archive should directly contain a disp_maps and
+a runtimes directory without any further nested directories.
+
+Please refer to the usage for further options:
+$ python validate_submission.py -h
+
+
+
+3. REPRODUCING FIGURES OF THE ACCV PAPER
+========================================
+
+To create equivalent figures to the figures in the ACCV 2016 paper, run:
+$ python create_accv_algorithm_figures.py -a epi1,epi2,lf_occ,lf,mv
+
+Add the arguments of the figures that you want to create (see usage: -h).
+Change the list of algorithms to compare your method against the baseline
+methods.
+
+Note that the best parameter setting per scene was chosen for the
+figures in the ACCV paper. For the benchmark, one setting for all scenes
+is required. Some of the provided baseline disparity maps may therefore
+differ from the results in the paper.
+
+Note that some of the figures may take a long time to compute (> 15 min)
+depending on your local resources. The figures require many evaluations
+on the 5120x5120 disparity maps. The slowest part is matplotlib saving
+the composed figures with many subplots.
+
+
+4. EXPORTING POINT CLOUDS
+==========================
+
+To create a point cloud for the "Dino" scene and the "epi1" algorithm, run:
+$ python export_pointloud.py -s dino -a epi1
+
+This will create a ply file which you can open with MeshLab or other
+viewers. If no algorithm name is given, a point cloud with the ground truth
+depth will be created.
+
+
+
+CONTACT
+========
+
+In case you have any questions or discovered a bug, please contact us at:
+contact@lightfield-analysis.net
+
+For further information and recent updates, please visit:
+www.lightfield-analysis.net

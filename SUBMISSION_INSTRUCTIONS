@@ -1,0 +1,102 @@
+############################################################################
+#  This file is part of the 4D Light Field Benchmark.                      #
+#                                                                          #
+#  This work is licensed under the Creative Commons                        #
+#  Attribution-NonCommercial-ShareAlike 4.0 International License.         #
+#  To view a copy of this license,                                         #
+#  visit http://creativecommons.org/licenses/by-nc-sa/4.0/.                #
+#                                                                          #
+#  Authors: Katrin Honauer & Ole Johannsen                                 #
+#  Contact: contact@lightfield-analysis.net                                #
+#  Website: www.lightfield-analysis.net                                    #
+#                                                                          #
+#  The 4D Light Field Benchmark was jointly created by the University of   #
+#  Konstanz and the HCI at Heidelberg University. If you use any part of   #
+#  the benchmark, please cite our paper "A dataset and evaluation          #
+#  methodology for depth estimation on 4D light fields". Thanks!           #
+#                                                                          #
+#  @inproceedings{honauer2016benchmark,                                    #
+#    title={A dataset and evaluation methodology for depth estimation on   #
+#           4D light fields},                                              #
+#    author={Honauer, Katrin and Johannsen, Ole and Kondermann, Daniel     #
+#            and Goldluecke, Bastian},                                     #
+#    booktitle={Asian Conference on Computer Vision},                      #
+#    year={2016},                                                          #
+#    organization={Springer}                                               #
+#    }                                                                     #
+#                                                                          #
+#    Version 1.0                                                           #
+############################################################################
+
+
+INTRODUCTION
+============
+
+This file provides submission instructions for the 4D Light Field Benchmark.
+
+The benchmark consists of 12 scenes:
+- 4 stratified scenes (Backgammon, Pyramids, Dots, Stripes)
+- 4 training scenes (Boxes, Cotton, Dino, Sideboard)
+- 4 test scenes (Bedroom, Bicycle, Herbs, Origami)
+
+You may use our evaluation toolkit to validate submissions and to evaluate
+your method on the stratified and training scenes. Please check out the
+TOOLKIT_INSTRUCTIONS for further information on the software features.
+
+
+SUBMISSION INSTRUCTIONS
+=======================
+
+1) Run your stereo algorithm.
+     INPUT:
+     Per scene, you may use the 81 light field views and the disparity
+     ranges as provided in the "parameters.cfg". You are not allowed to
+     use any of the provided evaluation masks for your depth estimation.
+     YOU ARE REQUESTED TO USE ONLY ONE SET OF PARAMETERS FOR ALL 12 SCENES.
+
+     OUTPUT:
+     Please report a 512x512 disparity map in PFM format and the runtime
+     in seconds for each of the 12 scenes. Have a look at the baseline
+     algorithms for examples of the expected file formats. We provide
+     Matlab and Python tools with PFM read/write utilities on our website.
+
+     Official PFM documentation: http://netpbm.sourceforge.net/doc/pfm.html
+
+
+2) Finalize and validate your submission.
+     Create a zip file with the following file structure:
+
+     algo.zip
+       |-- disp_maps
+           |-- backgammon.pfm
+           |-- bedroom.pfm
+           |-- ...
+       |-- runtimes
+           |-- backgammon.txt
+           |-- bedroom.txt
+           |-- ...
+
+     You may use the "validate_submission.py" to check your submission.
+
+
+3) Upload your results.
+     To submit your results and to manage your submissions, please
+     log in to our website: www.lightfield-analysis.net
+     Create a new submission, enter details about your method, and
+     upload your zip archive.
+
+
+4) Check out your performance scores.
+     You will get notified via email as soon as your submission was
+     successfully evaluated and approved. Go to the benchmark
+     visualizations to check your scores and rankings.
+
+
+CONTACT
+========
+
+In case you have any questions or discovered a bug, please contact us at:
+contact@lightfield-analysis.net
+
+For further information and recent updates, please visit:
+www.lightfield-analysis.net
