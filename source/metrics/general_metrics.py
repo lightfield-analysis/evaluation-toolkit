@@ -48,25 +48,32 @@ class BaseMetric(object):
         # plotting properties
         self.vmin = vmin
         self.vmax = vmax
+
         self.colorbar_bins = colorbar_bins
         self.cmin = vmin
         self.cmax = vmax
         self.cmap = cmap
 
+    # used as identifier for evaluation results on website and for reading/writing temporary results
+    @abc.abstractmethod
+    def get_identifier(self):
+        return
+
+    # used for most figures and on website
     def get_display_name(self):
         return self.name
 
+    # some figures and website features require a special, shorter name
     def get_short_name(self):
         return self.get_display_name()
 
+    # used on website to explain the metric
     def get_description(self):
         return ""
 
+    # displayed on website as overlay on metric visualization
     def get_legend(self):
         return ""
-
-    def get_identifier(self):
-        return self.name.replace(" ", "_").replace(".", "").lower()
 
     def get_category(self):
         return self.category
@@ -99,16 +106,19 @@ class BaseMetric(object):
         return op.isfile(fname)
 
     def pixelize_results(self):
-        return self.get_identifier() in ["mse", "badpix"]
+        return self.get_identifier().startswith(("mse", "badpix"))
 
 
 class BadPix(BaseMetric):
-    def __init__(self, name="BadPix", thresh=settings.BAD_PIX_THRESH, **kwargs):
+    def __init__(self, thresh=settings.BAD_PIX_THRESH, name="BadPix", **kwargs):
         super(BadPix, self).__init__(name=name, **kwargs)
         self.thresh = thresh
         self.category = settings.GENERAL
         self.cmin = 0
         self.cmax = 1
+
+    def get_identifier(self):
+        return ("badpix_%0.3f" % self.thresh).replace(".", "")
 
     def get_display_name(self):
         if self.name == "BadPix":
@@ -153,12 +163,15 @@ class BadPix(BaseMetric):
 
 
 class MSE(BaseMetric):
-    def __init__(self, name="MSE", factor=100,
+    def __init__(self, factor=100, name="MSE",
                  vmin=settings.DMIN, vmax=settings.DMAX, cmap=settings.error_cmap, colorbar_bins=4):
         super(MSE, self).__init__(name=name, vmin=vmin, vmax=vmax,
                                   cmap=cmap, colorbar_bins=colorbar_bins)
         self.factor = factor
         self.category = settings.GENERAL
+
+    def get_identifier(self):
+        return "mse_%d" % self.factor
 
     def get_description(self):
         return "The mean squared error over all pixels at the given mask, multiplied with %d." % self.factor
@@ -187,10 +200,16 @@ class MSE(BaseMetric):
 
 
 class Runtime(BaseMetric):
-    def __init__(self, name="Runtime", log=False):
+    def __init__(self, log=False, name="Runtime"):
         super(Runtime, self).__init__(name=name)
         self.log = log
         self.category = settings.GENERAL
+
+    def get_identifier(self):
+        if self.log:
+            return "runtime_log"
+        else:
+            return "runtime"
 
     @staticmethod
     def get_description():

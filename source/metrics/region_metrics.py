@@ -39,10 +39,13 @@ from utils import misc, plotting
 
 
 class Discontinuities(BadPix):
-    def __init__(self, name="Discontinuities", thresh=settings.BAD_PIX_THRESH):
+    def __init__(self, thresh=settings.BAD_PIX_THRESH, name="Discontinuities"):
         super(Discontinuities, self).__init__(name=name, thresh=thresh)
         self.category = settings.PHOTOREALISTIC
         self.mask_name = "mask_discontinuities"
+
+    def get_identifier(self):
+        return ("discontinuities_%0.3f" % self.thresh).replace(".", "")
 
     def get_description(self):
         return "The percentage of pixels at discontinuity regions with abs(gt - algo) > %0.2f." % self.thresh
@@ -59,13 +62,16 @@ class Discontinuities(BadPix):
 
 
 class BumpinessPlanes(BaseMetric):
-    def __init__(self, name="Bumpiness Planes", clip=0.05, factor=100, vmin=0, vmax=5):
+    def __init__(self, clip=0.05, factor=100, name="Bumpiness Planes", vmin=0, vmax=5):
         super(BumpinessPlanes, self).__init__(name=name, vmin=vmin, vmax=vmax,
                                               colorbar_bins=5, cmap=settings.disp_cmap)
         self.clip = clip
         self.factor = factor
         self.category = settings.PHOTOREALISTIC
         self.mask_name = "mask_planes"
+
+    def get_identifier(self):
+        return ("bumpiness_planes_%d_%0.3f" % (self.factor, self.clip)).replace(".", "")
 
     def get_description(self):
         return "The average Frobenius norm of the Hessian matrix of (gt - algo) " \
@@ -107,10 +113,13 @@ class BumpinessPlanes(BaseMetric):
 
 class BumpinessContinSurf(BumpinessPlanes):
 
-    def __init__(self, name="Bumpiness Contin. Surfaces"):
-        super(BumpinessContinSurf, self).__init__(name=name)
+    def __init__(self, clip=0.05, factor=100, name="Bumpiness Contin. Surfaces"):
+        super(BumpinessContinSurf, self).__init__(clip=clip, factor=factor, name=name)
         self.category = settings.PHOTOREALISTIC
         self.mask_name = "mask_smooth_surfaces"
+
+    def get_identifier(self):
+        return ("bumpiness_contin_surfaces_%d_%0.3f" % (self.factor, self.clip)).replace(".", "")
 
     def get_description(self):
         return "The average Frobenius norm of the Hessian matrix of (gt - algo) " \
@@ -121,11 +130,13 @@ class BumpinessContinSurf(BumpinessPlanes):
 
 
 class FineFattening(BadPix):
-    def __init__(self, name="Fine Fattening", thresh=-0.15):
-        super(FineFattening, self).__init__(name=name)
-        self.thresh = thresh
+    def __init__(self, thresh=-0.15, name="Fine Fattening"):
+        super(FineFattening, self).__init__(thresh=thresh, name=name)
         self.category = settings.PHOTOREALISTIC
         self.mask_name = "mask_fine_surrounding"
+
+    def get_identifier(self):
+        return ("fine_fattening_%0.3f" % abs(self.thresh)).replace(".", "")
 
     def get_short_name(self):
         return "Fine Fat"
@@ -158,11 +169,13 @@ class FineFattening(BadPix):
 
 
 class FineThinning(BadPix):
-    def __init__(self, name="Fine Thinning", thresh=0.15):
-        super(FineThinning, self).__init__(name=name)
-        self.thresh = thresh
+    def __init__(self, thresh=0.15, name="Fine Thinning"):
+        super(FineThinning, self).__init__(thresh=thresh, name=name)
         self.category = settings.PHOTOREALISTIC
         self.mask_name = "mask_fine"
+
+    def get_identifier(self):
+        return ("fine_thinning_%0.3f" % self.thresh).replace(".", "")
 
     def get_short_name(self):
         return "Fine Thin"
