@@ -230,7 +230,7 @@ class BaseScene(object):
 
     @staticmethod
     def get_general_metrics():
-        return [MSE(), BadPix(), Quantile(25)]
+        return [MSE(), BadPix(0.01), BadPix(0.03), BadPix(0.07), Quantile(25)]
 
     @staticmethod
     def get_all_metrics_wo_runtime():
