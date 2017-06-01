@@ -129,6 +129,75 @@ class BumpinessContinSurf(BumpinessPlanes):
         return "Surfaces"
 
 
+class MAEPlanes(BaseMetric):
+    def __init__(self, name="MAE Planes", vmin=0, vmax=80):
+        super(MAEPlanes, self).__init__(name=name, vmin=vmin, vmax=vmax,
+                                        colorbar_bins=5, cmap=settings.abs_error_cmap)
+        self.category = settings.PHOTOREALISTIC
+        self.mask_name = "mask_planes"
+
+    def get_description(self):
+        return "The median angular error of the surface normals at the given plane regions."
+
+    def get_legend(self):
+        return "green = good, red = bad"
+
+    def get_short_name(self):
+        return "MAE Planes"
+
+    def get_identifier(self):
+        return "mae_planes"
+
+    def get_evaluation_mask(self, scene, ignore_boundary=True):
+        return scene.get_mask(self.mask_name) * scene.get_boundary_mask(ignore_boundary)
+
+    def get_score(self, algo_result, gt, scene, with_visualization=False):
+        mask = self.get_evaluation_mask(scene)
+        return self.get_score_from_mask(algo_result, gt, scene, mask, with_visualization=with_visualization)
+
+    def get_score_from_mask(self, algo_result, gt, scene, mask, with_visualization=False):
+        angular_error = self.get_angular_error(algo_result, gt, scene)
+        mask = mask * misc.get_mask_valid(algo_result) * misc.get_mask_valid(angular_error)
+        score = np.median(angular_error[mask])
+
+        if not with_visualization:
+            return score
+        else:
+            vis = np.ma.masked_array(angular_error, mask=~mask)
+            return score, vis
+
+    def get_angular_error(self, gt, algo_result, scene):
+        algo_normals = scene.get_depth_normals(scene.disp2depth(algo_result))
+        gt_normals = scene.get_depth_normals(scene.disp2depth(gt))
+
+        ssum = np.sum(algo_normals * gt_normals, axis=2)
+        ssum[ssum>1] = 1.
+        angular_error = np.degrees(np.arccos(ssum))
+
+        return angular_error
+
+    @staticmethod
+    def evaluate_on_high_res():
+        return False
+
+
+class MAEContinSurf(MAEPlanes):
+
+    def __init__(self, name="MAE Contin. Surfaces"):
+        super(MAEContinSurf, self).__init__(name=name)
+        self.category = settings.PHOTOREALISTIC
+        self.mask_name = "mask_smooth_surfaces"
+
+    def get_description(self):
+        return "The median angular error of the surface normals at smooth, non-planar regions."
+
+    def get_short_name(self):
+        return "MAE Surfaces"
+
+    def get_identifier(self):
+        return "mae_contin_surfaces"
+
+
 class FineFattening(BadPix):
     def __init__(self, thresh=-0.15, name="Fine Fattening"):
         super(FineFattening, self).__init__(thresh=thresh, name=name)

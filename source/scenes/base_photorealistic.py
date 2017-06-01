@@ -36,7 +36,7 @@ import numpy as np
 import settings
 from evaluations import radar_chart
 from metrics import MSE, BadPix,  BumpinessPlanes, Discontinuities, BumpinessContinSurf, FineFattening, \
-    FineThinning, Runtime
+    FineThinning, Runtime, MAEPlanes, MAEContinSurf
 from scenes import BaseScene
 from utils import plotting, misc
 from utils.logger import log
@@ -49,7 +49,8 @@ class BasePhotorealistic(BaseScene):
 
     @staticmethod
     def get_region_metrics():
-        return [BumpinessPlanes(), BumpinessContinSurf(), Discontinuities(), FineFattening(), FineThinning()]
+        return [BumpinessPlanes(), BumpinessContinSurf(), MAEPlanes(), MAEContinSurf(),
+                Discontinuities(), FineFattening(), FineThinning()]
 
     def get_applicable_metrics_high_res(self):
         return [metric for metric in self.get_region_metrics() if metric.is_applicable_for_high_res_scene(self)]

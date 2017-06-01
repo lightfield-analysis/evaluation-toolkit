@@ -35,6 +35,7 @@ import abc
 import os.path as op
 
 import numpy as np
+from scipy import signal as ssig
 
 import settings
 from metrics import Runtime, MSE, BadPix, Quantile
@@ -152,6 +153,40 @@ class BaseScene(object):
         else:
             mask = np.full((self.get_height(), self.get_width()), fill_value=1, dtype=np.bool)
         return mask
+
+    def disp2depth(self, disp_map):
+        q = self.baseline_mm * self.focal_length_mm * max(self.original_width, self.original_height)
+        depth_map = 1.0 / ((1000.0 * self.sensor_size_mm) * disp_map / q + (1.0 / self.focus_distance_m))
+        return depth_map
+
+    def get_depth_normals(self, depth_map):
+        h, w = np.shape(depth_map)
+        zz = depth_map
+        xx, yy = np.meshgrid(range(0, h), range(0, w))
+        xx = (xx / (h - 1.0) * 0.5) * self.sensor_size_mm * zz / self.focal_length_mm
+        yy = (yy / (w - 1.0) * 0.5) * self.sensor_size_mm * zz / self.focal_length_mm
+
+        kernel = np.asarray([[3., 10., 3.], [0., 0., 0.], [-3., -10., -3.]])
+        kernel /= 64.
+
+        dxdx = ssig.convolve2d(xx, kernel, mode="same", boundary="wrap")
+        dydx = ssig.convolve2d(yy, kernel, mode="same", boundary="wrap")
+        dzdx = ssig.convolve2d(zz, kernel, mode="same", boundary="wrap")
+
+        dxdy = ssig.convolve2d(xx, np.transpose(kernel), mode="same", boundary="wrap")
+        dydy = ssig.convolve2d(yy, np.transpose(kernel), mode="same", boundary="wrap")
+        dzdy = ssig.convolve2d(zz, np.transpose(kernel), mode="same", boundary="wrap")
+
+        normal_map = np.full((h, w, 3), fill_value=np.nan)
+
+        normal_map[:, :, 0] = (dzdx * dxdy - dxdx * dzdy)
+        normal_map[:, :, 1] = - (dydx * dzdy - dzdx * dydy)
+        normal_map[:, :, 2] = - (dxdx * dydy - dydx * dxdy)
+
+        magnitude = np.sqrt(np.sum(np.square(normal_map), axis=2))
+        normal_map = normal_map / np.dstack((magnitude, magnitude, magnitude))
+
+        return normal_map
 
     # ----------------------------------------------------------
     # scene type utilities
