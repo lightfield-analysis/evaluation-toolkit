@@ -37,7 +37,7 @@ import os.path as op
 import numpy as np
 
 import settings
-from metrics import Runtime, MSE, BadPix
+from metrics import Runtime, MSE, BadPix, Quantile
 from utils import misc, file_io
 
 
@@ -195,7 +195,7 @@ class BaseScene(object):
 
     @staticmethod
     def get_general_metrics():
-        return [MSE(), BadPix()]
+        return [MSE(), BadPix(), Quantile(25)]
 
     @staticmethod
     def get_all_metrics_wo_runtime():

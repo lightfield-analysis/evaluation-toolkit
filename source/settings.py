@@ -71,6 +71,8 @@ error_cmap = copy.deepcopy(cm.seismic)
 abs_error_cmap = copy.deepcopy(cm.RdYlGn_r)
 mask_cmap = copy.deepcopy(cm.seismic)
 
+quantile_cmap = copy.deepcopy(cm.YlOrRd)
+quantile_cmap.set_under(color=(0.5, 0.5, 0.5), alpha=1.0)
 
 tableau20 = [(255, 127, 14),  # orange
              (44, 160, 44),  # green

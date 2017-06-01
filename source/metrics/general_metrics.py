@@ -106,7 +106,7 @@ class BaseMetric(object):
         return op.isfile(fname)
 
     def pixelize_results(self):
-        return self.get_identifier().startswith(("mse", "badpix"))
+        return self.get_identifier().startswith(("mse", "badpix", "q"))
 
 
 class BadPix(BaseMetric):
@@ -197,6 +197,50 @@ class MSE(BaseMetric):
     @staticmethod
     def format_score(score):
         return "%0.2f" % score
+
+
+class Quantile(BaseMetric):
+    def __init__(self, percentage, factor=100,
+                 name="Quantile", vmin=0, vmax=0.5, colorbar_bins=5, cmap=settings.quantile_cmap, **kwargs):
+        super(Quantile, self).__init__(name=name, vmin=vmin, vmax=vmax, cmap=cmap, colorbar_bins=colorbar_bins, **kwargs)
+        self.percentage = percentage
+        self.category = settings.GENERAL
+        self.cmin = 0
+        self.cmax = vmax
+        self.factor = factor
+
+    def get_identifier(self):
+        return "q_%d_%d" % (self.percentage, self.factor)
+
+    def get_display_name(self):
+        return "Q%d" % self.percentage
+
+    def get_description(self):
+        return "The %dth percentile of the disparity errors: The maximum absolute disparity error of the best %d%% " \
+               "of pixels for each algorithm, multiplied by 100." % (self.percentage, self.percentage)
+
+    def get_legend(self):
+        return "gray = errors above %dth percentile, white/yellow = good, red = relatively bad" % self.percentage
+
+    def get_score(self, algo_result, gt, scene, with_visualization=False):
+        diffs = np.abs(algo_result - gt) * self.factor
+        mask = self.get_evaluation_mask(scene) * misc.get_mask_valid(diffs) * misc.get_mask_valid(algo_result)
+        sorted_diffs = np.sort(diffs[mask])
+        idx = np.size(sorted_diffs) * self.percentage / 100.
+        score = sorted_diffs[int(idx)]
+
+        if not with_visualization:
+            return score
+        else:
+            with np.errstate(invalid="ignore"):
+                m_bad_pix = np.abs(diffs) > score
+            vis = np.abs(diffs)
+            vis[m_bad_pix] = -1
+            vis = np.ma.masked_array(vis, mask=~mask)
+            return score, vis
+
+    def format_score(self, score):
+        return "%0.2f%%" % score
 
 
 class Runtime(BaseMetric):

@@ -175,10 +175,10 @@ def add_scores(metrics, scene, algo_dir, tgt_dir, scores, visualize):
         if visualize:
             score, vis = metric.get_score(algo_result, gt, scene, with_visualization=True)
             relative_fname = save_visualization(algo_result, vis, metric, scene, tgt_dir)
-            metric_data = {"value": score, "visualization": {"thumb": relative_fname}}
+            metric_data = {"value": float(score), "visualization": {"thumb": relative_fname}}
         else:
             score = metric.get_score(algo_result, gt, scene)
-            metric_data = {"value": score}
+            metric_data = {"value": float(score)}
 
         scores[metric.get_identifier()] = metric_data
 

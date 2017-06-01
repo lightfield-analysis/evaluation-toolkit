@@ -1,4 +1,4 @@
-from general_metrics import BaseMetric, BadPix, MSE, Runtime
+from general_metrics import BaseMetric, BadPix, MSE, Runtime, Quantile
 
 from region_metrics import Discontinuities, BumpinessContinSurf, BumpinessPlanes, FineFattening, FineThinning
 
