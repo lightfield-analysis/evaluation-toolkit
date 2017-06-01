@@ -211,9 +211,12 @@ class Runtime(BaseMetric):
         else:
             return "runtime"
 
-    @staticmethod
-    def get_description():
-        return "The runtime in seconds as reported by the authors."
+    def get_description(self):
+        if self.log:
+            return "Decadic logarithm of the runtime in seconds as reported by the authors (hence runtime scores " \
+                   "below 1 second are negative)."
+        else:
+            return "The runtime in seconds as reported by the authors."
 
     def get_display_name(self):
         display_name = self.name
@@ -222,10 +225,10 @@ class Runtime(BaseMetric):
         return display_name
 
     def get_short_name(self):
-        display_name = "Time"
+        short_name = "Time"
         if self.log:
-            display_name += " (log10)"
-        return display_name
+            short_name += " (log10)"
+        return short_name
 
     def get_score(self, scene, algo_name):
         runtime = misc.get_runtime(scene, algo_name)
