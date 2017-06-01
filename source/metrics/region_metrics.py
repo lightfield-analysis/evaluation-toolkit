@@ -39,8 +39,8 @@ from utils import misc, plotting
 
 
 class Discontinuities(BadPix):
-    def __init__(self, descr="Discontinuities", thresh=settings.BAD_PIX_THRESH):
-        super(Discontinuities, self).__init__(descr=descr, thresh=thresh)
+    def __init__(self, name="Discontinuities", thresh=settings.BAD_PIX_THRESH):
+        super(Discontinuities, self).__init__(name=name, thresh=thresh)
         self.category = settings.PHOTOREALISTIC
         self.mask_name = "mask_discontinuities"
 
@@ -59,8 +59,8 @@ class Discontinuities(BadPix):
 
 
 class BumpinessPlanes(BaseMetric):
-    def __init__(self, descr="Bumpiness Planes", clip=0.05, factor=100, vmin=0, vmax=5):
-        super(BumpinessPlanes, self).__init__(descr=descr, vmin=vmin, vmax=vmax,
+    def __init__(self, name="Bumpiness Planes", clip=0.05, factor=100, vmin=0, vmax=5):
+        super(BumpinessPlanes, self).__init__(name=name, vmin=vmin, vmax=vmax,
                                               colorbar_bins=5, cmap=settings.disp_cmap)
         self.clip = clip
         self.factor = factor
@@ -107,8 +107,8 @@ class BumpinessPlanes(BaseMetric):
 
 class BumpinessContinSurf(BumpinessPlanes):
 
-    def __init__(self, descr="Bumpiness Contin. Surfaces"):
-        super(BumpinessContinSurf, self).__init__(descr=descr)
+    def __init__(self, name="Bumpiness Contin. Surfaces"):
+        super(BumpinessContinSurf, self).__init__(name=name)
         self.category = settings.PHOTOREALISTIC
         self.mask_name = "mask_smooth_surfaces"
 
@@ -121,8 +121,8 @@ class BumpinessContinSurf(BumpinessPlanes):
 
 
 class FineFattening(BadPix):
-    def __init__(self, descr="Fine Fattening", thresh=-0.15):
-        super(FineFattening, self).__init__(descr=descr)
+    def __init__(self, name="Fine Fattening", thresh=-0.15):
+        super(FineFattening, self).__init__(name=name)
         self.thresh = thresh
         self.category = settings.PHOTOREALISTIC
         self.mask_name = "mask_fine_surrounding"
@@ -158,8 +158,8 @@ class FineFattening(BadPix):
 
 
 class FineThinning(BadPix):
-    def __init__(self, descr="Fine Thinning", thresh=0.15):
-        super(FineThinning, self).__init__(descr=descr)
+    def __init__(self, name="Fine Thinning", thresh=0.15):
+        super(FineThinning, self).__init__(name=name)
         self.thresh = thresh
         self.category = settings.PHOTOREALISTIC
         self.mask_name = "mask_fine"

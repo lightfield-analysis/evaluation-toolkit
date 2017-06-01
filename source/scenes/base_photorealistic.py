@@ -176,11 +176,11 @@ class BasePhotorealistic(BaseScene):
     def plot_radar_chart(algo_names, scenes, fig_path, max_per_metric=None):
         metrics = [MSE(),
                    BadPix(),
-                   BumpinessPlanes(descr="Planar\nSurfaces"),
-                   BumpinessContinSurf(descr="Continuous\nSurfaces"),
-                   FineThinning(descr="Fine Structure\nThinning"),
-                   FineFattening(descr="Fine Structure\nFattening"),
-                   Discontinuities(descr="Discontinuity\nRegions"),
+                   BumpinessPlanes(name="Planar\nSurfaces"),
+                   BumpinessContinSurf(name="Continuous\nSurfaces"),
+                   FineThinning(name="Fine Structure\nThinning"),
+                   FineFattening(name="Fine Structure\nFattening"),
+                   Discontinuities(name="Discontinuity\nRegions"),
                    Runtime(log=True)]
 
         metric_names = [m.get_display_name() for m in metrics]

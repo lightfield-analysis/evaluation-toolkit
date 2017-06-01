@@ -38,18 +38,18 @@ from utils import misc, plotting
 
 
 class StratifiedBadPix(BadPix):
-    def __init__(self, descr, vmin, vmax, scene_display_name, thresh=settings.BAD_PIX_THRESH):
-        super(StratifiedBadPix, self).__init__(descr=descr, vmin=vmin, vmax=vmax, thresh=thresh)
+    def __init__(self, name, vmin, vmax, scene_display_name, thresh=settings.BAD_PIX_THRESH):
+        super(StratifiedBadPix, self).__init__(name=name, vmin=vmin, vmax=vmax, thresh=thresh)
         self.category = settings.STRATIFIED
         self.scene_display_name = scene_display_name
 
     def get_display_name(self):
-        if self.descr == "BadPix":
+        if self.name == "BadPix":
             return "%s: BadPix(%0.2f)" % (self.scene_display_name, self.thresh)
-        return "%s: %s" % (self.scene_display_name, self.descr)
+        return "%s: %s" % (self.scene_display_name, self.name)
 
     def get_short_name(self):
-        return self.descr
+        return self.name
 
 
 # --------------------------------------
@@ -58,8 +58,8 @@ class StratifiedBadPix(BadPix):
 
 
 class BackgammonFattening(StratifiedBadPix):
-    def __init__(self, descr="Fattening", vmin=0, vmax=22):
-        super(BackgammonFattening, self).__init__(descr=descr, vmin=vmin, vmax=vmax, scene_display_name="Backgammon")
+    def __init__(self, name="Fattening", vmin=0, vmax=22):
+        super(BackgammonFattening, self).__init__(name=name, vmin=vmin, vmax=vmax, scene_display_name="Backgammon")
 
     def get_description(self):
         return "The percentage of pixels around fine structures " \
@@ -95,8 +95,8 @@ class BackgammonFattening(StratifiedBadPix):
 
 
 class BackgammonThinning(StratifiedBadPix):
-    def __init__(self, descr="Thinning", vmin=0, vmax=3):
-        super(BackgammonThinning, self).__init__(descr=descr, vmin=vmin, vmax=vmax, scene_display_name="Backgammon")
+    def __init__(self, name="Thinning", vmin=0, vmax=3):
+        super(BackgammonThinning, self).__init__(name=name, vmin=vmin, vmax=vmax, scene_display_name="Backgammon")
 
     def get_description(self):
         return "The percentage of pixels at fine structures " \
@@ -138,24 +138,24 @@ class BackgammonThinning(StratifiedBadPix):
 
 class PyramidsBaseBumpiness(BumpinessPlanes):
 
-    def __init__(self, descr, vmax):
-        super(PyramidsBaseBumpiness, self).__init__(descr=descr, vmax=vmax)
+    def __init__(self, name, vmax):
+        super(PyramidsBaseBumpiness, self).__init__(name=name, vmax=vmax)
         self.category = settings.STRATIFIED
         self.scene_display_name = "Pyramids"
         self.cmin = 0
         self.cmax = 5
 
     def get_display_name(self):
-        return "%s: %s" % (self.scene_display_name, self.descr)
+        return "%s: %s" % (self.scene_display_name, self.name)
 
     def get_short_name(self):
-        return self.descr
+        return self.name
 
 
 class PyramidsSlantedBumpiness(PyramidsBaseBumpiness):
 
-    def __init__(self, descr="Bump. Slanted", vmax=3.5):
-        super(PyramidsSlantedBumpiness, self).__init__(descr=descr, vmax=vmax)
+    def __init__(self, name="Bump. Slanted", vmax=3.5):
+        super(PyramidsSlantedBumpiness, self).__init__(name=name, vmax=vmax)
 
     def get_evaluation_mask(self, scene, ignore_boundary=True):
         return scene.get_objects() * scene.get_boundary_mask(ignore_boundary)
@@ -163,8 +163,8 @@ class PyramidsSlantedBumpiness(PyramidsBaseBumpiness):
 
 class PyramidsParallelBumpiness(PyramidsBaseBumpiness):
 
-    def __init__(self, descr="Bump. Parallel", vmax=3.5):
-        super(PyramidsParallelBumpiness, self).__init__(descr=descr, vmax=vmax)
+    def __init__(self, name="Bump. Parallel", vmax=3.5):
+        super(PyramidsParallelBumpiness, self).__init__(name=name, vmax=vmax)
 
     def get_evaluation_mask(self, scene, ignore_boundary=True):
         return scene.get_plane_mask() * scene.get_boundary_mask(ignore_boundary)
@@ -177,8 +177,8 @@ class PyramidsParallelBumpiness(PyramidsBaseBumpiness):
 
 class MissedDots(StratifiedBadPix):
 
-    def __init__(self, descr="Missed Dots", vmin=0, vmax=70, thresh=0.4):
-        super(MissedDots, self).__init__(descr=descr, vmin=vmin, vmax=vmax, scene_display_name="Dots", thresh=thresh)
+    def __init__(self, name="Missed Dots", vmin=0, vmax=70, thresh=0.4):
+        super(MissedDots, self).__init__(name=name, vmin=vmin, vmax=vmax, scene_display_name="Dots", thresh=thresh)
 
     def get_description(self):
         return "The percentage of dots with a BadPix(%0.2f) score > 50%%." % self.thresh
@@ -233,15 +233,15 @@ class MissedDots(StratifiedBadPix):
 
 
 class DotsBackgroundMSE(MSE):
-    def __init__(self, descr="Background MSE", vmin=0, vmax=4):
-        super(DotsBackgroundMSE, self).__init__(descr=descr, vmin=vmin, vmax=vmax)
+    def __init__(self, name="Background MSE", vmin=0, vmax=4):
+        super(DotsBackgroundMSE, self).__init__(name=name, vmin=vmin, vmax=vmax)
         self.category = settings.STRATIFIED
         self.scene_display_name = "Dots"
         self.cmin = settings.DMIN
         self.cmax = settings.DMAX
 
     def get_display_name(self):
-        return "%s: %s" % (self.scene_display_name, self.descr)
+        return "%s: %s" % (self.scene_display_name, self.name)
 
     def get_short_name(self):
         return "Background"
@@ -256,24 +256,24 @@ class DotsBackgroundMSE(MSE):
 
 
 class StripesLowTexture(StratifiedBadPix):
-    def __init__(self, descr="Low Texture", vmin=0, vmax=60):
-        super(StripesLowTexture, self).__init__(descr=descr, vmin=vmin, vmax=vmax, scene_display_name="Stripes")
+    def __init__(self, name="Low Texture", vmin=0, vmax=60):
+        super(StripesLowTexture, self).__init__(name=name, vmin=vmin, vmax=vmax, scene_display_name="Stripes")
 
     def get_evaluation_mask(self, scene, ignore_boundary=True):
         return scene.get_low_texture() * scene.get_boundary_mask(ignore_boundary)
 
 
 class DarkStripes(StratifiedBadPix):
-    def __init__(self, descr="Dark Stripes", vmin=0, vmax=60):
-        super(DarkStripes, self).__init__(descr=descr, vmin=vmin, vmax=vmax, scene_display_name="Stripes")
+    def __init__(self, name="Dark Stripes", vmin=0, vmax=60):
+        super(DarkStripes, self).__init__(name=name, vmin=vmin, vmax=vmax, scene_display_name="Stripes")
 
     def get_evaluation_mask(self, scene, ignore_boundary=True):
         return scene.get_high_contrast() * scene.get_boundary_mask(ignore_boundary)
 
 
 class BrightStripes(StratifiedBadPix):
-    def __init__(self, descr="Bright Stripes", vmin=0, vmax=60):
-        super(BrightStripes, self).__init__(descr=descr, vmin=vmin, vmax=vmax, scene_display_name="Stripes")
+    def __init__(self, name="Bright Stripes", vmin=0, vmax=60):
+        super(BrightStripes, self).__init__(name=name, vmin=vmin, vmax=vmax, scene_display_name="Stripes")
 
     def get_evaluation_mask(self, scene, ignore_boundary=True):
         return scene.get_low_contrast() * scene.get_boundary_mask(ignore_boundary)

@@ -42,8 +42,8 @@ from utils import file_io, misc, plotting
 class BaseMetric(object):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, descr, vmin=0, vmax=1, colorbar_bins=1, cmap=settings.abs_error_cmap):
-        self.descr = descr
+    def __init__(self, name, vmin=0, vmax=1, colorbar_bins=1, cmap=settings.abs_error_cmap):
+        self.name = name
 
         # plotting properties
         self.vmin = vmin
@@ -54,7 +54,7 @@ class BaseMetric(object):
         self.cmap = cmap
 
     def get_display_name(self):
-        return self.descr
+        return self.name
 
     def get_short_name(self):
         return self.get_display_name()
@@ -66,7 +66,7 @@ class BaseMetric(object):
         return ""
 
     def get_identifier(self):
-        return self.descr.replace(" ", "_").replace(".", "").lower()
+        return self.name.replace(" ", "_").replace(".", "").lower()
 
     def get_category(self):
         return self.category
@@ -103,20 +103,20 @@ class BaseMetric(object):
 
 
 class BadPix(BaseMetric):
-    def __init__(self, descr="BadPix", thresh=settings.BAD_PIX_THRESH, **kwargs):
-        super(BadPix, self).__init__(descr=descr, **kwargs)
+    def __init__(self, name="BadPix", thresh=settings.BAD_PIX_THRESH, **kwargs):
+        super(BadPix, self).__init__(name=name, **kwargs)
         self.thresh = thresh
         self.category = settings.GENERAL
         self.cmin = 0
         self.cmax = 1
 
     def get_display_name(self):
-        if self.descr == "BadPix":
+        if self.name == "BadPix":
             return "BadPix(%0.2f)" % self.thresh
-        return self.descr
+        return self.name
 
     def get_short_name(self):
-        return self.descr
+        return self.name
 
     def get_description(self):
         return "The percentage of pixels at the given mask with abs(gt - algo) > %0.2f." % self.thresh
@@ -153,9 +153,9 @@ class BadPix(BaseMetric):
 
 
 class MSE(BaseMetric):
-    def __init__(self, descr="MSE", factor=100,
+    def __init__(self, name="MSE", factor=100,
                  vmin=settings.DMIN, vmax=settings.DMAX, cmap=settings.error_cmap, colorbar_bins=4):
-        super(MSE, self).__init__(descr=descr, vmin=vmin, vmax=vmax,
+        super(MSE, self).__init__(name=name, vmin=vmin, vmax=vmax,
                                   cmap=cmap, colorbar_bins=colorbar_bins)
         self.factor = factor
         self.category = settings.GENERAL
@@ -187,8 +187,8 @@ class MSE(BaseMetric):
 
 
 class Runtime(BaseMetric):
-    def __init__(self, descr="Runtime", log=False):
-        super(Runtime, self).__init__(descr=descr)
+    def __init__(self, name="Runtime", log=False):
+        super(Runtime, self).__init__(name=name)
         self.log = log
         self.category = settings.GENERAL
 
@@ -197,7 +197,7 @@ class Runtime(BaseMetric):
         return "The runtime in seconds as reported by the authors."
 
     def get_display_name(self):
-        display_name = self.descr
+        display_name = self.name
         if self.log:
             display_name += " (log10)"
         return display_name
