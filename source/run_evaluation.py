@@ -34,18 +34,6 @@ import optparse
 import os.path as op
 
 
-def get_metric_dict():
-    from scenes import BaseScene, BasePhotorealistic, BaseStratified
-    md = {
-        "general": BaseScene.get_general_metrics(),
-        "stratified": BaseStratified.get_stratified_metrics(),
-        "regions": BasePhotorealistic.get_region_metrics(),
-        "all_wo_runtime": BaseScene.get_all_metrics_wo_runtime(),
-        "all": BaseScene.get_all_metrics()
-    }
-    return md
-
-
 def parse_evaluation_options():
     parser = optparse.OptionParser()
 
@@ -65,7 +53,7 @@ def parse_evaluation_options():
                       help="set of metrics, options: "
                            "'stratified': all metrics of the stratified scenes "
                            "'regions': all region metrics of the photorealistic scenes "
-                           "'general': MSE and BadPix(0.07) "
+                           "'general': MSE, Q25, and BadPix(0.07) "
                            "'all_wo_runtime': all applicable metrics without runtime "
                            "'all': all applicable metrics including runtime")
 
@@ -106,7 +94,7 @@ def parse_evaluation_options():
                 scenes.append(scene_dict[scene_name])
 
     # check metrics
-    metric_dict = get_metric_dict()
+    metric_dict = misc.get_metric_dict()
     if options.metric_set is not None:
         metrics = metric_dict.get(options.metric_set, None)
         if metrics is None:

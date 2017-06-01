@@ -118,13 +118,105 @@ def percentage(total, part):
     return 100 * part / float(total)
 
 
+# scenes
 def get_scene_dict():
-    from scenes import BaseScene
     scene_dict = dict()
-    default_scenes = BaseScene.get_training_scenes() + BaseScene.get_stratified_scenes()
+    default_scenes = get_training_scenes() + get_stratified_scenes()
     for scene in default_scenes:
         scene_dict[scene.get_name()] = scene
     return scene_dict
+
+
+def get_benchmark_scenes(gt_scale=1.0, data_path=None):
+    return get_test_scenes(gt_scale, data_path) + \
+           get_training_scenes(gt_scale, data_path) + \
+           get_stratified_scenes(gt_scale, data_path)
+
+
+def get_training_scenes(gt_scale=1.0, data_path=None):
+    from scenes import Sideboard, Cotton, Dino, Boxes
+    return [Sideboard(data_path=data_path, gt_scale=gt_scale),
+            Cotton(data_path=data_path, gt_scale=gt_scale),
+            Dino(data_path=data_path, gt_scale=gt_scale),
+            Boxes(data_path=data_path, gt_scale=gt_scale)]
+
+
+def get_test_scenes(gt_scale=1.0, data_path=None):
+    from scenes import Herbs, Bedroom, Bicycle, Origami
+    return [Herbs(data_path=data_path, gt_scale=gt_scale),
+            Bedroom(data_path=data_path, gt_scale=gt_scale),
+            Bicycle(data_path=data_path, gt_scale=gt_scale),
+            Origami(data_path=data_path, gt_scale=gt_scale)]
+
+
+def get_stratified_scenes(gt_scale=1.0, data_path=None):
+    from scenes import Backgammon, Pyramids, Dots, Stripes
+    scenes = [Backgammon(data_path=data_path, gt_scale=gt_scale),
+              Pyramids(data_path=data_path, gt_scale=gt_scale),
+              Dots(data_path=data_path, gt_scale=gt_scale),
+              Stripes(data_path=data_path, gt_scale=gt_scale)]
+    return scenes
+
+
+def get_additional_scenes(gt_scale=1.0, data_path=None):
+    return _get_photorealistic_scenes_by_name(settings.get_scene_names_additional(),
+                                              settings.ADDITIONAL_SCENE,
+                                              gt_scale=gt_scale,
+                                              data_path=data_path)
+
+
+def _get_photorealistic_scenes_by_name(scene_names, category, gt_scale=1.0, data_path=None):
+    from scenes import PhotorealisticScene
+    scenes = []
+    for scene_name in scene_names:
+        scenes.append(PhotorealisticScene(name=scene_name,
+                                          data_path=data_path,
+                                          gt_scale=gt_scale,
+                                          category=category))
+    return scenes
+
+
+# metrics
+def get_metric_dict():
+    md = {
+        "general": get_general_metrics(),
+        "stratified": get_stratified_metrics(),
+        "regions": get_region_metrics(),
+        "all_wo_runtime": get_all_metrics_wo_runtime(),
+        "all": get_all_metrics()
+    }
+    return md
+
+
+def get_all_metrics(log_runtime=True):
+    from metrics import Runtime
+    return get_all_metrics_wo_runtime() + [Runtime(log=log_runtime)]
+
+
+def get_all_metrics_wo_runtime():
+    all_without_runtime = get_general_metrics() + get_stratified_metrics() + get_region_metrics()
+    return all_without_runtime
+
+
+def get_general_metrics():
+    from metrics import MSE, BadPix, Quantile
+    return [MSE(), BadPix(0.01), BadPix(0.03), BadPix(0.07), Quantile(25)]
+
+
+def get_region_metrics():
+    from metrics import Discontinuities, FineFattening, FineThinning, \
+        BumpinessPlanes, BumpinessContinSurf, MAEPlanes, MAEContinSurf
+
+    return [BumpinessPlanes(), BumpinessContinSurf(), MAEPlanes(), MAEContinSurf(),
+            Discontinuities(), FineFattening(), FineThinning()]
+
+
+def get_stratified_metrics():
+    from scenes import Backgammon, Pyramids, Dots, Stripes
+    metrics = []
+    for scene in [Backgammon, Pyramids, Dots, Stripes]:
+        metrics += scene.get_scene_specific_stratified_metrics()
+    return metrics
 
 
 # project file handling

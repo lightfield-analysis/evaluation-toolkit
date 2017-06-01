@@ -67,7 +67,7 @@ def evaluate(evaluation_output_path, algorithm_input_path, ground_truth_path,
 
     # prepare metrics
     if metrics is None:
-        metrics = BaseScene.get_all_metrics()
+        metrics = misc.get_all_metrics()
     metric_ids = [m.get_identifier() for m in metrics]
     with_runtime = Runtime().get_identifier() in metric_ids
     log.info("Metrics: %s" % ", ".join(metric_ids))
@@ -108,7 +108,7 @@ def evaluate(evaluation_output_path, algorithm_input_path, ground_truth_path,
 
 def get_scenes_for_evaluation(selected_scenes, gt_scale=1.0, data_path=None):
     # collect all potential scenes
-    scenes_for_eval = BaseScene.get_benchmark_scenes(gt_scale=gt_scale, data_path=data_path)
+    scenes_for_eval = misc.get_benchmark_scenes(gt_scale=gt_scale, data_path=data_path)
 
     # select subset of selected and available scenes
     if selected_scenes is not None:
@@ -119,7 +119,7 @@ def get_scenes_for_evaluation(selected_scenes, gt_scale=1.0, data_path=None):
 
 
 def get_relative_path(scene, descr, file_type=THUMB_FORMAT):
-    return "%s/%s_%s.%s" % (scene.get_type(), scene.get_name(), descr, file_type)
+    return "%s/%s_%s.%s" % (scene.get_category(), scene.get_name(), descr, file_type)
 
 
 def visualize_algo_result(scene, algo_dir, tgt_dir):

@@ -33,9 +33,8 @@
 import matplotlib.pyplot as plt
 
 import settings
-from metrics import StripesLowTexture, DarkStripes, BrightStripes
-from scenes import BaseStratified, BaseScene
-from utils import plotting
+from scenes import BaseStratified
+from utils import plotting, misc
 
 
 class Stripes(BaseStratified):
@@ -44,19 +43,20 @@ class Stripes(BaseStratified):
     mn_low_contrast = "mask_low_contrast"
     mn_low_texture = "mask_low_texture"
 
-    def __init__(self, img_name="stripes", **kwargs):
-        super(Stripes, self).__init__(img_name, **kwargs)
+    def __init__(self, name="stripes", **kwargs):
+        super(Stripes, self).__init__(name, **kwargs)
 
     @staticmethod
     def get_applicable_metrics_high_res():
-        return BaseScene.get_general_metrics() + Stripes.get_overview_metrics()
+        return misc.get_general_metrics() + Stripes.get_scene_specific_stratified_metrics()
 
     @staticmethod
     def get_applicable_metrics_low_res():
         return []
 
     @staticmethod
-    def get_overview_metrics():
+    def get_scene_specific_stratified_metrics():
+        from metrics import StripesLowTexture, DarkStripes, BrightStripes
         return [StripesLowTexture(), DarkStripes(), BrightStripes()]
 
     def visualize_masks(self):

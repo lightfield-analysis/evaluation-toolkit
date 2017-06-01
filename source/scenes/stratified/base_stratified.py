@@ -47,27 +47,8 @@ from utils import plotting, misc
 class BaseStratified(BaseScene):
     __metaclass__ = abc.ABCMeta
 
-    @staticmethod
-    def get_type():
-        return "stratified"
-
-    @staticmethod
-    def get_stratified_metrics():
-        from scenes import Backgammon, Pyramids, Dots, Stripes
-        metrics = []
-        for scene in [Backgammon, Pyramids, Dots, Stripes]:
-            metrics += scene.get_overview_metrics()
-        return metrics
-
-    @staticmethod
-    def get_scenes(data_path=None):
-        from scenes import Backgammon, Pyramids, Dots, Stripes
-        return [Backgammon(data_path=data_path), Pyramids(data_path=data_path),
-                Dots(data_path=data_path), Stripes(data_path=data_path)]
-
-    @staticmethod
-    def is_stratified():
-        return True
+    def __init__(self, name, **kwargs):
+        super(BaseStratified, self).__init__(name, category=settings.STRATIFIED_SCENE, **kwargs)
 
     def set_scale_for_algo_overview(self):
         self.set_high_gt_scale()

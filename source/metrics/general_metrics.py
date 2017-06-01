@@ -92,7 +92,7 @@ class BaseMetric(object):
         return "%0.2f" % score
 
     def is_general(self):
-        return self.category == settings.GENERAL
+        return self.category == settings.GENERAL_METRIC
 
     # region methods
     def is_applicable_for_low_res_scene(self, scene):
@@ -113,7 +113,7 @@ class BadPix(BaseMetric):
     def __init__(self, thresh=settings.BAD_PIX_THRESH, name="BadPix", **kwargs):
         super(BadPix, self).__init__(name=name, **kwargs)
         self.thresh = thresh
-        self.category = settings.GENERAL
+        self.category = settings.GENERAL_METRIC
         self.cmin = 0
         self.cmax = 1
 
@@ -168,7 +168,7 @@ class MSE(BaseMetric):
         super(MSE, self).__init__(name=name, vmin=vmin, vmax=vmax,
                                   cmap=cmap, colorbar_bins=colorbar_bins)
         self.factor = factor
-        self.category = settings.GENERAL
+        self.category = settings.GENERAL_METRIC
 
     def get_identifier(self):
         return "mse_%d" % self.factor
@@ -204,7 +204,7 @@ class Quantile(BaseMetric):
                  name="Quantile", vmin=0, vmax=0.5, colorbar_bins=5, cmap=settings.quantile_cmap, **kwargs):
         super(Quantile, self).__init__(name=name, vmin=vmin, vmax=vmax, cmap=cmap, colorbar_bins=colorbar_bins, **kwargs)
         self.percentage = percentage
-        self.category = settings.GENERAL
+        self.category = settings.GENERAL_METRIC
         self.cmin = 0
         self.cmax = vmax
         self.factor = factor
@@ -247,7 +247,7 @@ class Runtime(BaseMetric):
     def __init__(self, log=False, name="Runtime"):
         super(Runtime, self).__init__(name=name)
         self.log = log
-        self.category = settings.GENERAL
+        self.category = settings.GENERAL_METRIC
 
     def get_identifier(self):
         if self.log:

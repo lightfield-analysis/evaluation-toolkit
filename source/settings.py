@@ -49,13 +49,17 @@ BAD_PIX_THRESH = 0.07
 DISP_MAP_DIR = "disp_maps"
 RUNTIME_DIR = "runtimes"
 
-STRATIFIED = "Stratified"
-PHOTOREALISTIC = "Photorealistic"
-GENERAL = "General"
+STRATIFIED_METRIC = "Stratified"
+PHOTOREALISTIC_METRIC = "Photorealistic"
+GENERAL_METRIC = "General"
 
 LOWRES = "lowres"
 HIGHRES = "highres"
 
+TEST_SCENE = "test"
+TRAINING_SCENE = "training"
+ADDITIONAL_SCENE = "additional"
+STRATIFIED_SCENE = "stratified"
 
 # plotting properties
 DMIN = -0.2
@@ -88,6 +92,25 @@ tableau20 = [(255, 127, 14),  # orange
              (127, 127, 127),  # grey
              (219, 219, 141)  # olive
              ]
+
+
+def get_scene_names_test():
+    return ["bedroom", "bicycle", "herbs", "origami"]
+
+
+def get_scene_names_training():
+    return ["boxes", "cotton", "dino", "sideboard"]
+
+
+def get_scene_names_stratified():
+    return ["backgammon", "dots", "pyramids", "stripes"]
+
+
+def get_scene_names_additional():
+    return ["antinous", "boardgames", "dishes", "greek",
+            "kitchen", "medieval2", "museum", "pens",
+            "pillows", "platonic", "rosemary", "table",
+            "tomb", "tower", "town", "vinyl"]
 
 
 def get_algo_names_accv_paper():

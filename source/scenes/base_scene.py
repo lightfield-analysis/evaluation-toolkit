@@ -38,21 +38,26 @@ import numpy as np
 from scipy import signal as ssig
 
 import settings
-from metrics import Runtime, MSE, BadPix, Quantile
 from utils import misc, file_io
 
 
 class BaseScene(object):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, img_name, gt_scale=1, data_path=None, boundary_offset=15):
-        self.img_name = img_name
+    def __init__(self, name, gt_scale=1, data_path=None, category="additional",
+                 boundary_offset=15, display_name=None):
+
+        self.name = name  # corresponds to the file name
+        if display_name is None:  # is used for figures etc.
+            self.display_name = name.title()
+
+        self.category = category
         self.gt_scale = gt_scale
         self.boundary_offset = boundary_offset  # how many pixels to ignore on each side during evaluation on gt_scale=1
 
         if data_path is None:
             data_path = settings.DATA_PATH
-        self.data_path = op.join(*[data_path, self.get_type(), self.get_name()])
+        self.data_path = op.join(*[data_path, self.get_category(), self.get_name()])
 
         # set scene params from file
         with open(op.join(self.data_path, "parameters.cfg"), "r") as f:
@@ -80,16 +85,16 @@ class BaseScene(object):
     # getter for simple scene attributes
     # ----------------------------------------------------------
 
+    def get_category(self):
+        return self.category
+
     def get_name(self):
         """This name corresponds to the file name."""
-        return self.img_name
+        return self.name
 
     def get_display_name(self):
         """You may choose a different name to be displayed on figures etc."""
-        return self.get_name().title()
-
-    def get_prefix(self):
-        return "%s_%s" % (self.get_type(), self.get_name())
+        return self.display_name
 
     def get_width(self):
         return int(self.original_width * self.gt_scale)
@@ -108,6 +113,15 @@ class BaseScene(object):
 
     def get_data_path(self):
         return self.data_path
+
+    def hidden_gt(self):
+        return self.is_test()
+
+    def is_test(self):
+        return self.category == settings.TEST_SCENE
+
+    def is_stratified(self):
+        return self.category == settings.STRATIFIED_SCENE
 
     # ----------------------------------------------------------
     # getter for scene data with appropriate scale
@@ -189,66 +203,8 @@ class BaseScene(object):
         return normal_map
 
     # ----------------------------------------------------------
-    # scene type utilities
+    # setter
     # ----------------------------------------------------------
-
-    def hidden_gt(self):
-        return False
-
-    def is_test(self):
-        return False
-
-    @staticmethod
-    def get_benchmark_scenes(gt_scale=1.0, data_path=None):
-        return BaseScene.get_test_scenes(gt_scale, data_path) + \
-               BaseScene.get_training_scenes(gt_scale, data_path) + \
-               BaseScene.get_stratified_scenes(gt_scale, data_path)
-
-    @staticmethod
-    def get_stratified_scenes(gt_scale=1.0, data_path=None):
-        from scenes import BaseStratified
-        return BaseScene.set_scales(BaseStratified.get_scenes(data_path), gt_scale)
-
-    @staticmethod
-    def get_training_scenes(gt_scale=1.0, data_path=None):
-        from scenes import BaseTraining
-        return BaseScene.set_scales(BaseTraining.get_scenes(data_path), gt_scale)
-
-    @staticmethod
-    def get_test_scenes(gt_scale=1.0, data_path=None):
-        from scenes import BaseTest
-        return BaseScene.set_scales(BaseTest.get_scenes(data_path), gt_scale)
-
-    @staticmethod
-    def get_additional_scenes(gt_scale=1.0, data_path=None):
-        from scenes import BaseAdditional
-        return BaseScene.set_scales(BaseAdditional.get_scenes(data_path), gt_scale)
-
-    # ----------------------------------------------------------
-    # scene specific metric utilities
-    # ----------------------------------------------------------
-
-    @staticmethod
-    def get_general_metrics():
-        return [MSE(), BadPix(0.01), BadPix(0.03), BadPix(0.07), Quantile(25)]
-
-    @staticmethod
-    def get_all_metrics_wo_runtime():
-        from scenes import BaseStratified, BasePhotorealistic
-        all_without_runtime = BaseScene.get_general_metrics() + \
-                              BaseStratified.get_stratified_metrics() + \
-                              BasePhotorealistic.get_region_metrics()
-        return all_without_runtime
-
-    @staticmethod
-    def get_all_metrics():
-        return BaseScene.get_all_metrics_wo_runtime() + [Runtime(log=10)]
-
-    @staticmethod
-    def set_scales(scenes, gt_scale):
-        for scene in scenes:
-            scene.gt_scale = gt_scale
-        return scenes
 
     def set_high_gt_scale(self):
         self.gt_scale = 10.0

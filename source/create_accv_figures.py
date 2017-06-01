@@ -81,28 +81,31 @@ if __name__ == "__main__":
 
     # delay imports to speed up usage response
     from utils.logger import log
+    from utils import misc
     import settings
-    from scenes import BaseScene, BaseStratified, BaseTraining, Backgammon, Pyramids, Dots
+    from scenes import BaseStratified, PhotorealisticScene, Backgammon, Pyramids, Dots
     log.info("Creating figures with algorithms: %s" % ", ".join(algo_names))
 
     if heatmaps:
         from evaluations import performance_heatmaps
         log.info("Creating heatmaps figure.")
-        scenes = BaseScene.get_stratified_scenes() + BaseScene.get_training_scenes()
+        scenes = misc.get_stratified_scenes() + misc.get_training_scenes()
         performance_heatmaps.plot(algo_names, scenes)
 
     if radar_charts:
         log.info("Creating radar charts for stratified and training scenes.")
         BaseStratified.plot_radar_chart(algo_names)
-        BaseTraining.plot_radar_chart(algo_names)
+
+        max_per_metric = [16, 40, 4, 4, 12, 80, 80, 6]
+        PhotorealisticScene.plot_radar_chart(algo_names, misc.get_training_scenes(), max_per_metric)
 
     if stratified:
-        for scene in BaseScene.get_stratified_scenes():
+        for scene in misc.get_stratified_scenes():
             log.info("Processing scene: %s." % scene.get_display_name())
             scene.plot_algo_overview(algo_names, with_metric_vis=True)
 
     if training:
-        for scene in BaseScene.get_training_scenes():
+        for scene in misc.get_training_scenes():
             log.info("Processing scene: %s." % scene.get_display_name())
             scene.plot_algo_overview(algo_names)
 

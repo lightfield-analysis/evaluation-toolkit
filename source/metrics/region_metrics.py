@@ -41,7 +41,7 @@ from utils import misc, plotting
 class Discontinuities(BadPix):
     def __init__(self, thresh=settings.BAD_PIX_THRESH, name="Discontinuities"):
         super(Discontinuities, self).__init__(name=name, thresh=thresh)
-        self.category = settings.PHOTOREALISTIC
+        self.category = settings.PHOTOREALISTIC_METRIC
         self.mask_name = "mask_discontinuities"
 
     def get_identifier(self):
@@ -67,7 +67,7 @@ class BumpinessPlanes(BaseMetric):
                                               colorbar_bins=5, cmap=settings.disp_cmap)
         self.clip = clip
         self.factor = factor
-        self.category = settings.PHOTOREALISTIC
+        self.category = settings.PHOTOREALISTIC_METRIC
         self.mask_name = "mask_planes"
 
     def get_identifier(self):
@@ -115,7 +115,7 @@ class BumpinessContinSurf(BumpinessPlanes):
 
     def __init__(self, clip=0.05, factor=100, name="Bumpiness Contin. Surfaces"):
         super(BumpinessContinSurf, self).__init__(clip=clip, factor=factor, name=name)
-        self.category = settings.PHOTOREALISTIC
+        self.category = settings.PHOTOREALISTIC_METRIC
         self.mask_name = "mask_smooth_surfaces"
 
     def get_identifier(self):
@@ -133,7 +133,7 @@ class MAEPlanes(BaseMetric):
     def __init__(self, name="MAE Planes", vmin=0, vmax=80):
         super(MAEPlanes, self).__init__(name=name, vmin=vmin, vmax=vmax,
                                         colorbar_bins=5, cmap=settings.abs_error_cmap)
-        self.category = settings.PHOTOREALISTIC
+        self.category = settings.PHOTOREALISTIC_METRIC
         self.mask_name = "mask_planes"
 
     def get_description(self):
@@ -185,7 +185,7 @@ class MAEContinSurf(MAEPlanes):
 
     def __init__(self, name="MAE Contin. Surfaces"):
         super(MAEContinSurf, self).__init__(name=name)
-        self.category = settings.PHOTOREALISTIC
+        self.category = settings.PHOTOREALISTIC_METRIC
         self.mask_name = "mask_smooth_surfaces"
 
     def get_description(self):
@@ -201,7 +201,7 @@ class MAEContinSurf(MAEPlanes):
 class FineFattening(BadPix):
     def __init__(self, thresh=-0.15, name="Fine Fattening"):
         super(FineFattening, self).__init__(thresh=thresh, name=name)
-        self.category = settings.PHOTOREALISTIC
+        self.category = settings.PHOTOREALISTIC_METRIC
         self.mask_name = "mask_fine_surrounding"
 
     def get_identifier(self):
@@ -240,7 +240,7 @@ class FineFattening(BadPix):
 class FineThinning(BadPix):
     def __init__(self, thresh=0.15, name="Fine Thinning"):
         super(FineThinning, self).__init__(thresh=thresh, name=name)
-        self.category = settings.PHOTOREALISTIC
+        self.category = settings.PHOTOREALISTIC_METRIC
         self.mask_name = "mask_fine"
 
     def get_identifier(self):

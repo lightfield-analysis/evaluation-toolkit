@@ -36,7 +36,7 @@ import skimage.morphology as skmorph
 
 import settings
 from metrics import BackgammonThinning, BackgammonFattening
-from scenes import BaseStratified, BaseScene
+from scenes import BaseStratified
 from utils import misc, plotting
 
 
@@ -48,19 +48,19 @@ class Backgammon(BaseStratified):
     mn_fg_fat = "mask_foreground_fattening"
     mn_vertical_bins = "mask_vertical_bins"
 
-    def __init__(self, img_name="backgammon", **kwargs):
-        super(Backgammon, self).__init__(img_name, **kwargs)
+    def __init__(self, name="backgammon", **kwargs):
+        super(Backgammon, self).__init__(name, **kwargs)
 
     @staticmethod
     def get_applicable_metrics_high_res():
-        return BaseScene.get_general_metrics() + Backgammon.get_overview_metrics()
+        return misc.get_general_metrics() + Backgammon.get_scene_specific_stratified_metrics()
 
     @staticmethod
     def get_applicable_metrics_low_res():
         return []
 
     @staticmethod
-    def get_overview_metrics():
+    def get_scene_specific_stratified_metrics():
         return [BackgammonFattening(), BackgammonThinning()]
 
     def plot_fattening_thinning(self, algo_names, n_bins=15):

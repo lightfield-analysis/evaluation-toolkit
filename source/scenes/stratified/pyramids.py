@@ -46,8 +46,8 @@ class Pyramids(BaseStratified):
     mn_sphere_in = "mask_sphere_in"
     mn_pyramids = "mask_pyramids"
 
-    def __init__(self, img_name="pyramids", **kwargs):
-        super(Pyramids, self).__init__(img_name,  **kwargs)
+    def __init__(self, name="pyramids", **kwargs):
+        super(Pyramids, self).__init__(name,  **kwargs)
 
     @staticmethod
     def get_applicable_metrics_high_res():
@@ -55,10 +55,10 @@ class Pyramids(BaseStratified):
 
     @staticmethod
     def get_applicable_metrics_low_res():
-        return BaseScene.get_general_metrics() + Pyramids.get_overview_metrics()
+        return misc.get_general_metrics() + Pyramids.get_scene_specific_stratified_metrics()
 
     @staticmethod
-    def get_overview_metrics():
+    def get_scene_specific_stratified_metrics():
         return [PyramidsSlantedBumpiness(), PyramidsParallelBumpiness()]
 
     def set_scale_for_algo_overview(self):

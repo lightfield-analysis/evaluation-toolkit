@@ -42,23 +42,19 @@ from utils import plotting, misc
 from utils.logger import log
 
 
-class BasePhotorealistic(BaseScene):
 
-    def __init__(self, img_name, **kwargs):
-        super(BasePhotorealistic, self).__init__(img_name, **kwargs)
+class PhotorealisticScene(BaseScene):
 
-    @staticmethod
-    def get_region_metrics():
-        return [BumpinessPlanes(), BumpinessContinSurf(), MAEPlanes(), MAEContinSurf(),
-                Discontinuities(), FineFattening(), FineThinning()]
+    def __init__(self, name, **kwargs):
+        super(PhotorealisticScene, self).__init__(name, **kwargs)
 
     def get_applicable_metrics_high_res(self):
-        return [metric for metric in self.get_region_metrics() if metric.is_applicable_for_high_res_scene(self)]
+        return [metric for metric in misc.get_region_metrics() if metric.is_applicable_for_high_res_scene(self)]
 
     def get_applicable_metrics_low_res(self):
-        metrics = [metric for metric in self.get_region_metrics() if metric.is_applicable_for_low_res_scene(self)]
+        metrics = [metric for metric in misc.get_region_metrics() if metric.is_applicable_for_low_res_scene(self)]
         #  add general metrics to low resolution evaluation
-        return BaseScene.get_general_metrics() + metrics
+        return misc.get_general_metrics() + metrics
 
     @staticmethod
     def get_applicable_scenes(all_scenes, metric):
@@ -165,16 +161,16 @@ class BasePhotorealistic(BaseScene):
             else:
                 gt_scale = 1.0
 
-            applicable_scenes = BasePhotorealistic.get_applicable_scenes(scenes, metric)
+            applicable_scenes = PhotorealisticScene.get_applicable_scenes(scenes, metric)
             for scene in applicable_scenes:
                 scene.gt_scale = gt_scale
 
-            scores_algos_metric[:, idx_m] = BasePhotorealistic.get_average_scores(algo_names, metric, applicable_scenes)
+            scores_algos_metric[:, idx_m] = PhotorealisticScene.get_average_scores(algo_names, metric, applicable_scenes)
 
         return scores_algos_metric
 
     @staticmethod
-    def plot_radar_chart(algo_names, scenes, fig_path, max_per_metric=None):
+    def plot_radar_chart(algo_names, scenes, max_per_metric=None):
         metrics = [MSE(),
                    BadPix(),
                    BumpinessPlanes(name="Planar\nSurfaces"),
@@ -185,9 +181,54 @@ class BasePhotorealistic(BaseScene):
                    Runtime(log=True)]
 
         metric_names = [m.get_display_name() for m in metrics]
-        scores_algos_metric = BasePhotorealistic.get_all_scores(algo_names, metrics, scenes)
+        scores_algos_metric = PhotorealisticScene.get_all_scores(algo_names, metrics, scenes)
 
         if max_per_metric is None:
             max_per_metric = [20, 60, 5, 5, 16, 100, 80, 6]
 
+        categories = sorted(list(set([scene.get_category() for scene in scenes])))
+        fig_path = plotting.get_path_to_figure("radar_%s" % "_".join(categories))
+
         radar_chart.plot(scores_algos_metric, metric_names, algo_names, fig_path, max_per_metric)
+
+
+# convenience classes for test and training scenes
+
+class Bedroom(PhotorealisticScene):
+    def __init__(self, name="bedroom", category=settings.TEST_SCENE, **kwargs):
+        super(Bedroom, self).__init__(name, category=category, **kwargs)
+
+
+class Bicycle(PhotorealisticScene):
+    def __init__(self, name="bicycle", category=settings.TEST_SCENE, **kwargs):
+        super(Bicycle, self).__init__(name, category=category,  **kwargs)
+
+
+class Herbs(PhotorealisticScene):
+    def __init__(self, name="herbs", category=settings.TEST_SCENE, **kwargs):
+        super(Herbs, self).__init__(name, category=category,  **kwargs)
+
+
+class Origami(PhotorealisticScene):
+    def __init__(self, name="origami", category=settings.TEST_SCENE, **kwargs):
+        super(Origami, self).__init__(name, category=category,  **kwargs)
+
+
+class Boxes(PhotorealisticScene):
+    def __init__(self, name="boxes", category=settings.TRAINING_SCENE, **kwargs):
+        super(Boxes, self).__init__(name, category=category, **kwargs)
+
+
+class Cotton(PhotorealisticScene):
+    def __init__(self, name="cotton", category=settings.TRAINING_SCENE, **kwargs):
+        super(Cotton, self).__init__(name, category=category, **kwargs)
+
+
+class Dino(PhotorealisticScene):
+    def __init__(self, name="dino", category=settings.TRAINING_SCENE, **kwargs):
+        super(Dino, self).__init__(name, category=category, **kwargs)
+
+
+class Sideboard(PhotorealisticScene):
+    def __init__(self, name="sideboard", category=settings.TRAINING_SCENE, **kwargs):
+        super(Sideboard, self).__init__(name, category=category, **kwargs)

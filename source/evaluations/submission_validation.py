@@ -35,15 +35,14 @@ import os.path as op
 import numpy as np
 
 from utils.logger import log
-from utils import file_io
-from scenes import BaseScene
+from utils import file_io, misc
 import settings
 
 
 def validate_extracted_submission(submission_dir, data_path=None):
     log.info("Validating extracted submission: %s." % submission_dir)
 
-    scene_names = [s.get_name() for s in BaseScene.get_benchmark_scenes(data_path=data_path)]
+    scene_names = [s.get_name() for s in misc.get_benchmark_scenes(data_path=data_path)]
     exp_height, exp_width = settings.HEIGHT, settings.WIDTH
     errors = []
 

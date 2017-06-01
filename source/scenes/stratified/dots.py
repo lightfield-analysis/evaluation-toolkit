@@ -35,7 +35,7 @@ import numpy as np
 
 import settings
 from metrics import DotsBackgroundMSE, MissedDots, MSE
-from scenes import BaseStratified, BaseScene
+from scenes import BaseStratified
 from utils import plotting, misc
 
 
@@ -45,19 +45,19 @@ class Dots(BaseStratified):
     mn_dots_by_size = "mask_dots_by_size"
     mn_boxes = "mask_boxes"
 
-    def __init__(self, img_name="dots", **kwargs):
-        super(Dots, self).__init__(img_name, **kwargs)
+    def __init__(self, name="dots", **kwargs):
+        super(Dots, self).__init__(name, **kwargs)
 
     @staticmethod
     def get_applicable_metrics_high_res():
-        return BaseScene.get_general_metrics() + Dots.get_overview_metrics()
+        return misc.get_general_metrics() + Dots.get_scene_specific_stratified_metrics()
 
     @staticmethod
     def get_applicable_metrics_low_res():
         return []
 
     @staticmethod
-    def get_overview_metrics():
+    def get_scene_specific_stratified_metrics():
         return [DotsBackgroundMSE(), MissedDots()]
 
     def plot_error_vs_noise(self, algo_names):

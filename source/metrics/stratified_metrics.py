@@ -40,7 +40,7 @@ from utils import misc, plotting
 class StratifiedBadPix(BadPix):
     def __init__(self, thresh, name, vmin, vmax, scene_display_name):
         super(StratifiedBadPix, self).__init__(name=name, vmin=vmin, vmax=vmax, thresh=thresh)
-        self.category = settings.STRATIFIED
+        self.category = settings.STRATIFIED_METRIC
         self.scene_display_name = scene_display_name
 
     def get_display_name(self):
@@ -148,7 +148,7 @@ class PyramidsBaseBumpiness(BumpinessPlanes):
 
     def __init__(self, clip, factor, name, vmax):
         super(PyramidsBaseBumpiness, self).__init__(clip=clip, factor=factor, name=name, vmax=vmax)
-        self.category = settings.STRATIFIED
+        self.category = settings.STRATIFIED_METRIC
         self.scene_display_name = "Pyramids"
         self.cmin = 0
         self.cmax = 5
@@ -254,7 +254,7 @@ class MissedDots(StratifiedBadPix):
 class DotsBackgroundMSE(MSE):
     def __init__(self, factor=100, name="Background MSE", vmin=0, vmax=4):
         super(DotsBackgroundMSE, self).__init__(factor=factor, name=name, vmin=vmin, vmax=vmax)
-        self.category = settings.STRATIFIED
+        self.category = settings.STRATIFIED_METRIC
         self.scene_display_name = "Dots"
         self.cmin = settings.DMIN
         self.cmax = settings.DMAX
