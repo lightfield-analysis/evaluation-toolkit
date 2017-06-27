@@ -30,7 +30,7 @@
 ############################################################################
 
 
-import optparse
+import argparse
 import os
 import os.path as op
 import shutil
@@ -74,29 +74,27 @@ def print_validation_results(success, error_json):
         error_messages = error_json["messages"]
         log.info('Validation found %d error(s).' % len(error_messages))
         log.info('A detailed format description can be found in the SUBMISSION_INSTRUCTIONS. '
-                       '\nThe identified problems are: ')
+                 '\nThe identified problems are: ')
         for error in error_messages:
             log.error(error)
 
 
 def parse_submission_validation_options():
-    parser = optparse.OptionParser()
-    parser.add_option("-i", type="string", dest="fname_submission",
-                      help='full path to the submission (zip archive or extracted submission)')
+    parser = argparse.ArgumentParser()
+    action = parser.add_argument(type=str, dest="fname_submission",
+                                 help='path to the submission (zip archive or extracted submission)')
 
-    options, args = parser.parse_args()
+    namespace = parser.parse_args()
+    fname_submission = getattr(namespace, action.dest)
 
     # check path to submission
-    if options.fname_submission is None:
-        parser.error("Path to submission is required.")
+    fname_submission = op.abspath(fname_submission)
+    if fname_submission.endswith(".zip"):
+        if not op.isfile(fname_submission):
+            parser.error("Could not find file: %s" % fname_submission)
     else:
-        fname_submission = op.abspath(options.fname_submission)
-        if fname_submission.endswith(".zip"):
-            if not op.isfile(fname_submission):
-                parser.error("Could not find file: %s" % fname_submission)
-        else:
-            if not op.isdir(fname_submission):
-                parser.error("Could not find directory: %s" % fname_submission)
+        if not op.isdir(fname_submission):
+            parser.error("Could not find directory: %s" % fname_submission)
 
     return fname_submission
 
