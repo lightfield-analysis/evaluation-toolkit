@@ -37,7 +37,7 @@ import settings
 from utils import plotting
 
 
-def plot(scores_algos_metric, metric_names, algo_names, fig_name, max_per_metric=None, add_legend=True):
+def plot(scores_algos_metric, metric_names, algorithms, fig_name, max_per_metric=None, add_legend=True):
     n_axes = len(metric_names)
     if max_per_metric is None:
         max_per_metric = np.max(scores_algos_metric, axis=0) * 1.2
@@ -75,7 +75,7 @@ def plot(scores_algos_metric, metric_names, algo_names, fig_name, max_per_metric
     angle = np.deg2rad(np.r_[angles, angles[0]])
 
     # plot one line per algorithm, passing through all metrics
-    for idx_a, algo_name in enumerate(algo_names):
+    for idx_a, algorithm in enumerate(algorithms):
         metric_scores_cur_algo = scores_algos_metric[idx_a, :]
 
         for idx_m in range(len(metric_names)):
@@ -89,10 +89,9 @@ def plot(scores_algos_metric, metric_names, algo_names, fig_name, max_per_metric
         # add first score at end to close the line-loop
         metric_scores_cur_algo = np.r_[metric_scores_cur_algo, metric_scores_cur_algo[0]]
 
-        color = settings.get_algo_color(algo_name)
         ax.plot(angle, metric_scores_cur_algo, "-", lw=4, alpha=0.7,
-                color=color, label=settings.get_algo_display_name(algo_name),
-                markersize=7, markeredgecolor=color)
+                color=algorithm.get_color(), label=algorithm.get_display_name(),
+                markersize=7, markeredgecolor=algorithm.get_color())
 
     if add_legend:
         legend = ax.legend(loc='upper right', bbox_to_anchor=(1.4, 1.), title="Algorithms:",

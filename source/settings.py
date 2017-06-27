@@ -33,8 +33,9 @@
 import copy
 import os
 import os.path as op
-from random import randint
 
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.cm as cm
 
 base_path = os.getcwd()
@@ -46,6 +47,8 @@ HEIGHT = 512
 WIDTH = 512
 BAD_PIX_THRESH = 0.07
 
+FIG_SIZE_EVALUATION = (8, 4)
+
 DISP_MAP_DIR = "disp_maps"
 RUNTIME_DIR = "runtimes"
 
@@ -55,11 +58,15 @@ GENERAL_METRIC = "General"
 
 LOWRES = "lowres"
 HIGHRES = "highres"
+PIXELIZE = True
 
 TEST_SCENE = "test"
 TRAINING_SCENE = "training"
 ADDITIONAL_SCENE = "additional"
 STRATIFIED_SCENE = "stratified"
+BENCHMARK_SCENE = "benchmark" # test + training + stratified
+
+SCENE_PACKAGES = [STRATIFIED_SCENE, TRAINING_SCENE, TEST_SCENE, ADDITIONAL_SCENE, BENCHMARK_SCENE]
 
 # plotting properties
 DMIN = -0.2
@@ -113,14 +120,6 @@ def get_scene_names_additional():
             "tomb", "tower", "town", "vinyl"]
 
 
-def get_algo_names_accv_paper():
-    return ["epi1", "epi2", "lf_occ", "lf", "mv"]
-
-
-def get_algo_display_name(algo_name):
-    return algo_name.upper()
-
-
 def diff_map_args():
     return {"vmin": DMIN,
             "vmax": DMAX,
@@ -153,20 +152,34 @@ def score_color_args(vmin, vmax, alpha=0.8):
             "alpha": alpha,
             "cmap": abs_error_cmap}
 
-
-def get_algo_color(algo_prefix):
-    color_indices = {
-              "lf": 0,
-              "lf_occ": 1,
-              "epi2": 2,
-              "epi1": 3,
-              "mv": 4
-              }
-    algo_index = color_indices.get(algo_prefix, randint(len(color_indices.keys()), len(tableau20)))
-    color = make_color(tableau20[algo_index % len(tableau20)])
-    return color
+colors = [
+    ( 31, 119, 180),  # blue
+    (255, 127,  14),  # orange
+    ( 44, 160,  44),  # green
+    (214,  39,  40),  # red
+    (148, 103, 189),  # violet
+    (140,  86,  75),  # brown
+    (227, 119, 194),  # rose
+    (127, 127, 127),  # grey
+    (188, 189,  34),  # yellow green
+    ( 23, 190, 207),  # cyan
+    (153,   0, 153),  # magenta
+    (255, 210,   0),  # yellow
+    (152, 223, 138),  # light lime green
+    ( 46,   6, 224),  # purple
+    (196, 156, 148),  # misty rose
+    (247, 182, 210),  # rose
+    (199, 199, 199),  # light grey
+    (219, 219, 141),  # light green
+    (158, 218, 229),  # light blue
+           ]
 
 
 def make_color(color):
     # scale RGB values to [0, 1] range
     return tuple([c/255.0 for c in color])
+
+
+def get_color(idx):
+    return make_color(colors[idx % len(colors)])
+

@@ -36,7 +36,6 @@ import matplotlib.pyplot as plt
 from matplotlib import ticker
 
 from metrics import Runtime
-from scenes import BaseScene
 import settings
 from utils.logger import log
 from utils import plotting, file_io, misc
@@ -68,9 +67,7 @@ def evaluate(evaluation_output_path, algorithm_input_path, ground_truth_path,
     # prepare metrics
     if metrics is None:
         metrics = misc.get_all_metrics()
-    metric_ids = [m.get_identifier() for m in metrics]
-    with_runtime = Runtime().get_identifier() in metric_ids
-    log.info("Metrics: %s" % ", ".join(metric_ids))
+    log.info("Metrics: %s" % ", ".join(m.get_display_name() for m in metrics))
 
     # prepare scenes
     scenes = get_scenes_for_evaluation(selected_scenes, data_path=ground_truth_path)
@@ -88,7 +85,7 @@ def evaluate(evaluation_output_path, algorithm_input_path, ground_truth_path,
             if with_test_scenes or not scene.is_test():
                 log.info("Processing scene: %s" % scene.get_display_name())
                 log.info("Using data from: %s" % scene.get_data_path())
-                scene_data["scores"] = compute_scores(scene, metric_ids, algorithm_input_path, evaluation_output_path, visualize, with_runtime)
+                scene_data["scores"] = compute_scores(scene, metrics, algorithm_input_path, evaluation_output_path, visualize)
 
         except IOError as e:
             admin_errors.append(e)
@@ -141,27 +138,27 @@ def visualize_algo_result(scene, algo_dir, tgt_dir):
     return disp_map_data
 
 
-def compute_scores(scene, metric_ids, algo_name, tgt_dir, visualize, with_runtime):
+def compute_scores(scene, metrics, algo_dir, tgt_dir, visualize):
     scores = dict()
 
     # resolution for evaluation is metric specific
-    metrics_low_res = [m for m in scene.get_applicable_metrics_low_res() if m.get_identifier() in metric_ids]
+    metrics_low_res = [m for m in scene.get_applicable_metrics_low_res() if m in metrics]
     scene.set_low_gt_scale()
-    scores = add_scores(metrics_low_res, scene, algo_name, tgt_dir, scores, visualize)
+    scores = add_scores(metrics_low_res, scene, algo_dir, tgt_dir, scores, visualize)
 
-    metrics_high_res = [m for m in scene.get_applicable_metrics_high_res() if m.get_identifier() in metric_ids]
+    metrics_high_res = [m for m in scene.get_applicable_metrics_high_res() if m in metrics]
     scene.set_high_gt_scale()
-    scores = add_scores(metrics_high_res, scene, algo_name, tgt_dir, scores, visualize)
+    scores = add_scores(metrics_high_res, scene, algo_dir, tgt_dir, scores, visualize)
 
-    if with_runtime:
-        scores = add_runtime(scene, algo_name, scores)
+    scores = add_runtime(scene, algo_dir, scores, metrics)
 
     return scores
 
 
-def add_runtime(scene, algo_name, scores):
-    metric = Runtime(log=True)
-    scores[metric.get_identifier()] = {"value": metric.get_score(scene, algo_name)}
+def add_runtime(scene, algo_dir, scores, metrics):
+    runtime_metrics = [m for m in metrics if "runtime" in m.get_identifier()]
+    for metric in runtime_metrics:
+        scores[metric.get_identifier()] = {"value": metric.get_score_from_dir(scene, algo_dir)}
     return scores
 
 
@@ -214,5 +211,5 @@ def add_colorbar(cm, bins, fontsize=5):
 
 
 def init_figure():
-    fig = plt.figure(figsize=(4, 2))
+    fig = plt.figure(figsize=settings.FIG_SIZE_EVALUATION)
     return fig

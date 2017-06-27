@@ -62,14 +62,15 @@ class PhotorealisticScene(BaseScene):
             return all_scenes
         return [s for s in all_scenes if metric.mask_exists(s, settings.LOWRES) or metric.mask_exists(s, settings.HIGHRES)]
 
-    def plot_algo_overview(self, algo_names):
-        metrics_low_res = self.get_applicable_metrics_low_res()
-        metrics_high_res = self.get_applicable_metrics_high_res()
+    def plot_algo_overview(self, algorithms):
+        accv_metrics = [MSE(), BadPix(0.07), BumpinessPlanes(), BumpinessContinSurf(), Discontinuities(), FineFattening(), FineThinning()]
+        metrics_low_res = [m for m in self.get_applicable_metrics_low_res() if m in accv_metrics]
+        metrics_high_res = [m for m in self.get_applicable_metrics_high_res() if m in accv_metrics]
 
         # prepare figure
         fontsize = 6
         rows = len(metrics_low_res + metrics_high_res) + 1
-        cols = len(algo_names) + 1
+        cols = len(algorithms) + 1
         fig = plt.figure(figsize=(cols, rows*1.1))
         grids = plotting.get_grids(fig, rows, cols, axes_pad=-0.2)
 
@@ -83,11 +84,11 @@ class PhotorealisticScene(BaseScene):
         # mask visualizations + algorithm disparity maps + metric visualizations
         log.info("Computing scores and visualizations for LOW resolution metrics.")
         self.set_low_gt_scale()
-        self.plot_metric_rows(grids, algo_names, metrics_low_res, offset=0, fontsize=fontsize)
+        self.plot_metric_rows(grids, algorithms, metrics_low_res, offset=0, fontsize=fontsize)
 
         log.info("Computing scores and visualizations for HIGH resolution metrics.")
         self.set_high_gt_scale()
-        self.plot_metric_rows(grids, algo_names, metrics_high_res, offset=len(metrics_low_res), fontsize=fontsize)
+        self.plot_metric_rows(grids, algorithms, metrics_high_res, offset=len(metrics_low_res), fontsize=fontsize)
 
         # finalize figure
         for grid in grids:
@@ -98,21 +99,21 @@ class PhotorealisticScene(BaseScene):
         fig_path = plotting.get_path_to_figure("algo_overview_%s" % self.get_name())
         plotting.save_fig(fig, fig_path, pad_inches=0.1)
 
-    def plot_metric_rows(self, grids, algo_names, metrics, offset, fontsize):
+    def plot_metric_rows(self, grids, algorithms, metrics, offset, fontsize):
         gt = self.get_gt()
         center_view = self.get_center_view()
 
-        for idx_a, algo_name in enumerate(algo_names):
-            log.info("Algorithm: %s" % algo_name)
-            algo_result = misc.get_algo_result(self, algo_name)
+        for idx_a, algorithm in enumerate(algorithms):
+            log.info("Algorithm: %s" % algorithm)
+            algo_result = misc.get_algo_result(self, algorithm)
 
             # add algorithm disparity map
             plt.sca(grids[0][idx_a + 1])
             cm = plt.imshow(algo_result, **settings.disp_map_args(self))
-            plt.title(settings.get_algo_display_name(algo_name), fontsize=fontsize)
+            plt.title(algorithm.get_display_name(), fontsize=fontsize)
 
             # add colorbar to last disparity map in row
-            if idx_a == (len(algo_names) - 1):
+            if idx_a == (len(algorithms) - 1):
                 plotting.create_colorbar(cm, cax=grids[0].cbar_axes[0], colorbar_bins=7, fontsize=fontsize)
 
             # add algorithm metric visualizations
@@ -124,7 +125,7 @@ class PhotorealisticScene(BaseScene):
                 cm = self.plot_algo_vis_for_metric(metric, algo_result, gt, mask, self.hidden_gt(), fontsize)
 
                 # add colorbar to last metric visualization in row
-                if idx_a == len(algo_names) - 1:
+                if idx_a == len(algorithms) - 1:
                     plotting.create_colorbar(cm, cax=grids[idx_m + offset + 1].cbar_axes[0],
                                              colorbar_bins=metric.colorbar_bins, fontsize=fontsize)
 
@@ -151,8 +152,8 @@ class PhotorealisticScene(BaseScene):
         return cm
 
     @staticmethod
-    def get_all_scores(algo_names, metrics, scenes):
-        scores_algos_metric = np.full((len(algo_names), len(metrics)), fill_value=np.nan)
+    def get_all_scores(algorithms, metrics, scenes):
+        scores_algos_metric = np.full((len(algorithms), len(metrics)), fill_value=np.nan)
 
         for idx_m, metric in enumerate(metrics):
             log.info("Computing scores for: %s" % metric.get_display_name().replace("\n", ""))
@@ -165,12 +166,12 @@ class PhotorealisticScene(BaseScene):
             for scene in applicable_scenes:
                 scene.gt_scale = gt_scale
 
-            scores_algos_metric[:, idx_m] = PhotorealisticScene.get_average_scores(algo_names, metric, applicable_scenes)
+            scores_algos_metric[:, idx_m] = PhotorealisticScene.get_average_scores(algorithms, metric, applicable_scenes)
 
         return scores_algos_metric
 
     @staticmethod
-    def plot_radar_chart(algo_names, scenes, max_per_metric=None):
+    def plot_radar_chart(algorithms, scenes, max_per_metric=None):
         metrics = [MSE(),
                    BadPix(),
                    BumpinessPlanes(name="Planar\nSurfaces"),
@@ -181,7 +182,7 @@ class PhotorealisticScene(BaseScene):
                    Runtime(log=True)]
 
         metric_names = [m.get_display_name() for m in metrics]
-        scores_algos_metric = PhotorealisticScene.get_all_scores(algo_names, metrics, scenes)
+        scores_algos_metric = PhotorealisticScene.get_all_scores(algorithms, metrics, scenes)
 
         if max_per_metric is None:
             max_per_metric = [20, 60, 5, 5, 16, 100, 80, 6]
@@ -189,7 +190,7 @@ class PhotorealisticScene(BaseScene):
         categories = sorted(list(set([scene.get_category() for scene in scenes])))
         fig_path = plotting.get_path_to_figure("radar_%s" % "_".join(categories))
 
-        radar_chart.plot(scores_algos_metric, metric_names, algo_names, fig_path, max_per_metric)
+        radar_chart.plot(scores_algos_metric, metric_names, algorithms, fig_path, max_per_metric)
 
 
 # convenience classes for test and training scenes

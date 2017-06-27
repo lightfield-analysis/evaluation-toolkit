@@ -54,6 +54,18 @@ class BaseMetric(object):
         self.cmax = vmax
         self.cmap = cmap
 
+    def __hash__(self):
+        return hash((self.get_identifier()))
+
+    def __eq__(self, other):
+        return self.get_identifier() == other.get_identifier()
+
+    def __str__(self):
+        return self.get_identifier()
+
+    def __repr__(self):
+        return self.get_identifier()
+
     # used as identifier for evaluation results on website and for reading/writing temporary results
     @abc.abstractmethod
     def get_identifier(self):
@@ -274,8 +286,14 @@ class Runtime(BaseMetric):
             short_name += " (log10)"
         return short_name
 
-    def get_score(self, scene, algo_name):
-        runtime = misc.get_runtime(scene, algo_name)
+    def get_score(self, scene, algorithm):
+        runtime = misc.get_runtime(scene, algorithm)
+        if self.log:
+            runtime = np.log10(runtime)
+        return runtime
+
+    def get_score_from_dir(self, scene, algo_dir):
+        runtime = misc.get_runtime_from_dir(scene, algo_dir)
         if self.log:
             runtime = np.log10(runtime)
         return runtime

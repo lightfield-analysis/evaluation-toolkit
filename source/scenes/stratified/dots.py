@@ -60,7 +60,7 @@ class Dots(BaseStratified):
     def get_scene_specific_stratified_metrics():
         return [DotsBackgroundMSE(), MissedDots()]
 
-    def plot_error_vs_noise(self, algo_names):
+    def plot_error_vs_noise(self, algorithms):
         self.set_low_gt_scale()
         fig = plt.figure(figsize=(8, 4))
 
@@ -75,16 +75,15 @@ class Dots(BaseStratified):
 
         x_values = np.arange(1, n_boxes + 1)
 
-        for idx_a, algo_name in enumerate(algo_names):
-            algo_result = misc.get_algo_result(self, algo_name)
+        for idx_a, algorithm in enumerate(algorithms):
+            algo_result = misc.get_algo_result(self, algorithm)
             y_values = np.full(n_boxes, fill_value=np.nan)
 
             for idx_b, box_id in enumerate(box_ids):
                 m_current = m_eval * (grid == box_id)
                 y_values[idx_b] = mse.get_masked_score(algo_result, gt, m_current)
 
-            color = settings.get_algo_color(algo_name)
-            plt.plot(x_values, y_values, "o-", color=color, label=settings.get_algo_display_name(algo_name),
+            plt.plot(x_values, y_values, "o-", color=algorithm.get_color(), label=algorithm.get_display_name(),
                      lw=2, alpha=0.9, markeredgewidth=0)
 
         plt.legend(frameon=False, loc="upper right", ncol=1,

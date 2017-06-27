@@ -54,7 +54,7 @@ class BaseStratified(BaseScene):
         self.set_high_gt_scale()
 
     @staticmethod
-    def plot_radar_chart(algo_names):
+    def plot_radar_chart(algorithms):
         from scenes import Backgammon, Pyramids, Dots, Stripes
         from metrics import DotsBackgroundMSE, MissedDots, BackgammonThinning, BackgammonFattening, \
             DarkStripes, BrightStripes, StripesLowTexture, PyramidsSlantedBumpiness, PyramidsParallelBumpiness, Runtime
@@ -74,50 +74,50 @@ class BaseStratified(BaseScene):
                     [pyramids, PyramidsSlantedBumpiness(), 6],
                     [pyramids, PyramidsParallelBumpiness(), 6]]
 
-        scores_a_m = np.full((len(algo_names), len(dm_pairs)+3), fill_value=np.nan)
+        scores_a_m = np.full((len(algorithms), len(dm_pairs)+3), fill_value=np.nan)
 
         # averaged scores of pixel metrics over all scenes
         all_scenes = [backgammon, pyramids, dots, stripes]
 
         metric_names = [MSE().get_display_name(),  BadPix().get_display_name()]
-        scores_a_m[:, 0] = BaseScene.get_average_scores(algo_names, MSE(), all_scenes)
-        scores_a_m[:, 1] = BaseScene.get_average_scores(algo_names, BadPix(), all_scenes)
+        scores_a_m[:, 0] = BaseScene.get_average_scores(algorithms, MSE(), all_scenes)
+        scores_a_m[:, 1] = BaseScene.get_average_scores(algorithms, BadPix(), all_scenes)
         max_per_metric = [12, 32]
 
         # scene specific scores
         for idx_m, (scene, metric, vmax) in enumerate(dm_pairs):
             log.info("Computing scores for: %s" % metric.get_display_name())
-            scores_a_m[:, idx_m+2] = scene.get_scores(algo_names, metric)
+            scores_a_m[:, idx_m+2] = scene.get_scores(algorithms, metric)
             metric_names.append(metric.get_display_name().replace(":", ":\n"))
             max_per_metric.append(vmax)
 
         runtime = Runtime(log=True)
         metric_names.append(runtime.get_display_name())
-        scores_a_m[:, 2+len(dm_pairs)] = BaseScene.get_average_scores(algo_names, runtime, all_scenes)
+        scores_a_m[:, 2+len(dm_pairs)] = BaseScene.get_average_scores(algorithms, runtime, all_scenes)
         max_per_metric.append(6)
 
         fig_path = plotting.get_path_to_figure("radar_stratified")
-        radar_chart.plot(scores_a_m, metric_names, algo_names, fig_path, max_per_metric)
+        radar_chart.plot(scores_a_m, metric_names, algorithms, fig_path, max_per_metric)
 
-    def plot_algo_overview(self, algo_names, with_metric_vis=True):
+    def plot_algo_overview(self, algorithms, with_metric_vis=True):
         self.set_scale_for_algo_overview()
-        metrics = self.get_overview_metrics()
+        metrics = self.get_scene_specific_stratified_metrics()
         n_metrics = len(metrics)
 
         if not with_metric_vis:
-            rows, cols = 2 + n_metrics, len(algo_names) + 2
-            fig = plt.figure(figsize=(2.6*len(algo_names), 4.9))
+            rows, cols = 2 + n_metrics, len(algorithms) + 2
+            fig = plt.figure(figsize=(2.6*len(algorithms), 4.9))
             offset = 0
         else:
-            rows, cols = 2 + 2*n_metrics, len(algo_names) + 2
-            fig = plt.figure(figsize=(2.6*len(algo_names), rows+3))
+            rows, cols = 2 + 2*n_metrics, len(algorithms) + 2
+            fig = plt.figure(figsize=(2.6*len(algorithms), rows+3))
             offset = n_metrics
 
         fontsize = 14
         labelpad = -15
         hscale = 7
         wscale = 5
-        width_ratios = [wscale] * (len(algo_names) + 1) + [1]
+        width_ratios = [wscale] * (len(algorithms) + 1) + [1]
         height_ratios = [hscale] * (rows - n_metrics) + [1] * n_metrics
         gs = gridspec.GridSpec(rows, cols, height_ratios=height_ratios, width_ratios=width_ratios)
 
@@ -142,13 +142,13 @@ class BaseStratified(BaseScene):
             plt.imshow(dummy, cmap="gray_r")
 
         # algorithm columns
-        for idx_a, algo_name in enumerate(algo_names):
-            log.info("Processing algorithm: %s" % algo_name)
-            algo_result = misc.get_algo_result(self, algo_name)
+        for idx_a, algorithm in enumerate(algorithms):
+            log.info("Processing algorithm: %s" % algorithm)
+            algo_result = misc.get_algo_result(self, algorithm)
 
             # algorithm disparities
             plt.subplot(gs[idx_a+1])
-            plt.title(settings.get_algo_display_name(algo_name), fontsize=fontsize)
+            plt.title(algorithm.get_display_name(), fontsize=fontsize)
             cm1 = plt.imshow(algo_result, **settings.disp_map_args(self))
 
             # algorithm diff map
@@ -156,7 +156,7 @@ class BaseStratified(BaseScene):
             cm2 = plt.imshow(gt - algo_result, **settings.diff_map_args())
 
             # add colorbar if last column
-            if idx_a == (len(algo_names) - 1):
+            if idx_a == (len(algorithms) - 1):
                 plotting.add_colorbar(gs[idx_a + 2], cm1, colorbar_height, colorbar_width,
                                    colorbar_bins=5, fontsize=10, img_width=1)
                 plotting.add_colorbar(gs[cols + idx_a + 2], cm2, colorbar_height, colorbar_width,
@@ -172,7 +172,7 @@ class BaseStratified(BaseScene):
 
                     if idx_a == 0:
                         plt.ylabel(metric.get_short_name(), fontsize=fontsize)
-                    elif idx_a == (len(algo_names) - 1):
+                    elif idx_a == (len(algorithms) - 1):
                         plotting.add_colorbar(gs[(2+idx_m)*cols+idx_a+2], cm3, colorbar_height, colorbar_width,
                                            colorbar_bins=metric.colorbar_bins, fontsize=10, img_width=1)
 

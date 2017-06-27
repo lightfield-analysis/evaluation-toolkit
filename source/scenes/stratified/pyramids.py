@@ -64,7 +64,7 @@ class Pyramids(BaseStratified):
     def set_scale_for_algo_overview(self):
         self.set_low_gt_scale()
 
-    def plot_algo_disp_vs_gt_disp(self, algo_names):
+    def plot_algo_disp_vs_gt_disp(self, algorithms):
         self.set_low_gt_scale()
 
         # prepare data
@@ -85,9 +85,8 @@ class Pyramids(BaseStratified):
         legend_lines = []
         legend_labels = []
 
-        for idx_a, algo_name in enumerate(algo_names):
-            algo_result = misc.get_algo_result(self, algo_name)
-            color = settings.get_algo_color(algo_name)
+        for idx_a, algorithm in enumerate(algorithms):
+            algo_result = misc.get_algo_result(self, algorithm)
 
             # go through ground truth disparity values
             for idx_d in range(n_values):
@@ -101,10 +100,10 @@ class Pyramids(BaseStratified):
                     if np.size(algo_disps) > 0:
                         median = np.median(algo_disps)
                         plt.subplot(rows, cols, idx_m+1)
-                        s = plt.scatter(current_disp/factor, median, marker="o", c=color, alpha=0.8, s=5, lw=0)
+                        s = plt.scatter(current_disp/factor, median, marker="o", c=algorithm.get_color(), alpha=0.8, s=5, lw=0)
 
             legend_lines.append(s)
-            legend_labels.append(settings.get_algo_display_name(algo_name))
+            legend_labels.append(algorithm.get_display_name())
 
         # finalize figure attributes
         for idx_m, (mask, mask_name) in enumerate(zip(masks, mask_names)):

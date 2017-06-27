@@ -44,7 +44,7 @@ from utils import misc, file_io
 class BaseScene(object):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, name, gt_scale=1, data_path=None, category="additional",
+    def __init__(self, name, gt_scale=1, data_path=None, category="other",
                  boundary_offset=15, display_name=None):
 
         self.name = name  # corresponds to the file name
@@ -80,6 +80,12 @@ class BaseScene(object):
             self.disp_min = float(parser.get(section, 'disp_min'))
             self.disp_max = float(parser.get(section, 'disp_max'))
             self.highres_scale = float(parser.get(section, 'depth_map_scale'))
+
+    def __str__(self):
+        return self.get_name()
+
+    def __repr__(self):
+        return self.get_name()
 
     # ----------------------------------------------------------
     # getter for simple scene attributes
@@ -216,27 +222,27 @@ class BaseScene(object):
     # scores
     # ----------------------------------------------------------
 
-    def get_scores(self, algo_names, metric):
-        scores = np.full(len(algo_names), fill_value=np.nan)
+    def get_scores(self, algorithms, metric):
+        scores = np.full(len(algorithms), fill_value=np.nan)
         gt = self.get_gt()
 
-        for idx_a, algo_name in enumerate(algo_names):
-            algo_result = misc.get_algo_result(self, algo_name)
+        for idx_a, algorithm in enumerate(algorithms):
+            algo_result = misc.get_algo_result(self, algorithm)
             if "runtime" in metric.get_identifier():
-                scores[idx_a] = metric.get_score(self, algo_name)
+                scores[idx_a] = metric.get_score(self, algorithm)
             else:
                 scores[idx_a] = metric.get_score(algo_result, gt, self)
 
         return scores
 
     @staticmethod
-    def get_average_scores(algo_names, metric, scenes):
+    def get_average_scores(algorithms, metric, scenes):
         if len(scenes) == 0:
-            return np.full((1, len(algo_names)), fill_value=np.nan)
-        scores = np.full((len(scenes), len(algo_names)), fill_value=np.nan)
+            return np.full((1, len(algorithms)), fill_value=np.nan)
+        scores = np.full((len(scenes), len(algorithms)), fill_value=np.nan)
 
         for idx_s, scene in enumerate(scenes):
-            scores[idx_s, :] = scene.get_scores(algo_names, metric)
+            scores[idx_s, :] = scene.get_scores(algorithms, metric)
 
         avg_scores = np.ma.average(np.ma.masked_array(scores, mask=misc.get_mask_invalid(scores)), axis=0)
         return avg_scores

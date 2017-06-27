@@ -38,7 +38,7 @@ import settings
 from utils import plotting, misc
 
 
-def plot(algo_names, scenes, thresh=settings.BAD_PIX_THRESH):
+def plot(algorithms, scenes, thresh=settings.BAD_PIX_THRESH):
     # prepare figure
     n_scenes = len(scenes)
     rows, cols = int(np.ceil(n_scenes / 4.0)), 5
@@ -58,7 +58,7 @@ def plot(algo_names, scenes, thresh=settings.BAD_PIX_THRESH):
             scene = scenes[idx_scene]
             idx_scene += 1
             plt.subplot(grid[idx])
-            cm = plt.imshow(get_bad_count(scene, algo_names, thresh, percentage=True), vmin=0, vmax=100, cmap="inferno")
+            cm = plt.imshow(get_bad_count(scene, algorithms, thresh, percentage=True), vmin=0, vmax=100, cmap="inferno")
             plt.ylabel(scene.get_display_name(), fontsize=18, labelpad=2.5)
         else:
             plotting.add_colorbar(grid[idx], cm, **colorbar_args)
@@ -69,12 +69,12 @@ def plot(algo_names, scenes, thresh=settings.BAD_PIX_THRESH):
     plotting.save_tight_figure(fig, fig_path, hide_frames=True, remove_ticks=True, hspace=0.02)
 
 
-def get_bad_count(scene, algo_names, thresh, percentage=False):
+def get_bad_count(scene, algorithms, thresh, percentage=False):
     bad_count = np.zeros((scene.get_height(), scene.get_width()))
     gt = scene.get_gt()
 
-    for idx_a, algo_name in enumerate(algo_names):
-        algo_result = misc.get_algo_result(scene, algo_name)
+    for idx_a, algorithm in enumerate(algorithms):
+        algo_result = misc.get_algo_result(scene, algorithm)
         abs_diffs = np.abs(gt - algo_result)
 
         with np.errstate(invalid="ignore"):
@@ -84,7 +84,7 @@ def get_bad_count(scene, algo_names, thresh, percentage=False):
         bad_count += bad
 
     if percentage:
-        bad_count = misc.percentage(len(algo_names), bad_count)
+        bad_count = misc.percentage(len(algorithms), bad_count)
 
     return bad_count
 

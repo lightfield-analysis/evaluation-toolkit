@@ -63,7 +63,7 @@ class Backgammon(BaseStratified):
     def get_scene_specific_stratified_metrics():
         return [BackgammonFattening(), BackgammonThinning()]
 
-    def plot_fattening_thinning(self, algo_names, n_bins=15):
+    def plot_fattening_thinning(self, algorithms, n_bins=15):
         self.set_high_gt_scale()
         gt = self.get_gt()
 
@@ -101,9 +101,9 @@ class Backgammon(BaseStratified):
 
         # compute scores for vertical bins
         x_values = np.arange(0, n_bins, 1)
-        for idx_a, algo_name in enumerate(algo_names):
-            algo_result = misc.get_algo_result(self, algo_name)
-            props = {"color": settings.get_algo_color(algo_name), "lw": 2,
+        for idx_a, algorithm in enumerate(algorithms):
+            algo_result = misc.get_algo_result(self, algorithm)
+            props = {"color": algorithm.get_color(), "lw": 2,
                      "alpha": 0.8, "markersize": 7, "markeredgewidth": 0}
 
             plt.subplot(rows, cols, 2)
@@ -114,7 +114,7 @@ class Backgammon(BaseStratified):
             plt.subplot(rows, cols, 3)
             m_thinning = metric_thinning.get_thinning(algo_result, gt, m_extrapolated_bg) * m_eval
             y_values_thin = self.get_bin_scores(x_values, m_bins, n_bins, m_fg_thin, m_thinning)
-            plt.plot(x_values, y_values_thin, "o-", label=settings.get_algo_display_name(algo_name), **props)
+            plt.plot(x_values, y_values_thin, "o-", label=algorithm.get_display_name(), **props)
 
         for idx_m, metric in enumerate([metric_fattening, metric_thinning]):
             plt.subplot(rows, cols, idx_m+2)

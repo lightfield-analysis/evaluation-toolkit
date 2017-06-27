@@ -119,10 +119,23 @@ def percentage(total, part):
 
 
 # scenes
+
+def get_available_scene_names(categories=None):
+    if categories is None:
+        categories = [d for d in os.listdir(settings.DATA_PATH) if op.isdir(op.join(settings.DATA_PATH, d))]
+
+    scene_names = []
+    for category in categories:
+        category_dir = op.join(settings.DATA_PATH, category)
+        # at least parameter file is required for scene to be "available"
+        scene_names += [d for d in os.listdir(category_dir) if op.isfile(op.join(category_dir, d, "parameters.cfg"))]
+
+    return scene_names
+
+
 def get_scene_dict():
     scene_dict = dict()
-    default_scenes = get_training_scenes() + get_stratified_scenes()
-    for scene in default_scenes:
+    for scene in get_benchmark_scenes():
         scene_dict[scene.get_name()] = scene
     return scene_dict
 
@@ -177,17 +190,6 @@ def _get_photorealistic_scenes_by_name(scene_names, category, gt_scale=1.0, data
 
 
 # metrics
-def get_metric_dict():
-    md = {
-        "general": get_general_metrics(),
-        "stratified": get_stratified_metrics(),
-        "regions": get_region_metrics(),
-        "all_wo_runtime": get_all_metrics_wo_runtime(),
-        "all": get_all_metrics()
-    }
-    return md
-
-
 def get_all_metrics(log_runtime=True):
     from metrics import Runtime
     return get_all_metrics_wo_runtime() + [Runtime(log=log_runtime)]
@@ -226,12 +228,12 @@ def get_available_algo_names():
     return [a for a in os.listdir(settings.ALGO_PATH) if op.isdir(op.join(settings.ALGO_PATH, a))]
 
 
-def get_path_to_algo_data(algo_name):
-    return op.join(settings.ALGO_PATH, algo_name)
+def get_path_to_algo_data(algorithm):
+    return op.join(settings.ALGO_PATH, algorithm.get_name())
 
 
-def get_algo_result(scene, algo_name):
-    return get_algo_result_from_dir(scene, get_path_to_algo_data(algo_name))
+def get_algo_result(scene, algorithm):
+    return get_algo_result_from_dir(scene, get_path_to_algo_data(algorithm))
 
 
 def get_algo_result_from_dir(scene, algo_dir):
@@ -242,10 +244,31 @@ def get_algo_result_from_dir(scene, algo_dir):
     return algo_result
 
 
-def get_runtime(scene, algo_name):
-    return get_runtime_from_dir(scene, get_path_to_algo_data(algo_name))
+def get_algo_results(scene, algorithms):
+    algo_results = np.full((scene.get_height(), scene.get_width(), len(algorithms)), fill_value=np.nan)
+
+    for idx_a, algorithm in enumerate(algorithms):
+        algo_results[:, :, idx_a] = get_algo_result(scene, algorithm)
+
+    algo_results = np.ma.masked_array(algo_results, mask=get_mask_invalid(algo_results))
+    return algo_results
+
+
+def get_runtime(scene, algorithm):
+    return get_runtime_from_dir(scene, get_path_to_algo_data(algorithm))
 
 
 def get_runtime_from_dir(scene, algo_dir):
     fname = op.normpath(op.join(*[algo_dir, settings.RUNTIME_DIR, "%s.txt" % scene.get_name()]))
     return file_io.read_runtime(fname)
+
+
+def get_runtimes(scene, algorithms):
+    runtimes = []
+    for idx_a, algorithm in enumerate(algorithms):
+        runtimes.append(get_runtime(scene, algorithm))
+    return runtimes
+
+
+def get_stacked_gt(scene, algorithms):
+    return np.tile(scene.get_gt()[:, :, np.newaxis], (1, 1, len(algorithms)))
