@@ -45,8 +45,8 @@ import misc
 import settings
 
 
-def get_path_to_figure(fig_name):
-    return op.join(settings.EVAL_PATH, fig_name + "." + settings.fig_type)
+def get_path_to_figure(fig_name, subdir=""):
+    return op.join(settings.FIG_PATH, subdir, fig_name + "." + settings.fig_type)
 
 
 def save_fig(fig, fig_name, dpi=150, bbox_inches='tight', hide_frames=False, remove_ticks=False, **kwargs):
@@ -66,10 +66,10 @@ def save_fig(fig, fig_name, dpi=150, bbox_inches='tight', hide_frames=False, rem
 
 
 def save_tight_figure(fig, fig_name, remove_ticks=True, wspace=0.0, hspace=0.0,
-                      pad_inches=0.1, padding_top=0.92, hide_frames=False):
+                      pad_inches=0.1, padding_top=0.92, hide_frames=False, dpi=150):
     plt.tight_layout()
     plt.subplots_adjust(wspace=wspace, hspace=hspace, top=padding_top)
-    save_fig(fig, fig_name, pad_inches=pad_inches, hide_frames=hide_frames, remove_ticks=remove_ticks)
+    save_fig(fig, fig_name, pad_inches=pad_inches, hide_frames=hide_frames, remove_ticks=remove_ticks, dpi=dpi)
 
 
 def remove_ticks_from_axes(axes):

@@ -29,24 +29,21 @@
 #                                                                          #
 ############################################################################
 
-
 from utils.option_parser import *
-import os.path as op
 
 
 if __name__ == "__main__":
-    parser = OptionParser([SceneOps(), AlgorithmOps(), MetricOps(), VisualizationOps()])
-    scenes, algorithms, metrics, visualize = parser.parse_args()
 
-    # delay import to speed up usage response
-    from evaluations import submission_evaluation
-    import settings
+    parser = OptionParser([AlgorithmOps(), SceneOps()])
+    algorithms, scenes = parser.parse_args()
+
+    # delay imports
     from utils import misc
+    from evaluations import cvprw_2017_figures
 
-    for algorithm in algorithms:
-        submission_evaluation.evaluate(selected_scenes=scenes,
-                                       metrics=metrics,
-                                       visualize=visualize,
-                                       ground_truth_path=settings.DATA_PATH,
-                                       evaluation_output_path=op.join(settings.ALGO_EVAL_PATH, algorithm.get_name()),
-                                       algorithm_input_path=misc.get_path_to_algo_data(algorithm))
+    benchmark_scenes = sorted(misc.get_stratified_scenes()) + \
+                       sorted(misc.get_training_scenes()) + \
+                       sorted(misc.get_test_scenes())
+
+
+    cvprw_2017_figures.plot_scene_overview(benchmark_scenes)

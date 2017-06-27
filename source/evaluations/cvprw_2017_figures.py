@@ -29,24 +29,46 @@
 #                                                                          #
 ############################################################################
 
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 
-from utils.option_parser import *
-import os.path as op
+from utils import plotting
+import settings
 
 
-if __name__ == "__main__":
-    parser = OptionParser([SceneOps(), AlgorithmOps(), MetricOps(), VisualizationOps()])
-    scenes, algorithms, metrics, visualize = parser.parse_args()
+SUBDIR = "cvprws_2017_survey"
 
-    # delay import to speed up usage response
-    from evaluations import submission_evaluation
-    import settings
-    from utils import misc
 
-    for algorithm in algorithms:
-        submission_evaluation.evaluate(selected_scenes=scenes,
-                                       metrics=metrics,
-                                       visualize=visualize,
-                                       ground_truth_path=settings.DATA_PATH,
-                                       evaluation_output_path=op.join(settings.ALGO_EVAL_PATH, algorithm.get_name()),
-                                       algorithm_input_path=misc.get_path_to_algo_data(algorithm))
+def plot_scene_overview(scenes):
+
+    # prepare grid figure
+    fig = plt.figure(figsize=(21.6, 4))
+    fs = 16
+
+    rows, cols = 2, len(scenes)
+    hscale, wscale = 5, 7
+    grids = gridspec.GridSpec(rows, cols, height_ratios=[hscale] * rows, width_ratios=[wscale] * cols)
+
+    # plot center view and ground truth for each scene
+    for idx_s, scene in enumerate(scenes):
+
+        center_view = scene.get_center_view()
+        plt.subplot(grids[idx_s])
+        plt.imshow(center_view)
+        plt.title("\n\n" + scene.get_display_name(), fontsize=fs)
+
+        gt = scene.get_gt()
+        plt.subplot(grids[cols+idx_s])
+        if scene.hidden_gt():
+            gt = plotting.pixelize(gt, noise_factor=0.5)
+        plt.imshow(gt, **settings.disp_map_args(scene))
+
+    # add text
+    height = 785
+    plt.gca().annotate("(a) Stratified Scenes", (400, 420), (500, height), fontsize=fs, xycoords='figure pixels')
+    plt.gca().annotate("(b) Training Scenes", (400, 420), (1910, height), fontsize=fs, xycoords='figure pixels')
+    plt.gca().annotate("(c) Test Scenes (Hidden Ground Truth)", (400, 420), (3070, height), fontsize=fs, xycoords='figure pixels')
+
+    # save figure
+    fig_path = plotting.get_path_to_figure("scenes", subdir=SUBDIR)
+    plotting.save_tight_figure(fig, fig_path, hide_frames=True, remove_ticks=True, hspace=0.02, wspace=0.02, dpi=200)
