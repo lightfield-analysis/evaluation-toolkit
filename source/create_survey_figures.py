@@ -29,21 +29,46 @@
 #                                                                          #
 ############################################################################
 
+import os.path as op
+
 from utils.option_parser import *
 
 
 if __name__ == "__main__":
+    parser = OptionParser([FigureOpsCVPR17()])
+    scene_overview, bad_pix_series = parser.parse_args()
 
-    parser = OptionParser([AlgorithmOps(), SceneOps()])
-    algorithms, scenes = parser.parse_args()
-
-    # delay imports
-    from utils import misc
+    # delay imports to speed up usage response
+    from utils import misc, file_io
+    from utils.logger import log
     from evaluations import cvprw_2017_figures
+    import settings
+    from algorithms import Algorithm
 
+    # prepare scenes
     benchmark_scenes = sorted(misc.get_stratified_scenes()) + \
                        sorted(misc.get_training_scenes()) + \
                        sorted(misc.get_test_scenes())
 
+    # prepare algorithms
+    fnames_baseline_algos = ["epi1", "epi2", "lf", "mv", "lf_occ26"]
+    fnames_challenge_participants = ["ober", "omg_occ", "ps_rf25", "rm3de", "sc_gc", "spo_lf4cv", "zctv1"]
+    fnames_other_submissions = ["obercross", "ofsy_330dnr2"]
 
-    cvprw_2017_figures.plot_scene_overview(benchmark_scenes)
+    meta_data = file_io.read_file(op.join(settings.ALGO_PATH, "meta_data.json"))
+    baseline_algorithms = sorted(Algorithm.initialize_algorithms(meta_data, fnames_baseline_algos, is_baseline=True))
+    challenge_algorithms = sorted(Algorithm.initialize_algorithms(meta_data, fnames_challenge_participants))
+    other_algorithms = sorted(Algorithm.initialize_algorithms(meta_data, fnames_other_submissions))
+    for a in other_algorithms:
+        a.display_name = "'" + a.display_name
+
+    all_benchmark_algorithms = sorted(baseline_algorithms) + sorted(other_algorithms) + sorted(challenge_algorithms)
+    all_benchmark_algorithms = Algorithm.set_colors(all_benchmark_algorithms)
+
+    if scene_overview:
+        log.info("Creating scene overview figure.")
+        cvprw_2017_figures.plot_scene_overview(benchmark_scenes)
+
+    if bad_pix_series:
+        log.info("Creating figures with BadPix series.")
+        cvprw_2017_figures.plot_bad_pix_series(all_benchmark_algorithms, with_cached_scores=False)

@@ -41,10 +41,10 @@ import matplotlib.cm as cm
 base_path = os.getcwd()
 DATA_PATH = op.normpath(op.join(base_path, "../data"))
 ALGO_PATH = op.normpath(op.join(base_path, "../algo_results"))
-
 EVAL_PATH = op.normpath(op.join(base_path, "../evaluation"))
 ALGO_EVAL_PATH = op.normpath(op.join(EVAL_PATH, "algorithms"))
 FIG_PATH = op.normpath(op.join(EVAL_PATH, "figures"))
+TMP_PATH = op.normpath(op.join(base_path, "../tmp"))
 
 HEIGHT = 512
 WIDTH = 512

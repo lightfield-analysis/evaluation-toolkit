@@ -10,6 +10,8 @@ class Algorithm(object):
         self.file_name = file_name
         if display_name is None:
             self.display_name = file_name.upper()
+        else:
+            self.display_name = display_name
 
         # algorithm category
         self.is_baseline_algorithm = is_baseline
@@ -44,8 +46,32 @@ class Algorithm(object):
     def get_color(self):
         return self.color
 
+    def get_line_style(self):
+        if self.line_style is not None:
+            return self.line_style
+        elif self.is_meta():
+            return (0, (1, 1))
+        else:
+            return "-"
+
     @staticmethod
     def set_colors(algorithms, offset=0):
         for idx_a, algorithm in enumerate(algorithms):
             algorithm.color = settings.get_color(idx_a+offset)
+        return algorithms
+
+    @staticmethod
+    def initialize_algorithms(meta_data, file_names_algorithms, is_baseline=False, is_meta=False):
+        algorithms = []
+
+        for file_name_algorithm in file_names_algorithms:
+            acronym = meta_data[file_name_algorithm]["acronym"]
+
+            algorithm = Algorithm(file_name=file_name_algorithm,
+                                  display_name=acronym,
+                                  is_meta=is_meta,
+                                  is_baseline=is_baseline)
+
+            algorithms.append(algorithm)
+
         return algorithms

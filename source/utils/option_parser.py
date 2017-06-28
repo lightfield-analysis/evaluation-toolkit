@@ -307,7 +307,7 @@ class VisualizationOps(object):
         return [action]
 
 
-class FigureOpsACCV(object):
+class FigureOpsACCV16(object):
     
     def add_arguments(self, parser):
         actions = []
@@ -337,8 +337,19 @@ class FigureOpsACCV(object):
         return actions
 
 
+class FigureOpsCVPR17(object):
+    def add_arguments(self, parser):
+        actions = []
 
+        actions.append(parser.add_argument("--scenes",
+                                           dest="scene_overview", action="store_true",
+                                           help="create figure with center view and ground truth per scene"))
 
+        actions.append(parser.add_argument("--badpixseries",
+                                           dest="bad_pix_series", action="store_true",
+                                           help="create figures with BadPix series for stratified and photorealistic scenes"))
+
+        return actions
 
 
 
