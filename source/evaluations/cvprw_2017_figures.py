@@ -33,10 +33,9 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
 from utils import misc
-from evaluations import bad_pix_series
+from evaluations import bad_pix_series, metric_overviews
 from utils import plotting
 import settings
-
 
 SUBDIR = "cvprws_2017_survey"
 
@@ -84,4 +83,8 @@ def plot_bad_pix_series(algorithms, with_cached_scores=False, penalize_missing_p
         bad_pix_series.plot(algorithms, scene_set,
                             with_cached_scores=with_cached_scores,
                             penalize_missing_pixels=penalize_missing_pixels,
-                            title=title, sub_dir=SUBDIR, fig_name="bad_pix_series_" + fig_name)
+                            title=title, subdir=SUBDIR, fig_name="bad_pix_series_" + fig_name)
+
+
+def plot_normals_overview(algorithms, scenes):
+    metric_overviews.plot_normals(algorithms, scenes, subdir=SUBDIR)

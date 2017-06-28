@@ -345,10 +345,15 @@ class FigureOpsCVPR17(object):
                                            dest="scene_overview", action="store_true",
                                            help="create figure with center view and ground truth per scene"))
 
-        actions.append(parser.add_argument("--badpixseries",
+        actions.append(parser.add_argument("--badpix",
                                            dest="bad_pix_series", action="store_true",
-                                           help="create figures with BadPix series for stratified and photorealistic scenes"))
+                                           help="create figures with BadPix series "
+                                                "for stratified and photorealistic scenes"))
 
+        actions.append(parser.add_argument("--normals",
+                                           dest="normals_overview", action="store_true",
+                                           help="create figure with disparity map, normal map, "
+                                                "and angular error per algorithm"))
         return actions
 
 

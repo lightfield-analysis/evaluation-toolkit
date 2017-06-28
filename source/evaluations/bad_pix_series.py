@@ -50,7 +50,7 @@ def get_fname_scores(scenes=[]):
 
 
 def plot(algorithms, scenes, thresholds=THRESHOLDS, with_cached_scores=False, penalize_missing_pixels=False,
-         title=None, sub_dir="bad_pix_series", fig_name=None,
+         title=None, subdir="bad_pix_series", fig_name=None,
          fig_size=(16, 6), legend_pos=(1.19, -0.04), marker_size=2.3, fs=16):
 
     # prepare scores
@@ -101,7 +101,7 @@ def plot(algorithms, scenes, thresholds=THRESHOLDS, with_cached_scores=False, pe
     # save figure
     if fig_name is None:
         fig_name = "bad_pix_series_%s" % ("_".join(scene.get_name() for scene in scenes))
-    fig_path = plotting.get_path_to_figure(fig_name, sub_dir)
+    fig_path = plotting.get_path_to_figure(fig_name, subdir)
     plotting.save_tight_figure(fig, fig_path, hide_frames=False, remove_ticks=False, hspace=0.07)
 
 

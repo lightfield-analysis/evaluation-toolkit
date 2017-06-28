@@ -36,7 +36,7 @@ from utils.option_parser import *
 
 if __name__ == "__main__":
     parser = OptionParser([FigureOpsCVPR17()])
-    scene_overview, bad_pix_series = parser.parse_args()
+    scene_overview, bad_pix_series, normals_overview = parser.parse_args()
 
     # delay imports to speed up usage response
     from utils import misc, file_io
@@ -72,3 +72,8 @@ if __name__ == "__main__":
     if bad_pix_series:
         log.info("Creating figures with BadPix series.")
         cvprw_2017_figures.plot_bad_pix_series(all_benchmark_algorithms, with_cached_scores=False)
+
+    if normals_overview:
+        log.info("Creating surface normal figure(s).")
+        from scenes import Cotton
+        cvprw_2017_figures.plot_normals_overview(all_benchmark_algorithms, [Cotton()])

@@ -208,6 +208,9 @@ class BaseScene(object):
 
         return normal_map
 
+    def get_normal_vis_from_disp_map(self, disp_map):
+        return (self.get_depth_normals(self.disp2depth(disp_map)) + 1.) * .5
+
     # ----------------------------------------------------------
     # setter
     # ----------------------------------------------------------
