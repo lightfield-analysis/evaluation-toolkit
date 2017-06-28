@@ -345,6 +345,11 @@ class FigureOpsCVPR17(object):
                                            dest="scene_overview", action="store_true",
                                            help="create figure with center view and ground truth per scene"))
 
+        actions.append(parser.add_argument("--normalsdemo",
+                                           dest="normals_demo", action="store_true",
+                                           help="create figure with ground truth normals, algorithm normals, "
+                                                "and angular error for Sideboard scene"))
+
         actions.append(parser.add_argument("--badpix",
                                            dest="bad_pix_series", action="store_true",
                                            help="create figures with BadPix series "

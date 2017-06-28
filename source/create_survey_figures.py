@@ -36,7 +36,7 @@ from utils.option_parser import *
 
 if __name__ == "__main__":
     parser = OptionParser([FigureOpsCVPR17()])
-    scene_overview, bad_pix_series, normals_overview, high_accuracy_overview = parser.parse_args()
+    scene_overview, normals_demo, bad_pix_series, normals_overview, high_accuracy_overview = parser.parse_args()
 
     # delay imports to speed up usage response
     from utils import misc, file_io
@@ -69,6 +69,11 @@ if __name__ == "__main__":
         log.info("Creating scene overview figure.")
         cvprw_2017_figures.plot_scene_overview(benchmark_scenes)
 
+    if normals_demo:
+        log.info("Creating normals demo figure.")
+        from scenes import Sideboard
+        cvprw_2017_figures.plot_normals_explanation(Sideboard(), Algorithm("epi1"))
+
     if bad_pix_series:
         log.info("Creating figures with BadPix series.")
         cvprw_2017_figures.plot_bad_pix_series(all_benchmark_algorithms, with_cached_scores=False)
@@ -78,7 +83,7 @@ if __name__ == "__main__":
         from scenes import Cotton
         cvprw_2017_figures.plot_normals_overview(all_benchmark_algorithms, [Cotton()])
 
-    if  high_accuracy_overview:
+    if high_accuracy_overview:
         log.info("Creating high accuracy figure.")
         from scenes import Cotton, Boxes
         high_accuracy_algorithms = []
