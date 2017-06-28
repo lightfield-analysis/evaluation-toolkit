@@ -88,3 +88,9 @@ def plot_bad_pix_series(algorithms, with_cached_scores=False, penalize_missing_p
 
 def plot_normals_overview(algorithms, scenes):
     metric_overviews.plot_normals(algorithms, scenes, subdir=SUBDIR)
+
+
+def plot_high_accuracy(algorithms, scenes):
+    from metrics import BadPix, Quantile
+    metrics = [BadPix(0.07), BadPix(0.01), Quantile(25)]
+    metric_overviews.plot_general_overview(algorithms, scenes, metrics, fig_name="high_accuracy", subdir=SUBDIR)

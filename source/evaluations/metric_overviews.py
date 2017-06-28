@@ -36,7 +36,7 @@ import numpy as np
 from utils import misc, plotting
 from utils.logger import log
 import settings
-from metrics import MAEContinSurf, MAEPlanes
+from metrics import MAEContinSurf, MAEPlanes, Quantile, BadPix
 
 
 SUBDIR = "metric_overviews"
@@ -61,8 +61,8 @@ def plot_normals(algorithms, scenes, n_rows=2, subdir=SUBDIR, fs=15):
         # prepare figure and colorbar size
         fig = plt.figure(figsize=(cols * 1.7, 1.45 * rows * 1.5))
         grids = gridspec.GridSpec(rows, cols, height_ratios=[hscale] * rows, width_ratios=[wscale] * (cols - 1) + [1])
-        colorbar_height = h
-        colorbar_width = w / float(wscale)
+        cb_height = h
+        cb_width = w / float(wscale)
 
         # some scenes have no evaluation mask for planar, non-planar or both surfaces
         try:
@@ -78,17 +78,17 @@ def plot_normals(algorithms, scenes, n_rows=2, subdir=SUBDIR, fs=15):
 
         # plot ground truth column
         gt = scene.get_gt()
-        _plot(scene,  gt, gt, mask_planes, mask_contin, "GT",
-              metric_mae_contin, metric_mae_planes,
-              0, grids, n_entries_per_row, n_vis_types, cols, colorbar_height, colorbar_width, fs=fs)
+        _plot_normals_entry(scene,  gt, gt, mask_planes, mask_contin, "GT",
+                            metric_mae_contin, metric_mae_planes,
+                            0, grids, n_entries_per_row, n_vis_types, cols, cb_height, cb_width, fs=fs)
 
         # plot algorithm columns
         for idx_a, algorithm in enumerate(algorithms):
             algo_result = misc.get_algo_result(scene, algorithm)
 
-            _plot(scene, algo_result, gt, mask_planes, mask_contin, algorithm.get_display_name(),
-                  metric_mae_contin, metric_mae_planes,
-                  idx_a + 1, grids, n_entries_per_row, n_vis_types, cols, colorbar_height, colorbar_width, fs=fs)
+            _plot_normals_entry(scene, algo_result, gt, mask_planes, mask_contin, algorithm.get_display_name(),
+                                metric_mae_contin, metric_mae_planes,
+                                idx_a + 1, grids, n_entries_per_row, n_vis_types, cols, cb_height, cb_width, fs=fs)
 
         plt.suptitle("Angular Error: non-planar / planar surfaces", fontsize=fs)
 
@@ -97,9 +97,9 @@ def plot_normals(algorithms, scenes, n_rows=2, subdir=SUBDIR, fs=15):
         plotting.save_tight_figure(fig, fig_path, hide_frames=True, remove_ticks=True, hspace=0.03, wspace=0.03)
 
 
-def _plot(scene, disp_map, gt,  mask_planes, mask_contin, algo_name,
-          metric_mae_contin, metric_mae_planes,
-          idx, grids, entries_per_row, nn, cols, colorbar_height, colorbar_width, fs):
+def _plot_normals_entry(scene, disp_map, gt, mask_planes, mask_contin, algo_name,
+                        metric_mae_contin, metric_mae_planes,
+                        idx, grids, entries_per_row, nn, cols, cb_height, cb_widthg, fs):
 
     add_ylabel = not idx % entries_per_row  # is first column
     add_colorbar = not ((idx + 1) % entries_per_row)  # is last column
@@ -114,7 +114,7 @@ def _plot(scene, disp_map, gt,  mask_planes, mask_contin, algo_name,
     if add_ylabel:
         plt.ylabel("DispMap", fontsize=fs)
     if add_colorbar:
-        plotting.add_colorbar(grids[idx_row * cols + idx_col + 1], cb, colorbar_height, colorbar_width,
+        plotting.add_colorbar(grids[idx_row * cols + idx_col + 1], cb, cb_height, cb_widthg,
                               colorbar_bins=7, fontsize=fs)
 
     # plot normal map
@@ -150,6 +150,51 @@ def _plot(scene, disp_map, gt,  mask_planes, mask_contin, algo_name,
         cb = plt.imshow(vis_normals, **settings.metric_args(metric_mae_contin))
 
         if add_colorbar:
-            plotting.add_colorbar(grids[(idx_row + 2) * cols + idx_col + 1], cb, colorbar_height, colorbar_width,
+            plotting.add_colorbar(grids[(idx_row + 2) * cols + idx_col + 1], cb, cb_height, cb_widthg,
                                   colorbar_bins=7, fontsize=fs)
 
+
+def plot_general_overview(algorithms, scenes, metrics, fig_name=None, subdir=SUBDIR, fs=11):
+    n_vis_types = len(metrics)
+
+    # prepare figure grid
+    rows, cols = len(scenes)*n_vis_types, len(algorithms)+1
+    hscale, wscale = 5, 7
+    grids = gridspec.GridSpec(rows, cols, height_ratios=[hscale] * rows, width_ratios=[wscale] * (cols-1) + [1])
+    fig = plt.figure(figsize=(cols * 1.4, 1.15 * rows * 1.6))
+
+    cb_height, w = scenes[0].get_height(), scenes[0].get_width()
+    cb_width = w / float(wscale)
+
+    for idx_s, scene in enumerate(scenes):
+        gt = scene.get_gt()
+
+        for idx_a, algorithm in enumerate(algorithms):
+            algo_result = misc.get_algo_result(scene, algorithm)
+
+            for idx_m, metric in enumerate(metrics):
+                score, vis = metric.get_score(algo_result, gt, scene, with_visualization=True)
+
+                plt.subplot(grids[(n_vis_types*idx_s+idx_m)*cols + idx_a])
+                cb = plt.imshow(vis, **settings.metric_args(metric))
+
+                # add algorithm name and metric score on top row
+                if idx_s == 0 and idx_m == 0:
+                    plt.title("%s\n%0.2f" % (algorithm.get_display_name(), score), fontsize=fs)
+                else:
+                    plt.title("%0.2f" % score, fontsize=fs)
+
+                # add metric name to first column
+                if idx_a == 0:
+                    plt.ylabel(metric.get_display_name())
+
+                # add colorbar to last column
+                if idx_a == len(algorithms) - 1:
+                    plotting.add_colorbar(grids[(n_vis_types*idx_s+idx_m)*cols + idx_a + 1], cb, cb_height, cb_width,
+                                          colorbar_bins=metric.colorbar_bins, fontsize=fs)
+
+    # save figure
+    if fig_name is None:
+        fig_name = "metric_overview_" + "_".join(metric.get_identifier() for metric in metrics)
+    fig_path = plotting.get_path_to_figure(fig_name, subdir=subdir)
+    plotting.save_tight_figure(fig, fig_path, hide_frames=True, remove_ticks=True, hspace=0.01, wspace=0.01)
