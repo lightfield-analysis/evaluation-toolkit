@@ -29,13 +29,14 @@
 #                                                                          #
 ############################################################################
 
-
 from utils.option_parser import *
 
+
 if __name__ == "__main__":
-    parser = OptionParser([AlgorithmOps(), SceneOps()])
-    algorithms, scenes = parser.parse_args()
+    parser = OptionParser([SceneOps(), AlgorithmOps(), MetaAlgorithmOps()])
+    scenes, algorithms, meta_algorithms = parser.parse_args()
 
     # delay imports to speed up usage response
-    from evaluations import pairwise_algo_comparisons
-    pairwise_algo_comparisons.plot_pairwise_comparisons(algorithms, scenes)
+    from evaluations import meta_algo_comparisons
+    for meta_algorithm in meta_algorithms:
+        meta_algo_comparisons.plot(scenes, algorithms, meta_algorithm)

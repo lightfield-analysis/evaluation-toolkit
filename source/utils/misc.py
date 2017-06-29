@@ -236,16 +236,7 @@ def collect_scores(algorithms, scenes, metrics, masked=False):
                 metric_score = scene_scores.get(metric.get_identifier(), None)
 
                 if metric_score is not None:
-                    value = metric_score["value"]
-                    if value < 0:
-                        print scene.get_display_name(), metric.get_identifier(), algorithm.get_display_name()
-
-                    # evaluation results store runtime as log10(runtime in seconds)
-                    # revers log if given runtime metric is parametrized as non-log
-                    if metric.get_identifier() == "runtime" and not metric.log:
-                        value = np.power(10, value)
-
-                    scores_scenes_metrics_algos[idx_s, idx_m, idx_a] = value
+                    scores_scenes_metrics_algos[idx_s, idx_m, idx_a] = metric_score["value"]
 
     if masked:
         mask = get_mask_invalid(scores_scenes_metrics_algos)

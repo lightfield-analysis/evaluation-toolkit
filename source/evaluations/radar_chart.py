@@ -50,7 +50,7 @@ def plot(algorithms, scenes, metrics, average="median", axis_labels=None, max_pe
         raise Exception('Only "median" and "mean" are handled, got "%s".' % average)
 
     if axis_labels is None:
-        axis_labels = [m.get_display_name() for m in metrics]
+        axis_labels = [m.get_display_name().replace(":", "\n") for m in metrics]
 
     plot_scores(scores_metrics_algos, algorithms, axis_labels,
                 fig_name, subdir, title, fs, max_per_metric)
