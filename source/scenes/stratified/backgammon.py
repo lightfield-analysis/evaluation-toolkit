@@ -63,7 +63,7 @@ class Backgammon(BaseStratified):
     def get_scene_specific_stratified_metrics():
         return [BackgammonFattening(), BackgammonThinning()]
 
-    def plot_fattening_thinning(self, algorithms, n_bins=15):
+    def plot_fattening_thinning(self, algorithms, n_bins=15, subdir="stratified"):
         self.set_high_gt_scale()
         gt = self.get_gt()
 
@@ -126,7 +126,7 @@ class Backgammon(BaseStratified):
             plt.xlim([0, n_bins - 0.5])
 
         plt.legend(frameon=False, title="Algorithms:", bbox_to_anchor=(1.57, 1.1))
-        fig_path = plotting.get_path_to_figure("backgammon_fattening_thinning")
+        fig_path = plotting.get_path_to_figure("backgammon_fattening_thinning", subdir=subdir)
         plotting.save_fig(fig, fig_path)
 
     @staticmethod

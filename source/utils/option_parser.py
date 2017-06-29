@@ -261,7 +261,7 @@ class MetricOps(object):
                                      type=str, nargs="+",
                                      help='list of metric names\n'
                                           'example: "-m badpix007 mse"\n'
-                                          'default: general\n'
+                                          'default: all\n'
                                           'individual metrics:\n%s\n'
                                           'metric sets:\n'
                                           '  stratified: all metrics of the stratified scenes\n'
@@ -281,7 +281,7 @@ class MetricOps(object):
             metrics = []
 
             if not values:
-                metrics = metric_dict["general"]
+                metrics = metric_dict["all"]
             else:
                 for value in values:
                     try:
@@ -349,6 +349,10 @@ class FigureOpsCVPR17(object):
                                            dest="normals_demo", action="store_true",
                                            help="create figure with ground truth normals, algorithm normals, "
                                                 "and angular error for Sideboard scene"))
+
+        actions.append(parser.add_argument("--radar",
+                                           dest="radar_charts", action="store_true",
+                                           help="create radar charts for stratified and photorealistic scenes"))
 
         actions.append(parser.add_argument("--badpix",
                                            dest="bad_pix_series", action="store_true",

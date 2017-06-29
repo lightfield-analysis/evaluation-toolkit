@@ -60,7 +60,7 @@ class Dots(BaseStratified):
     def get_scene_specific_stratified_metrics():
         return [DotsBackgroundMSE(), MissedDots()]
 
-    def plot_error_vs_noise(self, algorithms):
+    def plot_error_vs_noise(self, algorithms, subdir="stratified"):
         self.set_low_gt_scale()
         fig = plt.figure(figsize=(8, 4))
 
@@ -93,7 +93,7 @@ class Dots(BaseStratified):
         plt.title("%s: Error per Cell Background" % (self.get_display_name()))
         plotting.hide_upper_right()
 
-        fig_path = plotting.get_path_to_figure("dots_per_box")
+        fig_path = plotting.get_path_to_figure("dots_per_box", subdir=subdir)
         plotting.save_tight_figure(fig, fig_path, remove_ticks=False)
 
     # -------------------------

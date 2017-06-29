@@ -64,7 +64,7 @@ class Pyramids(BaseStratified):
     def set_scale_for_algo_overview(self):
         self.set_low_gt_scale()
 
-    def plot_algo_disp_vs_gt_disp(self, algorithms):
+    def plot_algo_disp_vs_gt_disp(self, algorithms, subdir="stratified"):
         self.set_low_gt_scale()
 
         # prepare data
@@ -123,7 +123,7 @@ class Pyramids(BaseStratified):
             legend.legendHandles[idx]._sizes = [22]
         plt.suptitle("Ground Truth Disparities vs. Algorithm Disparities", fontsize=fontsize)
 
-        fig_path = plotting.get_path_to_figure("pyramids_disp_disp")
+        fig_path = plotting.get_path_to_figure("pyramids_disp_disp", subdir=subdir)
         plotting.save_tight_figure(fig, fig_path, remove_ticks=False, hspace=0.2, wspace=0.3, padding_top=0.88)
 
     # -------------------------

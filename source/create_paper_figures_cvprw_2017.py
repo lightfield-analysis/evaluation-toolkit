@@ -33,15 +33,16 @@ import os.path as op
 
 from utils.option_parser import *
 
+SUBDIR = "paper_cvprw_2017"
 
 if __name__ == "__main__":
     parser = OptionParser([FigureOpsCVPR17()])
-    scene_overview, normals_demo, bad_pix_series, normals_overview, high_accuracy_overview = parser.parse_args()
+    scene_overview, normals_demo, radar_charts, bad_pix_series, normals_overview, high_accuracy_overview = parser.parse_args()
 
     # delay imports to speed up usage response
     from utils import misc, file_io
     from utils.logger import log
-    from evaluations import cvprw_2017_figures
+    from evaluations import paper_cvprw_2017
     import settings
     from algorithms import Algorithm
 
@@ -67,21 +68,27 @@ if __name__ == "__main__":
 
     if scene_overview:
         log.info("Creating scene overview figure.")
-        cvprw_2017_figures.plot_scene_overview(benchmark_scenes)
+        paper_cvprw_2017.plot_scene_overview(benchmark_scenes, subdir=SUBDIR)
 
     if normals_demo:
         log.info("Creating normals demo figure.")
         from scenes import Sideboard
-        cvprw_2017_figures.plot_normals_explanation(Sideboard(), Algorithm("epi1"))
+        paper_cvprw_2017.plot_normals_explanation(Sideboard(), Algorithm("epi1"), subdir=SUBDIR)
+
+    if True or radar_charts:
+        log.info("Creating radar charts.")
+        algorithms = [Algorithm("oberanp"), Algorithm("zctv1"),  Algorithm("epi1"),  Algorithm("epi2"),  Algorithm("sc_gc")]
+        algorithms = Algorithm.set_colors(algorithms)
+        paper_cvprw_2017.plot_radar_charts(algorithms, subdir=SUBDIR)
 
     if bad_pix_series:
         log.info("Creating figures with BadPix series.")
-        cvprw_2017_figures.plot_bad_pix_series(all_benchmark_algorithms, with_cached_scores=False)
+        paper_cvprw_2017.plot_bad_pix_series(all_benchmark_algorithms, with_cached_scores=False, subdir=SUBDIR)
 
     if normals_overview:
         log.info("Creating surface normal figure(s).")
         from scenes import Cotton
-        cvprw_2017_figures.plot_normals_overview(all_benchmark_algorithms, [Cotton()])
+        paper_cvprw_2017.plot_normals_overview(all_benchmark_algorithms, [Cotton()], subdir=SUBDIR)
 
     if high_accuracy_overview:
         log.info("Creating high accuracy figure.")
@@ -89,4 +96,4 @@ if __name__ == "__main__":
         high_accuracy_algorithms = []
         for fname in ["ofsy_330dnr2", "zctv1", "obercross", "ober", "sc_gc", "spo_lf4cv", "rm3de", "ps_rf25"]:
             high_accuracy_algorithms.append([a for a in all_benchmark_algorithms if a.get_name() == fname][0])
-        cvprw_2017_figures.plot_high_accuracy(high_accuracy_algorithms, [Cotton(), Boxes()])
+        paper_cvprw_2017.plot_high_accuracy(high_accuracy_algorithms, [Cotton(), Boxes()], subdir=SUBDIR)

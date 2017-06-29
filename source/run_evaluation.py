@@ -49,4 +49,5 @@ if __name__ == "__main__":
                                        visualize=visualize,
                                        ground_truth_path=settings.DATA_PATH,
                                        evaluation_output_path=op.join(settings.ALGO_EVAL_PATH, algorithm.get_name()),
-                                       algorithm_input_path=misc.get_path_to_algo_data(algorithm))
+                                       algorithm_input_path=misc.get_path_to_algo_data(algorithm),
+                                       with_test_scenes=True)

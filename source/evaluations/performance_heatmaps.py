@@ -38,7 +38,7 @@ import settings
 from utils import plotting, misc
 
 
-def plot(algorithms, scenes, thresh=settings.BAD_PIX_THRESH):
+def plot(algorithms, scenes, thresh=settings.BAD_PIX_THRESH, subdir="heatmaps"):
     # prepare figure
     n_scenes = len(scenes)
     rows, cols = int(np.ceil(n_scenes / 4.0)), 5
@@ -65,7 +65,7 @@ def plot(algorithms, scenes, thresh=settings.BAD_PIX_THRESH):
 
     plt.suptitle("Per Pixel: Percentage of Algorithms with abs(gt-algo) > %0.2f" % thresh, fontsize=18)
 
-    fig_path = plotting.get_path_to_figure("error_heatmaps")
+    fig_path = plotting.get_path_to_figure("error_heatmaps", subdir=subdir)
     plotting.save_tight_figure(fig, fig_path, hide_frames=True, remove_ticks=True, hspace=0.02)
 
 

@@ -62,8 +62,9 @@ class PhotorealisticScene(BaseScene):
             return all_scenes
         return [s for s in all_scenes if metric.mask_exists(s, settings.LOWRES) or metric.mask_exists(s, settings.HIGHRES)]
 
-    def plot_algo_overview(self, algorithms):
-        accv_metrics = [MSE(), BadPix(0.07), BumpinessPlanes(), BumpinessContinSurf(), Discontinuities(), FineFattening(), FineThinning()]
+    def plot_algo_overview(self, algorithms, subdir="algo_overview"):
+        accv_metrics = [MSE(), BadPix(0.07), BumpinessPlanes(), BumpinessContinSurf(),
+                        Discontinuities(), FineFattening(), FineThinning()]
         metrics_low_res = [m for m in self.get_applicable_metrics_low_res() if m in accv_metrics]
         metrics_high_res = [m for m in self.get_applicable_metrics_high_res() if m in accv_metrics]
 
@@ -96,7 +97,7 @@ class PhotorealisticScene(BaseScene):
             plotting.remove_frames_from_axes(grid.axes_all)
         plt.suptitle(self.get_display_name(), fontsize=fontsize+2)
 
-        fig_path = plotting.get_path_to_figure("algo_overview_%s" % self.get_name())
+        fig_path = plotting.get_path_to_figure("algo_overview_%s" % self.get_name(), subdir=subdir)
         plotting.save_fig(fig, fig_path, pad_inches=0.1)
 
     def plot_metric_rows(self, grids, algorithms, metrics, offset, fontsize):
@@ -150,47 +151,6 @@ class PhotorealisticScene(BaseScene):
         plt.title(metric.format_score(score), fontsize=fontsize)
 
         return cm
-
-    @staticmethod
-    def get_all_scores(algorithms, metrics, scenes):
-        scores_algos_metric = np.full((len(algorithms), len(metrics)), fill_value=np.nan)
-
-        for idx_m, metric in enumerate(metrics):
-            log.info("Computing scores for: %s" % metric.get_display_name().replace("\n", ""))
-            if metric.evaluate_on_high_res():
-                gt_scale = 10.0
-            else:
-                gt_scale = 1.0
-
-            applicable_scenes = PhotorealisticScene.get_applicable_scenes(scenes, metric)
-            for scene in applicable_scenes:
-                scene.gt_scale = gt_scale
-
-            scores_algos_metric[:, idx_m] = PhotorealisticScene.get_average_scores(algorithms, metric, applicable_scenes)
-
-        return scores_algos_metric
-
-    @staticmethod
-    def plot_radar_chart(algorithms, scenes, max_per_metric=None):
-        metrics = [MSE(),
-                   BadPix(),
-                   BumpinessPlanes(name="Planar\nSurfaces"),
-                   BumpinessContinSurf(name="Continuous\nSurfaces"),
-                   FineThinning(name="Fine Structure\nThinning"),
-                   FineFattening(name="Fine Structure\nFattening"),
-                   Discontinuities(name="Discontinuity\nRegions"),
-                   Runtime(log=True)]
-
-        metric_names = [m.get_display_name() for m in metrics]
-        scores_algos_metric = PhotorealisticScene.get_all_scores(algorithms, metrics, scenes)
-
-        if max_per_metric is None:
-            max_per_metric = [20, 60, 5, 5, 16, 100, 80, 6]
-
-        categories = sorted(list(set([scene.get_category() for scene in scenes])))
-        fig_path = plotting.get_path_to_figure("radar_%s" % "_".join(categories))
-
-        radar_chart.plot(scores_algos_metric, metric_names, algorithms, fig_path, max_per_metric)
 
 
 # convenience classes for test and training scenes

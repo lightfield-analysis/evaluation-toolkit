@@ -53,53 +53,7 @@ class BaseStratified(BaseScene):
     def set_scale_for_algo_overview(self):
         self.set_high_gt_scale()
 
-    @staticmethod
-    def plot_radar_chart(algorithms):
-        from scenes import Backgammon, Pyramids, Dots, Stripes
-        from metrics import DotsBackgroundMSE, MissedDots, BackgammonThinning, BackgammonFattening, \
-            DarkStripes, BrightStripes, StripesLowTexture, PyramidsSlantedBumpiness, PyramidsParallelBumpiness, Runtime
-
-        backgammon = Backgammon(gt_scale=10.0)
-        pyramids = Pyramids(gt_scale=1.0)
-        dots = Dots(gt_scale=10.0)
-        stripes = Stripes(gt_scale=10.0)
-
-        dm_pairs = [[dots, DotsBackgroundMSE(), 6],
-                    [dots, MissedDots(), 120],
-                    [backgammon, BackgammonFattening(), 60],
-                    [backgammon, BackgammonThinning(), 8],
-                    [stripes, DarkStripes(), 64],
-                    [stripes, BrightStripes(), 64],
-                    [stripes, StripesLowTexture(), 64],
-                    [pyramids, PyramidsSlantedBumpiness(), 6],
-                    [pyramids, PyramidsParallelBumpiness(), 6]]
-
-        scores_a_m = np.full((len(algorithms), len(dm_pairs)+3), fill_value=np.nan)
-
-        # averaged scores of pixel metrics over all scenes
-        all_scenes = [backgammon, pyramids, dots, stripes]
-
-        metric_names = [MSE().get_display_name(),  BadPix().get_display_name()]
-        scores_a_m[:, 0] = BaseScene.get_average_scores(algorithms, MSE(), all_scenes)
-        scores_a_m[:, 1] = BaseScene.get_average_scores(algorithms, BadPix(), all_scenes)
-        max_per_metric = [12, 32]
-
-        # scene specific scores
-        for idx_m, (scene, metric, vmax) in enumerate(dm_pairs):
-            log.info("Computing scores for: %s" % metric.get_display_name())
-            scores_a_m[:, idx_m+2] = scene.get_scores(algorithms, metric)
-            metric_names.append(metric.get_display_name().replace(":", ":\n"))
-            max_per_metric.append(vmax)
-
-        runtime = Runtime(log=True)
-        metric_names.append(runtime.get_display_name())
-        scores_a_m[:, 2+len(dm_pairs)] = BaseScene.get_average_scores(algorithms, runtime, all_scenes)
-        max_per_metric.append(6)
-
-        fig_path = plotting.get_path_to_figure("radar_stratified")
-        radar_chart.plot(scores_a_m, metric_names, algorithms, fig_path, max_per_metric)
-
-    def plot_algo_overview(self, algorithms, with_metric_vis=True):
+    def plot_algo_overview(self, algorithms, with_metric_vis=True, subdir="algo_overview"):
         self.set_scale_for_algo_overview()
         metrics = self.get_scene_specific_stratified_metrics()
         n_metrics = len(metrics)
@@ -158,9 +112,9 @@ class BaseStratified(BaseScene):
             # add colorbar if last column
             if idx_a == (len(algorithms) - 1):
                 plotting.add_colorbar(gs[idx_a + 2], cm1, colorbar_height, colorbar_width,
-                                   colorbar_bins=5, fontsize=10, img_width=1)
+                                      colorbar_bins=5, fontsize=10, img_width=1)
                 plotting.add_colorbar(gs[cols + idx_a + 2], cm2, colorbar_height, colorbar_width,
-                                   colorbar_bins=5, fontsize=10, img_width=1)
+                                      colorbar_bins=5, fontsize=10, img_width=1)
 
             # score + background color for metrics
             for idx_m, metric in enumerate(metrics):
@@ -174,7 +128,7 @@ class BaseStratified(BaseScene):
                         plt.ylabel(metric.get_short_name(), fontsize=fontsize)
                     elif idx_a == (len(algorithms) - 1):
                         plotting.add_colorbar(gs[(2+idx_m)*cols+idx_a+2], cm3, colorbar_height, colorbar_width,
-                                           colorbar_bins=metric.colorbar_bins, fontsize=10, img_width=1)
+                                              colorbar_bins=metric.colorbar_bins, fontsize=10, img_width=1)
 
                 else:
                     score = metric.get_score(algo_result, gt, self)
@@ -183,5 +137,6 @@ class BaseStratified(BaseScene):
                 plt.imshow(dummy * score, **settings.score_color_args(vmin=metric.vmin, vmax=metric.vmax))
                 plt.xlabel(metric.format_score(score), labelpad=labelpad, fontsize=fontsize)
 
-        fig_path = plotting.get_path_to_figure("algo_overview_" + self.get_name() + with_metric_vis * "_vis")
+        fig_name = "algo_overview_" + self.get_name() + with_metric_vis * "_vis"
+        fig_path = plotting.get_path_to_figure(fig_name, subdir=subdir)
         plotting.save_tight_figure(fig, fig_path, wspace=0.04, hide_frames=True, remove_ticks=True)

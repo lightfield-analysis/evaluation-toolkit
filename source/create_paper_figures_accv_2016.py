@@ -31,6 +31,8 @@
 
 from utils.option_parser import *
 
+SUBDIR = "paper_accv_2016"
+
 if __name__ == "__main__":
     accv_algorithms = ["epi1", "epi2", "lf_occ", "lf", "mv"]
     additional_help_text = 'use: "-a %s" for original ACCV algorithms' % " ".join(accv_algorithms)
@@ -41,36 +43,35 @@ if __name__ == "__main__":
     # delay imports to speed up usage response
     from utils.logger import log
     from utils import misc
-    from scenes import BaseStratified, PhotorealisticScene, Backgammon, Pyramids, Dots
+    from scenes import Backgammon, Pyramids, Dots
     log.info("Creating figures with algorithms: %s" % algorithms)
 
     if heatmaps:
-        from evaluations import performance_heatmaps
         log.info("Creating heatmaps figure.")
+        from evaluations import performance_heatmaps
         scenes = misc.get_stratified_scenes() + misc.get_training_scenes()
-        performance_heatmaps.plot(algorithms, scenes)
+        performance_heatmaps.plot(algorithms, scenes, subdir=SUBDIR)
 
     if radar_charts:
         log.info("Creating radar charts for stratified and training scenes.")
-        BaseStratified.plot_radar_chart(algorithms)
-        max_per_metric = [16, 40, 4, 4, 12, 80, 80, 6]
-        PhotorealisticScene.plot_radar_chart(algorithms, misc.get_training_scenes(), max_per_metric)
+        from evaluations import paper_accv_2016
+        paper_accv_2016.plot_radar_charts(algorithms, subdir=SUBDIR)
 
     if stratified:
         for scene in misc.get_stratified_scenes():
             log.info("Processing scene: %s." % scene.get_display_name())
-            scene.plot_algo_overview(algorithms, with_metric_vis=True)
+            scene.plot_algo_overview(algorithms, with_metric_vis=True, subdir=SUBDIR)
 
     if training:
         for scene in misc.get_training_scenes():
             log.info("Processing scene: %s." % scene.get_display_name())
-            scene.plot_algo_overview(algorithms)
+            scene.plot_algo_overview(algorithms, subdir=SUBDIR)
 
     if stratified_charts:
         log.info("Creating special charts for stratified scenes.")
-        Backgammon().plot_fattening_thinning(algorithms)
-        Pyramids().plot_algo_disp_vs_gt_disp(algorithms)
-        Dots().plot_error_vs_noise(algorithms)
+        Backgammon().plot_fattening_thinning(algorithms, subdir=SUBDIR)
+        Pyramids().plot_algo_disp_vs_gt_disp(algorithms, subdir=SUBDIR)
+        Dots().plot_error_vs_noise(algorithms, subdir=SUBDIR)
 
 
 
