@@ -35,7 +35,8 @@ import warnings
 
 import matplotlib.pyplot as plt
 from matplotlib import ticker
-from mpl_toolkits.axes_grid1 import ImageGrid, make_axes_locatable
+import matplotlib.gridspec as gridspec
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy as np
 import scipy.ndimage.interpolation as sci
 
@@ -120,20 +121,16 @@ def create_colorbar(cm, cax, colorbar_bins=8, fontsize=None, linewidth=0):
     cb.update_ticks()
 
 
-def get_grids(fig, rows, cols, axes_pad=0):
-    grids = []
-    for row in range(rows):
-        grid_id = int("%d%d%d" % (rows, 1, row + 1))
-        grid = ImageGrid(fig, grid_id,
-                         nrows_ncols=(1, cols),
-                         axes_pad=(0.05, axes_pad),
-                         share_all=True,
-                         cbar_location="right",
-                         cbar_mode="single",
-                         cbar_size="10%",
-                         cbar_pad="5%")
-        grids.append(grid)
-    return grids
+def prepare_grid(rows, cols, hscale=5, wscale=7):
+    grid = gridspec.GridSpec(rows, cols, height_ratios=[hscale] * rows, width_ratios=[wscale] * cols)
+    return grid
+
+
+def prepare_grid_with_colorbar(rows, cols, scene, hscale=5, wscale=7):
+    grid = gridspec.GridSpec(rows, cols, height_ratios=[hscale] * rows, width_ratios=[wscale] * (cols - 1) + [1])
+    cb_height, w = scene.get_height(), scene.get_width()
+    cb_width = w / float(wscale)
+    return grid, cb_height, cb_width
 
 
 def adjust_binary_vis(vis):

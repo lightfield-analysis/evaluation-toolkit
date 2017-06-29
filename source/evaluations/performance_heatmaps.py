@@ -43,12 +43,8 @@ def plot(algorithms, scenes, thresh=settings.BAD_PIX_THRESH, subdir="heatmaps"):
     n_scenes = len(scenes)
     rows, cols = int(np.ceil(n_scenes / 4.0)), 5
     fig = plt.figure(figsize=(2.7*cols, 3*rows))
-    wscale = 9
-    grid = gridspec.GridSpec(rows, cols, height_ratios=[1] * rows, width_ratios=[wscale] * 4 + [1])
-    colorbar_height, w = scenes[0].get_shape()
-    colorbar_width = w / float(wscale)
-    colorbar_args = {"height": colorbar_height, "width": colorbar_width,
-                     "colorbar_bins": 5, "fontsize": 10, "scale": 0.8}
+    grid, cb_height, cb_width = plotting.prepare_grid_with_colorbar(rows, cols, scenes[0], hscale=1, wscale=9)
+    colorbar_args = {"height": cb_height, "width": cb_width, "colorbar_bins": 5, "fontsize": 10, "scale": 0.8}
 
     idx_scene = 0
 

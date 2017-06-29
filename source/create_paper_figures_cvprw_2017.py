@@ -38,7 +38,7 @@ SUBDIR = "paper_cvprw_2017"
 if __name__ == "__main__":
     parser = OptionParser([FigureOpsCVPR17()])
     scene_overview, normals_demo, radar_charts, bad_pix_series, median_comparisons, normals_overview, \
-    high_accuracy_overview = parser.parse_args()
+    discont_overview, high_accuracy_overview = parser.parse_args()
 
     # delay imports to speed up usage response
     from utils import misc, file_io
@@ -93,6 +93,11 @@ if __name__ == "__main__":
         log.info("Creating surface normal figure(s).")
         from scenes import Cotton
         paper_cvprw_2017.plot_normals_overview(all_benchmark_algorithms, [Cotton()], subdir=SUBDIR)
+
+    if discont_overview:
+        log.info("Creating discontinuity figure.")
+        from scenes import Bicycle
+        paper_cvprw_2017.plot_discont_overview(all_benchmark_algorithms, Bicycle(), subdir=SUBDIR)
 
     if high_accuracy_overview:
         log.info("Creating high accuracy figure.")

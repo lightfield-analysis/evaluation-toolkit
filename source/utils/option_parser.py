@@ -391,6 +391,11 @@ class FigureOpsCVPR17(object):
                                            help="create figure with disparity map, normal map, "
                                                 "and angular error per algorithm"))
 
+        actions.append(parser.add_argument("--discont",
+                                           dest="discont_overview", action="store_true",
+                                           help="create figure with disparity map and MedianDiff "
+                                                "per algorithm"))
+
         actions.append(parser.add_argument("--accuracy",
                                            dest="high_accuracy", action="store_true",
                                            help="create figure with BadPix and Q25 visualizations"))

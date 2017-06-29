@@ -31,10 +31,10 @@
 
 
 import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import ImageGrid
 import numpy as np
 
 import settings
-from evaluations import radar_chart
 from metrics import MSE, BadPix,  BumpinessPlanes, Discontinuities, BumpinessContinSurf, FineFattening, \
     FineThinning, Runtime, MAEPlanes, MAEContinSurf
 from scenes import BaseScene
@@ -73,7 +73,7 @@ class PhotorealisticScene(BaseScene):
         rows = len(metrics_low_res + metrics_high_res) + 1
         cols = len(algorithms) + 1
         fig = plt.figure(figsize=(cols, rows*1.1))
-        grids = plotting.get_grids(fig, rows, cols, axes_pad=-0.2)
+        grids = _get_grids(fig, rows, cols, axes_pad=-0.2)
 
         # center view on top left grid cell
         self.set_high_gt_scale()
@@ -99,6 +99,22 @@ class PhotorealisticScene(BaseScene):
 
         fig_path = plotting.get_path_to_figure("algo_overview_%s" % self.get_name(), subdir=subdir)
         plotting.save_fig(fig, fig_path, pad_inches=0.1)
+
+    @staticmethod
+    def _get_grids(fig, rows, cols, axes_pad=0):
+        grids = []
+        for row in range(rows):
+            grid_id = int("%d%d%d" % (rows, 1, row + 1))
+            grid = ImageGrid(fig, grid_id,
+                             nrows_ncols=(1, cols),
+                             axes_pad=(0.05, axes_pad),
+                             share_all=True,
+                             cbar_location="right",
+                             cbar_mode="single",
+                             cbar_size="10%",
+                             cbar_pad="5%")
+            grids.append(grid)
+        return grids
 
     def plot_metric_rows(self, grids, algorithms, metrics, offset, fontsize):
         gt = self.get_gt()

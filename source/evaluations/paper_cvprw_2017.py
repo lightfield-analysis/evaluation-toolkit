@@ -30,7 +30,6 @@
 ############################################################################
 
 import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
 from matplotlib import cm
 import numpy as np
 
@@ -41,14 +40,11 @@ import settings
 from utils import misc, plotting
 
 
-def plot_scene_overview(scenes, subdir="overview"):
+def plot_scene_overview(scenes, subdir="overview", fs=16):
     # prepare grid figure
-    fig = plt.figure(figsize=(21.6, 4))
-    fs = 16
-
     rows, cols = 2, len(scenes)
-    hscale, wscale = 5, 7
-    grids = gridspec.GridSpec(rows, cols, height_ratios=[hscale] * rows, width_ratios=[wscale] * cols)
+    fig = plt.figure(figsize=(21.6, 4))
+    grids = plotting.prepare_grid(rows, cols)
 
     # plot center view and ground truth for each scene
     for idx_s, scene in enumerate(scenes):
@@ -80,12 +76,9 @@ def plot_scene_overview(scenes, subdir="overview"):
 
 def plot_normals_explanation(scene, algorithm, fs=14, subdir="overview"):
     # prepare figure
-    fig = plt.figure(figsize=(10, 4))
     rows, cols = 1, 4
-    hscale, wscale = 5, 7
-    grids = gridspec.GridSpec(rows, cols, height_ratios=[hscale] * rows, width_ratios=[wscale] * (cols-1) + [1])
-    cb_height, w = scene.get_height(), scene.get_width()
-    cb_width = w / float(wscale)
+    fig = plt.figure(figsize=(10, 4))
+    grid, cb_height, cb_width = plotting.prepare_grid_with_colorbar(rows, cols, scene)
 
     # prepare metrics
     normals_contin = MAEContinSurf()
@@ -99,21 +92,21 @@ def plot_normals_explanation(scene, algorithm, fs=14, subdir="overview"):
                                                                     with_visualization=True)
 
     # plot ground truth normals
-    plt.subplot(grids[0])
+    plt.subplot(grid[0])
     plt.imshow(scene.get_normal_vis_from_disp_map(gt))
     plt.title("Ground Truth Normals", fontsize=fs)
 
     # plot algorithm normals
-    plt.subplot(grids[1])
+    plt.subplot(grid[1])
     plt.imshow(scene.get_normal_vis_from_disp_map(algo_result))
     plt.title("Algorithm Normals", fontsize=fs)
 
     # plot median angular error with colorbar
-    plt.subplot(grids[2])
+    plt.subplot(grid[2])
     cb = plt.imshow(vis_normals, **settings.metric_args(normals_contin))
     plt.title("Median Angular Error: %0.1f" % score_normals, fontsize=fs)
-    plt.subplot(grids[3])
-    plotting.add_colorbar(grids[3], cb, cb_height, cb_width, colorbar_bins=4, fontsize=fs)
+    plt.subplot(grid[3])
+    plotting.add_colorbar(grid[3], cb, cb_height, cb_width, colorbar_bins=4, fontsize=fs)
 
     # save figure
     fig_path = plotting.get_path_to_figure("metrics_%s_%s" % (scene.get_name(), algorithm.get_name()), subdir=subdir)
@@ -178,16 +171,71 @@ def plot_high_accuracy(algorithms, scenes, subdir="overview"):
     metric_overviews.plot_general_overview(algorithms, scenes, metrics, fig_name="high_accuracy", subdir=subdir)
 
 
+def plot_discont_overview(algorithms, scene, n_rows=2, fs=15, subdir="overview", xmin=150, ymin=230, ww=250):
+
+    # prepare figure grid
+    n_vis_types = 2
+    n_entries_per_row = int(np.ceil((len(algorithms) + 1) / float(n_rows)))
+    rows, cols = (n_vis_types * n_rows), n_entries_per_row + 1
+
+    fig = plt.figure(figsize=(cols * 1.7, 1.45 * rows * 1.5))
+    grid, cb_height, cb_width = plotting.prepare_grid_with_colorbar(rows, cols, scene)
+    colorbar_args = {"height": cb_height, "width": cb_width, "colorbar_bins": 7, "fontsize": fs}
+
+    # prepare data
+    median_algo = PerPixMedianDiff()
+    gt = scene.get_gt()
+    median_result = misc.get_algo_result(scene, median_algo)
+    center_view = scene.get_center_view()
+
+    # center view
+    plt.subplot(grid[0])
+    plt.imshow(center_view[ymin:ymin + ww, xmin:xmin + ww])
+    plt.title("Center View", fontsize=fs)
+    plt.ylabel("DispMap", fontsize=fs)
+    plt.subplot(grid[cols])
+    plt.ylabel("MedianDiff", fontsize=fs)
+
+    for idx_a, algorithm in enumerate(algorithms):
+        algo_result = misc.get_algo_result(scene, algorithm)
+        idx = idx_a + 1
+
+        add_ylabel = not idx % n_entries_per_row  # is first column
+        add_colorbar = not ((idx + 1) % n_entries_per_row)  # is last column
+        idx_row = (idx / n_entries_per_row) * n_vis_types
+        idx_col = idx % n_entries_per_row
+
+        # top row with algorithm disparity map
+        plt.subplot(grid[idx_row * cols + idx_col])
+        cb_depth = plt.imshow(algo_result[ymin:ymin + ww, xmin:xmin + ww], **settings.disp_map_args(scene))
+        plt.title(algorithm.get_display_name(), fontsize=fs)
+
+        if add_ylabel:
+            plt.ylabel("DispMap", fontsize=fs)
+        if add_colorbar:
+            plotting.add_colorbar(grid[idx_row * cols + idx_col + 1], cb_depth, **colorbar_args)
+
+        # second row with median diff
+        plt.subplot(grid[(idx_row + 1) * cols + idx_col])
+        median_diff = (np.abs(median_result - gt) - np.abs(algo_result - gt))[ymin:ymin + ww, xmin:xmin + ww]
+        cb_error = plt.imshow(median_diff, interpolation="none", cmap=cm.RdYlGn, vmin=-.05, vmax=.05)
+
+        if add_ylabel:
+            plt.ylabel("MedianDiff", fontsize=fs)
+        if add_colorbar:
+            plotting.add_colorbar(grid[(idx_row + 1) * cols + idx_col + 1], cb_error, **colorbar_args)
+
+    fig_path = plotting.get_path_to_figure("discont_%s" % scene.get_name(), subdir=subdir)
+    plotting.save_tight_figure(fig, fig_path, hide_frames=True, remove_ticks=True, hspace=0.03, wspace=0.03, dpi=100)
+
+
 def plot_median_comparisons(scenes, algorithms, subdir="per_pix_comparisons", with_gt_row=True, fs=12):
 
     # prepare figure
     rows, cols = len(algorithms) + int(with_gt_row), len(scenes)*3+1
-    hscale, wscale = 5, 7
-    grids = gridspec.GridSpec(rows, cols, height_ratios=[hscale] * rows, width_ratios=[wscale] * (cols-1) + [1])
-    cb_height, w = scenes[0].get_height() * 0.8, scenes[0].get_width()
-    cb_width = w / float(wscale)
-
     fig = plt.figure(figsize=(cols * 1.3, rows * 1.5))
+    grid, cb_height, cb_width = plotting.prepare_grid_with_colorbar(rows, cols, scenes[0])
+    cb_height *= 0.8
 
     abs_diff_median_algo = PerPixMedianDiff()
 
@@ -203,7 +251,7 @@ def plot_median_comparisons(scenes, algorithms, subdir="per_pix_comparisons", wi
             add_title = idx_a == 0  # is top row
 
             # disparity map
-            plt.subplot(grids[idx_a*cols+3*idx_s])
+            plt.subplot(grid[idx_a*cols+3*idx_s])
             plt.imshow(algo_result, **settings.disp_map_args(scene))
             if add_title:
                 plt.title("DispMap", fontsize=fs)
@@ -211,13 +259,13 @@ def plot_median_comparisons(scenes, algorithms, subdir="per_pix_comparisons", wi
                 plt.ylabel(algorithm.get_display_name(), fontsize=fs)
 
             # error map: gt - algo
-            plt.subplot(grids[idx_a*cols+3*idx_s+1])
+            plt.subplot(grid[idx_a*cols+3*idx_s+1])
             cb1 = plt.imshow(gt-algo_result, **settings.diff_map_args(vmin=-.1, vmax=.1))
             if add_title:
                 plt.title("GT-Algo", fontsize=fs)
 
             # error map: |median-gt| - |algo-gt|
-            plt.subplot(grids[idx_a*cols+3*idx_s+2])
+            plt.subplot(grid[idx_a*cols+3*idx_s+2])
             median_diff = np.abs(abs_diff_median_result - gt) - np.abs(algo_result - gt)
             cb2 = plt.imshow(median_diff, interpolation="none", cmap=cm.RdYlGn, vmin=-.05, vmax=.05)
             if add_title:
@@ -225,28 +273,28 @@ def plot_median_comparisons(scenes, algorithms, subdir="per_pix_comparisons", wi
 
             if add_colorbar:
                 if idx_a % 2 == 0:
-                    plotting.add_colorbar(grids[idx_a*cols + 3*idx_s+2+1], cb1,
+                    plotting.add_colorbar(grid[idx_a*cols + 3*idx_s+2+1], cb1,
                                           cb_height, cb_width, colorbar_bins=4, fontsize=fs)
                 else:
-                    plotting.add_colorbar(grids[idx_a*cols + 3*idx_s+2+1], cb2,
+                    plotting.add_colorbar(grid[idx_a*cols + 3*idx_s+2+1], cb2,
                                           cb_height, cb_width, colorbar_bins=4, fontsize=fs)
 
         if with_gt_row:
             idx_a += 1
 
-            plt.subplot(grids[idx_a * cols + 3 * idx_s])
+            plt.subplot(grid[idx_a * cols + 3 * idx_s])
             plt.imshow(gt, **settings.disp_map_args(scene))
             plt.xlabel("GT", fontsize=fs)
 
             if add_label:
                 plt.ylabel("Reference")
 
-            plt.subplot(grids[idx_a * cols + 3 * idx_s + 1])
+            plt.subplot(grid[idx_a * cols + 3 * idx_s + 1])
             cb1 = plt.imshow(np.abs(gt - abs_diff_median_result), **settings.abs_diff_map_args())
             plt.xlabel("|GT-PerPixMedian|", fontsize=fs-2)
 
             if add_colorbar:
-                plotting.add_colorbar(grids[idx_a * cols + 3 * idx_s + 2 + 1], cb1, cb_height,
+                plotting.add_colorbar(grid[idx_a * cols + 3 * idx_s + 2 + 1], cb1, cb_height,
                                       cb_width, colorbar_bins=4, fontsize=fs)
 
     fig_path = plotting.get_path_to_figure("median_comparison_%s" % scene.get_category(), subdir=subdir)
