@@ -33,7 +33,7 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 import numpy as np
 
-from algorithms import PerPixMedianDiff, PerPixMedianDisp
+from algorithms import PerPixMedianDiff, PerPixMedianDisp, PerPixBest
 from evaluations import bad_pix_series, metric_overviews, radar_chart
 from metrics import *
 import settings
@@ -72,6 +72,51 @@ def plot_scene_overview(scenes, subdir="overview", fs=16):
     # save figure
     fig_path = plotting.get_path_to_figure("scenes", subdir=subdir)
     plotting.save_tight_figure(fig, fig_path, hide_frames=True, remove_ticks=True, hspace=0.02, wspace=0.02, dpi=200)
+
+
+def plot_scene_difficulty(scenes, subdir="overview", fs=10):
+
+    n_scenes_per_row = 4
+    rows, cols = 6, n_scenes_per_row + 1
+    fig = plt.figure(figsize=(6, 9))
+    grid, cb_height, cb_width = plotting.prepare_grid_with_colorbar(rows, cols, scenes[0])
+    colorbar_args = {"height": cb_height, "width": cb_width, "colorbar_bins": 2, "fontsize": fs}
+
+    median_algo = PerPixMedianDiff()
+    best_algo = PerPixBest()
+
+    for idx_s, scene in enumerate(scenes):
+        # prepare data
+        gt = scene.get_gt()
+        median_result = misc.get_algo_result(scene, median_algo)
+        best_result = misc.get_algo_result(scene, best_algo)
+
+        idx_row = idx_s / n_scenes_per_row * 2
+        idx_col = (idx_s % n_scenes_per_row)
+        add_ylabel = not (idx_s % n_scenes_per_row)  # is first column
+        add_colorbar = idx_col == (n_scenes_per_row - 1)  # is last column
+
+        # plot errors for median result
+        plt.subplot(grid[idx_row * cols + idx_col])
+        plt.title(scene.get_display_name(), fontsize=fs)
+        cb = plt.imshow(np.abs(gt - median_result), **settings.abs_diff_map_args())
+
+        if add_ylabel:
+            plt.ylabel("|GT - %s|" % median_algo.get_display_name(), fontsize=fs-2)
+        if add_colorbar:
+            plotting.add_colorbar(grid[(idx_row) * cols + idx_col + 1], cb, **colorbar_args)
+
+        # plot error for best result
+        plt.subplot(grid[(idx_row+1) * cols + idx_col])
+        cb = plt.imshow(np.abs(gt - best_result), **settings.abs_diff_map_args())
+
+        if add_ylabel:
+            plt.ylabel("|GT - %s|" % best_algo.get_display_name(), fontsize=fs-2)
+        if add_colorbar:
+            plotting.add_colorbar(grid[(idx_row+1) * cols + idx_col + 1], cb, **colorbar_args)
+
+    fig_path = plotting.get_path_to_figure("scene_difficulty", subdir=subdir)
+    plotting.save_tight_figure(fig, fig_path, hide_frames=True, remove_ticks=True, hspace=0.08, wspace=0.03)
 
 
 def plot_normals_explanation(scene, algorithm, fs=14, subdir="overview"):

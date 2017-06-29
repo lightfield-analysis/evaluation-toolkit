@@ -367,6 +367,10 @@ class FigureOpsCVPR17(object):
                                            dest="scene_overview", action="store_true",
                                            help="create figure with center view and ground truth per scene"))
 
+        actions.append(parser.add_argument("--difficulty",
+                                           dest="scene_difficulty", action="store_true",
+                                           help="create figure with error maps of per pixel median and best disparity"))
+
         actions.append(parser.add_argument("--normalsdemo",
                                            dest="normals_demo", action="store_true",
                                            help="create figure with ground truth normals, algorithm normals, "

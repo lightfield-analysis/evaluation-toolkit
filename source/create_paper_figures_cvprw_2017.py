@@ -37,8 +37,8 @@ SUBDIR = "paper_cvprw_2017"
 
 if __name__ == "__main__":
     parser = OptionParser([FigureOpsCVPR17()])
-    scene_overview, normals_demo, radar_charts, bad_pix_series, median_comparisons, normals_overview, \
-    discont_overview, high_accuracy_overview = parser.parse_args()
+    scene_overview, scene_difficulty, normals_demo, radar_charts, bad_pix_series, median_comparisons, \
+    normals_overview, discont_overview, high_accuracy_overview = parser.parse_args()
 
     # delay imports to speed up usage response
     from utils import misc, file_io
@@ -70,6 +70,10 @@ if __name__ == "__main__":
     if scene_overview:
         log.info("Creating scene overview figure.")
         paper_cvprw_2017.plot_scene_overview(benchmark_scenes, subdir=SUBDIR)
+
+    if scene_difficulty:
+        log.info("Creating scene difficulty figure.")
+        paper_cvprw_2017.plot_scene_difficulty(benchmark_scenes, subdir=SUBDIR)
 
     if normals_demo:
         log.info("Creating normals demo figure.")
