@@ -37,7 +37,8 @@ SUBDIR = "paper_cvprw_2017"
 
 if __name__ == "__main__":
     parser = OptionParser([FigureOpsCVPR17()])
-    scene_overview, normals_demo, radar_charts, bad_pix_series, normals_overview, high_accuracy_overview = parser.parse_args()
+    scene_overview, normals_demo, radar_charts, bad_pix_series, median_comparisons, normals_overview, \
+    high_accuracy_overview = parser.parse_args()
 
     # delay imports to speed up usage response
     from utils import misc, file_io
@@ -75,15 +76,18 @@ if __name__ == "__main__":
         from scenes import Sideboard
         paper_cvprw_2017.plot_normals_explanation(Sideboard(), Algorithm("epi1"), subdir=SUBDIR)
 
-    if True or radar_charts:
+    if radar_charts:
         log.info("Creating radar charts.")
-        algorithms = [Algorithm("oberanp"), Algorithm("zctv1"),  Algorithm("epi1"),  Algorithm("epi2"),  Algorithm("sc_gc")]
-        algorithms = Algorithm.set_colors(algorithms)
-        paper_cvprw_2017.plot_radar_charts(algorithms, subdir=SUBDIR)
+        paper_cvprw_2017.plot_radar_charts(all_benchmark_algorithms, subdir=SUBDIR)
 
     if bad_pix_series:
         log.info("Creating figures with BadPix series.")
         paper_cvprw_2017.plot_bad_pix_series(all_benchmark_algorithms, with_cached_scores=False, subdir=SUBDIR)
+
+    if median_comparisons:
+        log.info("Creating median comparison figures.")
+        paper_cvprw_2017.plot_median_comparisons(sorted(misc.get_stratified_scenes()), all_benchmark_algorithms, subdir=SUBDIR)
+        paper_cvprw_2017.plot_median_comparisons(sorted(misc.get_training_scenes()), all_benchmark_algorithms, subdir=SUBDIR)
 
     if normals_overview:
         log.info("Creating surface normal figure(s).")

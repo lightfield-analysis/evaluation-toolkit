@@ -125,14 +125,16 @@ class SceneOps(object):
 
 class AlgorithmOps(object):
 
-    def __init__(self, with_gt=False, additional_help_text=""):
+    def __init__(self, with_gt=False, additional_help_text="", ignore_meta_algorithms=True):
         self.with_gt = with_gt
         self.additional_help_text = additional_help_text
+        self.ignore_meta_algorithms = ignore_meta_algorithms
 
     def add_arguments(self, parser):
         help = 'list of algorithm names\n' \
                'example: "-a epi1 lf mv"\n' \
-               'default: all directories in ALGO_PATH\n  %s' % settings.ALGO_PATH
+               'default: all directories in ALGO_PATH\n  %s\n' \
+               '  (per pixel meta algorithms are ignored)' % settings.ALGO_PATH
 
         if self.with_gt:
             help += '\nfurther options: gt'
@@ -140,75 +142,94 @@ class AlgorithmOps(object):
         if self.additional_help_text:
             help += '\n' + self.additional_help_text
 
+        if self.ignore_meta_algorithms:
+            algorithms_to_ignore = [algorithm.get_name() for algorithm in MetaAlgorithmOps().meta_algorithms.values()]
+        else:
+            algorithms_to_ignore = []
+
         action = parser.add_argument("-a",
-                                     dest="algorithms", action=self.AlgorithmAction,
+                                     dest="algorithms", action=AlgorithmAction,
+                                     algorithms_to_ignore=algorithms_to_ignore,
                                      type=str, nargs="+",
                                      help=help)
         return [action]
 
-    class AlgorithmAction(argparse.Action):
-        def __call__(self, parser, namespace, values, option_string=None):
-            from utils import misc
-            from algorithms import Algorithm
 
-            available_algo_names = misc.get_available_algo_names()
+class AlgorithmAction(argparse.Action):
 
-            # default: use all available algorithms
-            if not values:
-                algo_names = available_algo_names
-            # otherwise: check if selected algorithms exist
-            else:
-                algo_names = []
-                for algo_name in values:
-                    if algo_name not in available_algo_names and algo_name != "gt":
-                        parser.error("Could not find algorithm for: %s. "
-                                     "Available options are: %s." % (algo_name, ", ".join(available_algo_names)))
-                    else:
-                        algo_names.append(algo_name)
+    def __init__(self, option_strings, algorithms_to_ignore=[], *args, **kwargs):
+        self.algorithms_to_ignore = algorithms_to_ignore
+        super(AlgorithmAction, self).__init__(option_strings=option_strings, *args, **kwargs)
 
-            # create algorithm objects
-            algorithms = [Algorithm(file_name=algo_file_name) for algo_file_name in algo_names]
-            algorithms = Algorithm.set_colors(algorithms)
+    def __call__(self, parser, namespace, values, option_string=None):
+        from utils import misc
+        from algorithms import Algorithm
 
-            # save result in action destination
-            setattr(namespace, self.dest, algorithms)
+        available_algo_names = [a for a in misc.get_available_algo_names() if a not in self.algorithms_to_ignore]
+
+        # default: use all available algorithms
+        if not values:
+            algo_names = available_algo_names
+        # otherwise: check if selected algorithms exist
+        else:
+            algo_names = []
+            for algo_name in values:
+                if algo_name not in available_algo_names and algo_name != "gt":
+                    parser.error("Could not find algorithm for: %s. "
+                                 "Available options are: %s." % (algo_name, ", ".join(available_algo_names)))
+                else:
+                    algo_names.append(algo_name)
+
+        # create algorithm objects
+        algorithms = [Algorithm(file_name=algo_file_name) for algo_file_name in algo_names]
+        algorithms = Algorithm.set_colors(algorithms)
+
+        # save result in action destination
+        setattr(namespace, self.dest, algorithms)
 
 
 class MetaAlgorithmOps(object):
 
-    def add_arguments(self, parser):
+    def __init__(self):
+        from algorithms import PerPixBest, PerPixMean, PerPixMedianDiff, PerPixMedianDisp
+        self.meta_algorithms = {"best": PerPixBest(),
+                                "mean": PerPixMean(),
+                                "mediandisp": PerPixMedianDisp(),
+                                "mediandiff": PerPixMedianDiff()}
 
+    def add_arguments(self, parser):
         action = parser.add_argument("-p",
-                                     dest="meta_algorithms", action=self.MetaAlgorithmAction,
+                                     dest="meta_algorithms", action=MetaAlgorithmAction,
+                                     meta_algorithms=self.meta_algorithms,
                                      type=str, nargs="+",
                                      help='list of meta algorithm names\n'
                                           'example: "-a best mean"\n'
-                                          'default: all options'
-                                          'options: best, mean, mediandiff, mediandisp')
+                                          'default: all options\n'
+                                          'options: %s' % ", ".join(sorted(self.meta_algorithms.keys())))
         return [action]
 
-    class MetaAlgorithmAction(argparse.Action):
-        def __call__(self, parser, namespace, values, option_string=None):
-            algorithms = []
 
-            from algorithms import PerPixBest, PerPixMean, PerPixMedianDiff, PerPixMedianDisp
-            meta_algorithms = {"best": PerPixBest(),
-                               "mean": PerPixMean(),
-                               "mediandisp": PerPixMedianDisp(),
-                               "mediandiff": PerPixMedianDiff()}
+class MetaAlgorithmAction(argparse.Action):
 
-            if not values:
-                algorithms = [meta_algorithms.values()]
-            else:
-                for value in values:
-                    try:
-                        algorithms.append(meta_algorithms[value])
-                    except KeyError:
-                        parser.error("Could not find algorithm for: %s. "
-                                     "Available options are: %s." % (value, ", ".join(meta_algorithms.keys())))
+    def __init__(self, option_strings, meta_algorithms, *args, **kwargs):
+        self.meta_algorithms = meta_algorithms
+        super(MetaAlgorithmAction, self).__init__(option_strings=option_strings, *args, **kwargs)
 
-            # save result in action destination
-            setattr(namespace, self.dest, algorithms)
+    def __call__(self, parser, namespace, values, option_string=None):
+        algorithms = []
+
+        if not values:
+            algorithms = self.meta_algorithms.values()
+        else:
+            for value in values:
+                try:
+                    algorithms.append(self.meta_algorithms[value])
+                except KeyError:
+                    parser.error("Could not find algorithm for: %s. "
+                                 "Available options are: %s." % (value, ", ".join(self.meta_algorithms.keys())))
+
+        # save result in action destination
+        setattr(namespace, self.dest, algorithms)
 
 
 class MetricOps(object):
@@ -338,6 +359,7 @@ class FigureOpsACCV16(object):
 
 
 class FigureOpsCVPR17(object):
+
     def add_arguments(self, parser):
         actions = []
 
@@ -358,6 +380,11 @@ class FigureOpsCVPR17(object):
                                            dest="bad_pix_series", action="store_true",
                                            help="create figures with BadPix series "
                                                 "for stratified and photorealistic scenes"))
+
+        actions.append(parser.add_argument("--median",
+                                           dest="median_comparisons", action="store_true",
+                                           help="create figures with MedianDiff comparisons "
+                                                "for stratified and training scenes"))
 
         actions.append(parser.add_argument("--normals",
                                            dest="normals_overview", action="store_true",

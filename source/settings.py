@@ -123,11 +123,18 @@ def get_scene_names_additional():
             "tomb", "tower", "town", "vinyl"]
 
 
-def diff_map_args():
-    return {"vmin": DMIN,
-            "vmax": DMAX,
+def diff_map_args(vmin=DMIN, vmax=DMAX):
+    return {"vmin": vmin,
+            "vmax": vmax,
             "interpolation": "none",
             "cmap": error_cmap}
+
+
+def abs_diff_map_args(vmin=0, vmax=0.1):
+    return {"vmin": vmin,
+            "vmax": vmax,
+            "interpolation": "none",
+            "cmap": cm.YlOrRd}
 
 
 def disp_map_args(scene, factor=0.9, cmap=disp_cmap):

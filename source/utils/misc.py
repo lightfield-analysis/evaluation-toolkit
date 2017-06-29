@@ -265,6 +265,11 @@ def get_path_to_algo_data(algorithm):
     return op.join(settings.ALGO_PATH, algorithm.get_name())
 
 
+def save_algo_result(algo_result, scene, algorithm):
+    fname = op.normpath(op.join(*[get_path_to_algo_data(algorithm), settings.DISP_MAP_DIR, "%s.pfm" % scene.get_name()]))
+    file_io.write_file(algo_result, fname)
+
+
 def get_algo_result(scene, algorithm):
     return get_algo_result_from_dir(scene, get_path_to_algo_data(algorithm))
 
@@ -303,5 +308,10 @@ def get_runtimes(scene, algorithms):
     return runtimes
 
 
-def get_stacked_gt(scene, algorithms):
-    return np.tile(scene.get_gt()[:, :, np.newaxis], (1, 1, len(algorithms)))
+def save_runtime(runtime, scene, algorithm):
+    fname = op.normpath(op.join(*[get_path_to_algo_data(algorithm), settings.RUNTIME_DIR, "%s.txt" % scene.get_name()]))
+    file_io.write_runtime(runtime, fname)
+
+
+def get_stacked_gt(scene, n):
+    return np.tile(scene.get_gt()[:, :, np.newaxis], (1, 1, n))

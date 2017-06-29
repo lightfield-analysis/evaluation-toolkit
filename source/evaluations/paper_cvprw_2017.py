@@ -31,11 +31,14 @@
 
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
+from matplotlib import cm
+import numpy as np
 
-from utils import misc, plotting
+from algorithms import PerPixMedianDiff, PerPixMedianDisp
 from evaluations import bad_pix_series, metric_overviews, radar_chart
 from metrics import *
 import settings
+from utils import misc, plotting
 
 
 def plot_scene_overview(scenes, subdir="overview"):
@@ -173,3 +176,79 @@ def plot_normals_overview(algorithms, scenes, subdir="overview"):
 def plot_high_accuracy(algorithms, scenes, subdir="overview"):
     metrics = [BadPix(0.07), BadPix(0.01), Quantile(25)]
     metric_overviews.plot_general_overview(algorithms, scenes, metrics, fig_name="high_accuracy", subdir=subdir)
+
+
+def plot_median_comparisons(scenes, algorithms, subdir="per_pix_comparisons", with_gt_row=True, fs=12):
+
+    # prepare figure
+    rows, cols = len(algorithms) + int(with_gt_row), len(scenes)*3+1
+    hscale, wscale = 5, 7
+    grids = gridspec.GridSpec(rows, cols, height_ratios=[hscale] * rows, width_ratios=[wscale] * (cols-1) + [1])
+    cb_height, w = scenes[0].get_height() * 0.8, scenes[0].get_width()
+    cb_width = w / float(wscale)
+
+    fig = plt.figure(figsize=(cols * 1.3, rows * 1.5))
+
+    abs_diff_median_algo = PerPixMedianDiff()
+
+    for idx_s, scene in enumerate(scenes):
+        gt = scene.get_gt()
+        abs_diff_median_result = misc.get_algo_result(scene, abs_diff_median_algo)
+        add_label = idx_s == 0  # is first column
+        add_colorbar = idx_s == len(scenes)-1  # is last column
+
+        # plot one row per algorithm
+        for idx_a, algorithm in enumerate(algorithms):
+            algo_result = misc.get_algo_result(scene, algorithm)
+            add_title = idx_a == 0  # is top row
+
+            # disparity map
+            plt.subplot(grids[idx_a*cols+3*idx_s])
+            plt.imshow(algo_result, **settings.disp_map_args(scene))
+            if add_title:
+                plt.title("DispMap", fontsize=fs)
+            if add_label:
+                plt.ylabel(algorithm.get_display_name(), fontsize=fs)
+
+            # error map: gt - algo
+            plt.subplot(grids[idx_a*cols+3*idx_s+1])
+            cb1 = plt.imshow(gt-algo_result, **settings.diff_map_args(vmin=-.1, vmax=.1))
+            if add_title:
+                plt.title("GT-Algo", fontsize=fs)
+
+            # error map: |median-gt| - |algo-gt|
+            plt.subplot(grids[idx_a*cols+3*idx_s+2])
+            median_diff = np.abs(abs_diff_median_result - gt) - np.abs(algo_result - gt)
+            cb2 = plt.imshow(median_diff, interpolation="none", cmap=cm.RdYlGn, vmin=-.05, vmax=.05)
+            if add_title:
+                plt.title("MedianDiff", fontsize=fs)
+
+            if add_colorbar:
+                if idx_a % 2 == 0:
+                    plotting.add_colorbar(grids[idx_a*cols + 3*idx_s+2+1], cb1,
+                                          cb_height, cb_width, colorbar_bins=4, fontsize=fs)
+                else:
+                    plotting.add_colorbar(grids[idx_a*cols + 3*idx_s+2+1], cb2,
+                                          cb_height, cb_width, colorbar_bins=4, fontsize=fs)
+
+        if with_gt_row:
+            idx_a += 1
+
+            plt.subplot(grids[idx_a * cols + 3 * idx_s])
+            plt.imshow(gt, **settings.disp_map_args(scene))
+            plt.xlabel("GT", fontsize=fs)
+
+            if add_label:
+                plt.ylabel("Reference")
+
+            plt.subplot(grids[idx_a * cols + 3 * idx_s + 1])
+            cb1 = plt.imshow(np.abs(gt - abs_diff_median_result), **settings.abs_diff_map_args())
+            plt.xlabel("|GT-PerPixMedian|", fontsize=fs-2)
+
+            if add_colorbar:
+                plotting.add_colorbar(grids[idx_a * cols + 3 * idx_s + 2 + 1], cb1, cb_height,
+                                      cb_width, colorbar_bins=4, fontsize=fs)
+
+    fig_path = plotting.get_path_to_figure("median_comparison_%s" % scene.get_category(), subdir=subdir)
+    plotting.save_tight_figure(fig, fig_path, hide_frames=True, remove_ticks=True, hspace=0.02, wspace=0.0)
+
