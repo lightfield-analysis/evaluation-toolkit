@@ -69,8 +69,8 @@ class SceneOps(object):
                                      dest="scenes", action=self.SceneAction,
                                      type=str, nargs="+",
                                      help='list of scenes or scene category names\n'
-                                          'example: "-s cotton dino"\n'
-                                          'example: "-s training" (will add all locally available training scenes)\n'
+                                          'example 1: "-s cotton dino"\n'
+                                          'example 2: "-s training" (will add all locally available training scenes)\n'
                                           'default: all scenes in category directories in DATA_PATH\n  %s.' % settings.DATA_PATH)
         return [action]
 
@@ -79,34 +79,34 @@ class SceneOps(object):
             from utils import misc
 
             # collect available scenes and scene categories
-            available_scenes_to_categories = misc.get_available_scenes_with_categories()
-            available_scenes = available_scenes_to_categories.keys()
-            available_categories = list(set(list(available_scenes_to_categories.values())))
+            available_scenes_with_categories = misc.get_available_scenes_with_categories()
+            available_scenes = available_scenes_with_categories.keys()
+            available_categories = list(set(list(available_scenes_with_categories.values())))
 
-            # parse given scene and category names and check if
+            # parse given scene and category names
             if not values:
                 # default: use all available scenes
-                scenes_to_categories = available_scenes_to_categories
+                scenes_with_categories = available_scenes_with_categories
             else:
-                scenes_to_categories = dict()
+                scenes_with_categories = dict()
                 for value in values:
                     # add regular scene
                     if value in available_scenes:
-                        scenes_to_categories[value] = available_scenes_to_categories[value]
+                        scenes_with_categories[value] = available_scenes_with_categories[value]
                     else:
                         # add available scenes of a given category
                         if value in available_categories:
-                            for scene_name, category in available_scenes_to_categories.items():
+                            for scene_name, category in available_scenes_with_categories.items():
                                 if category == value:
-                                    scenes_to_categories[scene_name] = available_scenes_to_categories[scene_name]
+                                    scenes_with_categories[scene_name] = available_scenes_with_categories[scene_name]
                         else:
                             parser.error("Could not find scene for: %s.\n"
                                          "Available scenes are: %s.\n"
                                          "Available categories are: %s." %
                                          (value, ", ".join(available_scenes), ", ".join(available_categories)))
 
-            # initialize scene objects of valid scene names
-            scenes = [misc.get_scene(scene_name, category) for scene_name, category in scenes_to_categories.items()]
+            # initialize scene objects for all valid scene names
+            scenes = [misc.get_scene(scene_name, category) for scene_name, category in sorted(scenes_with_categories.items())]
 
             setattr(namespace, self.dest, scenes)
 
@@ -126,8 +126,8 @@ class AlgorithmOps(object):
         if self.default:
             help += ' '.join(self.default)
         else:
-            help += ' all directories in ALGO_PATH\n  %s\n' \
-                    '(per pixel meta algorithms are ignored)' % settings.ALGO_PATH
+            help += 'all algorithm directories in ALGO_PATH\n  %s\n' \
+                    '  (per pixel meta algorithms are ignored)' % settings.ALGO_PATH
 
         if self.with_gt:
             help += '\nfurther options: gt'
@@ -318,6 +318,19 @@ class VisualizationOps(object):
         action = parser.add_argument("-v", "--visualize",
                                      dest="visualize", action="store_true",
                                      help="set flag to create visualization figures during evaluation")
+        return [action]
+
+
+class ThresholdOps(object):
+
+    def __init__(self, threshold=0.07):
+        self.threshold = threshold
+
+    def add_arguments(self, parser):
+
+        action = parser.add_argument("-t", "--threshold",
+                                     dest="threshold", type=float, default=self.threshold,
+                                     help="default: %0.3f" % self.threshold)
         return [action]
 
 

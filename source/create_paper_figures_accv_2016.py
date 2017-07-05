@@ -47,9 +47,9 @@ if __name__ == "__main__":
 
     if heatmaps:
         log.info("Creating heatmaps figure.")
-        from evaluations import performance_heatmaps
+        from evaluations import error_heatmaps
         scenes = misc.get_stratified_scenes() + misc.get_training_scenes()
-        performance_heatmaps.plot(algorithms, scenes, subdir=SUBDIR)
+        error_heatmaps.plot(algorithms, scenes, subdir=SUBDIR)
 
     if radar_charts:
         log.info("Creating radar charts for stratified and training scenes.")

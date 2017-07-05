@@ -29,59 +29,14 @@
 #                                                                          #
 ############################################################################
 
-
-import matplotlib.pyplot as plt
-import numpy as np
-from matplotlib import gridspec
-
-import settings
-from utils import plotting, misc
+from utils.option_parser import *
 
 
-def plot(algorithms, scenes, thresh=settings.BAD_PIX_THRESH, subdir="heatmaps"):
-    # prepare figure
-    n_scenes = len(scenes)
-    rows, cols = int(np.ceil(n_scenes / 4.0)), 5
-    fig = plt.figure(figsize=(2.7*cols, 3*rows))
-    grid, cb_height, cb_width = plotting.prepare_grid_with_colorbar(rows, cols, scenes[0], hscale=1, wscale=9)
-    colorbar_args = {"height": cb_height, "width": cb_width, "colorbar_bins": 5, "fontsize": 10, "scale": 0.8}
+if __name__ == "__main__":
+    parser = OptionParser([SceneOps(), AlgorithmOps(), ThresholdOps()])
+    scenes, algorithms, threshold = parser.parse_args()
 
-    idx_scene = 0
+    # delay imports to speed up usage response
+    from evaluations import error_heatmaps
 
-    # plot heatmap per scene
-    for idx in range(rows*cols):
-        if (idx + 1) % 5 != 0:
-            scene = scenes[idx_scene]
-            idx_scene += 1
-            plt.subplot(grid[idx])
-            cm = plt.imshow(get_bad_count(scene, algorithms, thresh, percentage=True), vmin=0, vmax=100, cmap="inferno")
-            plt.ylabel(scene.get_display_name(), fontsize=18, labelpad=2.5)
-        else:
-            plotting.add_colorbar(grid[idx], cm, **colorbar_args)
-
-    plt.suptitle("Per Pixel: Percentage of Algorithms with abs(gt-algo) > %0.2f" % thresh, fontsize=18)
-
-    fig_path = plotting.get_path_to_figure("error_heatmaps", subdir=subdir)
-    plotting.save_tight_figure(fig, fig_path, hide_frames=True, remove_ticks=True, hspace=0.02)
-
-
-def get_bad_count(scene, algorithms, thresh, percentage=False):
-    bad_count = np.zeros((scene.get_height(), scene.get_width()))
-    gt = scene.get_gt()
-
-    for idx_a, algorithm in enumerate(algorithms):
-        algo_result = misc.get_algo_result(scene, algorithm)
-        abs_diffs = np.abs(gt - algo_result)
-
-        with np.errstate(invalid="ignore"):
-            bad = abs_diffs > thresh
-            bad += misc.get_mask_invalid(abs_diffs)
-
-        bad_count += bad
-
-    if percentage:
-        bad_count = misc.percentage(len(algorithms), bad_count)
-
-    return bad_count
-
-
+    error_heatmaps.plot(algorithms, scenes, thresh=threshold)
