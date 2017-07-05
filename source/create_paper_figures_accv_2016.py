@@ -34,9 +34,8 @@ from utils.option_parser import *
 SUBDIR = "paper_accv_2016"
 
 if __name__ == "__main__":
-    accv_algorithms = ["epi1", "epi2", "lf_occ", "lf", "mv"]
-    additional_help_text = 'use: "-a %s" for original ACCV algorithms' % " ".join(accv_algorithms)
-    parser = OptionParser([AlgorithmOps(additional_help_text=additional_help_text), FigureOpsACCV16()])
+    default_accv_algorithms = ["epi1", "epi2", "lf_occ", "lf", "mv"]
+    parser = OptionParser([AlgorithmOps(default=default_accv_algorithms), FigureOpsACCV16()])
 
     algorithms, heatmaps, radar_charts, stratified, training, stratified_charts = parser.parse_args()
 

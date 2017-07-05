@@ -48,19 +48,11 @@ class Backgammon(BaseStratified):
     mn_fg_fat = "mask_foreground_fattening"
     mn_vertical_bins = "mask_vertical_bins"
 
-    def __init__(self, name="backgammon", **kwargs):
-        super(Backgammon, self).__init__(name, **kwargs)
+    def __init__(self, name="backgammon", eval_general_metrics_on_high_res=True, **kwargs):
+        super(Backgammon, self).__init__(name, eval_general_metrics_on_high_res=eval_general_metrics_on_high_res, **kwargs)
 
     @staticmethod
-    def get_applicable_metrics_high_res():
-        return misc.get_general_metrics() + Backgammon.get_scene_specific_stratified_metrics()
-
-    @staticmethod
-    def get_applicable_metrics_low_res():
-        return []
-
-    @staticmethod
-    def get_scene_specific_stratified_metrics():
+    def get_scene_specific_metrics():
         return [BackgammonFattening(), BackgammonThinning()]
 
     def plot_fattening_thinning(self, algorithms, n_bins=15, subdir="stratified"):

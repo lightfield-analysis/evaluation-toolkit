@@ -151,7 +151,7 @@ def compare_relative_performances(algorithms, scenes, metrics, all_but=0):
     n_winners = len(winners.keys())
     log.info("%d Algorithm(s) better on all but %d score(s)." % (n_winners, all_but))
 
-    for idx_a, (algorithm, better_than) in enumerate(winners.iteritems()):
+    for idx_a, (algorithm, better_than) in enumerate(winners.items()):
         log.info("%d) %s is better than: %s" % (idx_a+1, algorithm.get_display_name(), ", ".join(a.get_display_name() for a in better_than)))
 
     return winners

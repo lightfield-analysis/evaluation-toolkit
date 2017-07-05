@@ -47,15 +47,15 @@ from utils import plotting, misc
 class BaseStratified(BaseScene):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, name, **kwargs):
-        super(BaseStratified, self).__init__(name, category=settings.STRATIFIED_SCENE, **kwargs)
+    def __init__(self, name, category=settings.STRATIFIED, **kwargs):
+        super(BaseStratified, self).__init__(name, category=category, **kwargs)
 
     def set_scale_for_algo_overview(self):
         self.set_high_gt_scale()
 
     def plot_algo_overview(self, algorithms, with_metric_vis=True, subdir="algo_overview"):
         self.set_scale_for_algo_overview()
-        metrics = self.get_scene_specific_stratified_metrics()
+        metrics = self.get_scene_specific_metrics()
         n_metrics = len(metrics)
 
         if not with_metric_vis:

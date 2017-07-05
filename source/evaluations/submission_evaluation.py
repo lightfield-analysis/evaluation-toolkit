@@ -45,15 +45,14 @@ THUMB_FORMAT = "png"
 
 
 def evaluate(evaluation_output_path, algorithm_input_path, ground_truth_path,
-             selected_scenes=None, metrics=None, visualize=False, with_test_scenes=False):
+             scenes, metrics=None, visualize=False):
     """
     :param evaluation_output_path: target directory for all evaluation results
     :param algorithm_input_path: input directory for algorithm results with expected directories: runtimes, disp_maps
     :param ground_truth_path: input directory for ground truth data
-    :param selected_scenes: the given subset of the scenes, otherwise: all benchmark scenes
+    :param scenes: the given subset of the scenes
     :param metrics: the given subset of the metrics, otherwise: all applicable metrics
     :param visualize: whether to save visualizations (otherwise just the scores)
-    :param with_test_scenes: whether to evaluate on the test scenes too
     :return: success, {"messages": ["error 1", "error 2", ...]}
     """
 
@@ -70,7 +69,6 @@ def evaluate(evaluation_output_path, algorithm_input_path, ground_truth_path,
     log.info("Metrics: %s" % ", ".join(m.get_display_name() for m in metrics))
 
     # prepare scenes
-    scenes = get_scenes_for_evaluation(selected_scenes, data_path=ground_truth_path)
     log.info("Scenes: %s" % ", ".join(s.get_display_name() for s in scenes))
 
     # evaluate
@@ -82,10 +80,9 @@ def evaluate(evaluation_output_path, algorithm_input_path, ground_truth_path,
                 log.info("Visualizing algorithm result on %s" % scene.get_display_name())
                 scene_data["algorithm_result"] = visualize_algo_result(scene, algorithm_input_path, evaluation_output_path)
 
-            if with_test_scenes or not scene.is_test():
-                log.info("Processing scene: %s" % scene.get_display_name())
-                log.info("Using data from: %s" % scene.get_data_path())
-                scene_data["scores"] = compute_scores(scene, metrics, algorithm_input_path, evaluation_output_path, visualize)
+            log.info("Processing scene: %s" % scene.get_display_name())
+            log.info("Using data from: %s" % scene.get_data_path())
+            scene_data["scores"] = compute_scores(scene, metrics, algorithm_input_path, evaluation_output_path, visualize)
 
         except IOError as e:
             admin_errors.append(e)
@@ -101,18 +98,6 @@ def evaluate(evaluation_output_path, algorithm_input_path, ground_truth_path,
     success = not admin_errors
     error_json = {"messages": admin_errors}
     return success, error_json
-
-
-def get_scenes_for_evaluation(selected_scenes, gt_scale=1.0, data_path=None):
-    # collect all potential scenes
-    scenes_for_eval = misc.get_benchmark_scenes(gt_scale=gt_scale, data_path=data_path)
-
-    # select subset of selected and available scenes
-    if selected_scenes is not None:
-        selected_scene_names = [scene.get_name() for scene in selected_scenes]
-        scenes_for_eval = [scene for scene in scenes_for_eval if scene.get_name() in selected_scene_names]
-
-    return scenes_for_eval
 
 
 def get_relative_path(scene, descr, file_type=THUMB_FORMAT):
@@ -142,13 +127,15 @@ def compute_scores(scene, metrics, algo_dir, tgt_dir, visualize):
     scores = dict()
 
     # resolution for evaluation is metric specific
-    metrics_low_res = [m for m in scene.get_applicable_metrics_low_res() if m in metrics]
-    scene.set_low_gt_scale()
-    scores = add_scores(metrics_low_res, scene, algo_dir, tgt_dir, scores, visualize)
+    low_res_metrics = scene.get_applicable_metrics_low_res(metrics)
+    if low_res_metrics:
+        scene.set_low_gt_scale()
+        scores = add_scores(low_res_metrics, scene, algo_dir, tgt_dir, scores, visualize)
 
-    metrics_high_res = [m for m in scene.get_applicable_metrics_high_res() if m in metrics]
-    scene.set_high_gt_scale()
-    scores = add_scores(metrics_high_res, scene, algo_dir, tgt_dir, scores, visualize)
+    high_res_metrics = scene.get_applicable_metrics_high_res(metrics)
+    if high_res_metrics:
+        scene.set_high_gt_scale()
+        scores = add_scores(high_res_metrics, scene, algo_dir, tgt_dir, scores, visualize)
 
     scores = add_runtime(scene, algo_dir, scores, metrics)
 
@@ -156,9 +143,9 @@ def compute_scores(scene, metrics, algo_dir, tgt_dir, visualize):
 
 
 def add_runtime(scene, algo_dir, scores, metrics):
-    runtime_metrics = [m for m in metrics if "runtime" in m.get_identifier()]
+    runtime_metrics = [m for m in metrics if "runtime" in m.get_id()]
     for metric in runtime_metrics:
-        scores[metric.get_identifier()] = {"value": metric.get_score_from_dir(scene, algo_dir)}
+        scores[metric.get_id()] = {"value": metric.get_score_from_dir(scene, algo_dir)}
     return scores
 
 
@@ -177,7 +164,7 @@ def add_scores(metrics, scene, algo_dir, tgt_dir, scores, visualize):
             score = metric.get_score(algo_result, gt, scene)
             metric_data = {"value": float(score)}
 
-        scores[metric.get_identifier()] = metric_data
+        scores[metric.get_id()] = metric_data
 
     return scores
 
@@ -195,7 +182,7 @@ def save_visualization(algo_result, metric_vis, metric, scene, tgt_dir):
     add_colorbar(cm, metric.colorbar_bins)
 
     # save fig
-    relative_fname = get_relative_path(scene, metric.get_identifier())
+    relative_fname = get_relative_path(scene, metric.get_id())
     fpath = op.normpath(op.join(tgt_dir, relative_fname))
     plotting.save_tight_figure(fig, fpath, hide_frames=True, remove_ticks=True, pad_inches=0.01)
 

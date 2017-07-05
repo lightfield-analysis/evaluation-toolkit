@@ -42,8 +42,13 @@ from utils import file_io, misc, plotting
 class BaseMetric(object):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, name, vmin=0, vmax=1, colorbar_bins=1, cmap=settings.abs_error_cmap):
+    def __init__(self, name, vmin=0, vmax=1, colorbar_bins=1, cmap=settings.abs_error_cmap,
+                 eval_on_high_res=False):
         self.name = name
+        self.mask_name = None
+
+        # default: evaluate on low/original scene resolution
+        self.eval_on_high_res = eval_on_high_res
 
         # plotting properties
         self.vmin = vmin
@@ -55,20 +60,20 @@ class BaseMetric(object):
         self.cmap = cmap
 
     def __hash__(self):
-        return hash((self.get_identifier()))
+        return hash((self.get_id()))
 
     def __eq__(self, other):
-        return self.get_identifier() == other.get_identifier()
+        return self.get_id() == other.get_id()
 
     def __str__(self):
-        return self.get_identifier()
+        return self.get_id()
 
     def __repr__(self):
-        return self.get_identifier()
+        return self.get_id()
 
     # used as identifier for evaluation results on website and for reading/writing temporary results
     @abc.abstractmethod
-    def get_identifier(self):
+    def get_id(self):
         return
 
     # used for most figures and on website
@@ -94,10 +99,11 @@ class BaseMetric(object):
         # default mask: everything except for image boundary
         return scene.get_boundary_mask(ignore_boundary)
 
-    @staticmethod
-    def evaluate_on_high_res():
-        # default: evaluate on low resolution
-        return False
+    def evaluate_on_high_scene_resolution(self):
+        return self.eval_on_high_res
+
+    def evaluate_on_low_scene_resolution(self):
+        return not self.eval_on_high_res
 
     @staticmethod
     def format_score(score):
@@ -106,19 +112,16 @@ class BaseMetric(object):
     def is_general(self):
         return self.category == settings.GENERAL_METRIC
 
-    # region methods
-    def is_applicable_for_low_res_scene(self, scene):
-        return not self.evaluate_on_high_res() and self.mask_exists(scene, settings.LOWRES)
-
-    def is_applicable_for_high_res_scene(self, scene):
-        return self.evaluate_on_high_res() and self.mask_exists(scene, settings.HIGHRES)
-
-    def mask_exists(self, scene, resolution):
-        fname = op.join(scene.data_path, "%s_%s.png" % (self.mask_name, resolution))
-        return op.isfile(fname)
+    def evaluation_mask_exists(self, scene, resolution):
+        # general metrics don't have a mask name as they don't require a mask file with a specific region
+        if self.mask_name is None:
+            return True
+        else:
+            fname = op.join(scene.data_path, "%s_%s.png" % (self.mask_name, resolution))
+            return op.isfile(fname)
 
     def pixelize_results(self):
-        return self.get_identifier().startswith(("mse", "badpix", "q"))
+        return self.get_id().startswith(("mse", "badpix", "q"))
 
 
 class BadPix(BaseMetric):
@@ -129,7 +132,7 @@ class BadPix(BaseMetric):
         self.cmin = 0
         self.cmax = 1
 
-    def get_identifier(self):
+    def get_id(self):
         return ("badpix_%0.3f" % self.thresh).replace(".", "")
 
     def get_display_name(self):
@@ -175,14 +178,14 @@ class BadPix(BaseMetric):
 
 
 class MSE(BaseMetric):
-    def __init__(self, factor=100, name="MSE",
+    def __init__(self, factor=100, name="MSE", eval_on_high_res=False,
                  vmin=settings.DMIN, vmax=settings.DMAX, cmap=settings.error_cmap, colorbar_bins=4):
-        super(MSE, self).__init__(name=name, vmin=vmin, vmax=vmax,
+        super(MSE, self).__init__(name=name, vmin=vmin, vmax=vmax, eval_on_high_res=eval_on_high_res,
                                   cmap=cmap, colorbar_bins=colorbar_bins)
         self.factor = factor
         self.category = settings.GENERAL_METRIC
 
-    def get_identifier(self):
+    def get_id(self):
         return "mse_%d" % self.factor
 
     def get_description(self):
@@ -212,16 +215,17 @@ class MSE(BaseMetric):
 
 
 class Quantile(BaseMetric):
-    def __init__(self, percentage, factor=100,
+    def __init__(self, percentage, factor=100, eval_on_high_res=False,
                  name="Quantile", vmin=0, vmax=0.5, colorbar_bins=5, cmap=settings.quantile_cmap, **kwargs):
-        super(Quantile, self).__init__(name=name, vmin=vmin, vmax=vmax, cmap=cmap, colorbar_bins=colorbar_bins, **kwargs)
+        super(Quantile, self).__init__(name=name, vmin=vmin, vmax=vmax, cmap=cmap, colorbar_bins=colorbar_bins,
+                                       eval_on_high_res=eval_on_high_res, **kwargs)
         self.percentage = percentage
         self.category = settings.GENERAL_METRIC
         self.cmin = 0
         self.cmax = vmax
         self.factor = factor
 
-    def get_identifier(self):
+    def get_id(self):
         return "q_%d_%d" % (self.percentage, self.factor)
 
     def get_display_name(self):
@@ -261,7 +265,7 @@ class Runtime(BaseMetric):
         self.log = log
         self.category = settings.GENERAL_METRIC
 
-    def get_identifier(self):
+    def get_id(self):
         if self.log:
             return "runtime_log"
         else:

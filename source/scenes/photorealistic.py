@@ -42,25 +42,14 @@ from utils import plotting, misc
 from utils.logger import log
 
 
-
 class PhotorealisticScene(BaseScene):
 
     def __init__(self, name, **kwargs):
         super(PhotorealisticScene, self).__init__(name, **kwargs)
 
-    def get_applicable_metrics_high_res(self):
-        return [metric for metric in misc.get_region_metrics() if metric.is_applicable_for_high_res_scene(self)]
-
-    def get_applicable_metrics_low_res(self):
-        metrics = [metric for metric in misc.get_region_metrics() if metric.is_applicable_for_low_res_scene(self)]
-        #  add general metrics to low resolution evaluation
-        return misc.get_general_metrics() + metrics
-
-    @staticmethod
-    def get_applicable_scenes(all_scenes, metric):
-        if metric.is_general():
-            return all_scenes
-        return [s for s in all_scenes if metric.mask_exists(s, settings.LOWRES) or metric.mask_exists(s, settings.HIGHRES)]
+    def get_scene_specific_metrics(self):
+        return [m for m in misc.get_region_metrics() if
+                m.evaluation_mask_exists(self, settings.LOWRES) or m.evaluation_mask_exists(self, settings.HIGHRES)]
 
     def plot_algo_overview(self, algorithms, subdir="algo_overview"):
         accv_metrics = [MSE(), BadPix(0.07), BumpinessPlanes(), BumpinessContinSurf(),
@@ -73,7 +62,7 @@ class PhotorealisticScene(BaseScene):
         rows = len(metrics_low_res + metrics_high_res) + 1
         cols = len(algorithms) + 1
         fig = plt.figure(figsize=(cols, rows*1.1))
-        grids = _get_grids(fig, rows, cols, axes_pad=-0.2)
+        grids = self._get_grids(fig, rows, cols, axes_pad=-0.2)
 
         # center view on top left grid cell
         self.set_high_gt_scale()
@@ -167,45 +156,3 @@ class PhotorealisticScene(BaseScene):
         plt.title(metric.format_score(score), fontsize=fontsize)
 
         return cm
-
-
-# convenience classes for test and training scenes
-
-class Bedroom(PhotorealisticScene):
-    def __init__(self, name="bedroom", category=settings.TEST_SCENE, **kwargs):
-        super(Bedroom, self).__init__(name, category=category, **kwargs)
-
-
-class Bicycle(PhotorealisticScene):
-    def __init__(self, name="bicycle", category=settings.TEST_SCENE, **kwargs):
-        super(Bicycle, self).__init__(name, category=category,  **kwargs)
-
-
-class Herbs(PhotorealisticScene):
-    def __init__(self, name="herbs", category=settings.TEST_SCENE, **kwargs):
-        super(Herbs, self).__init__(name, category=category,  **kwargs)
-
-
-class Origami(PhotorealisticScene):
-    def __init__(self, name="origami", category=settings.TEST_SCENE, **kwargs):
-        super(Origami, self).__init__(name, category=category,  **kwargs)
-
-
-class Boxes(PhotorealisticScene):
-    def __init__(self, name="boxes", category=settings.TRAINING_SCENE, **kwargs):
-        super(Boxes, self).__init__(name, category=category, **kwargs)
-
-
-class Cotton(PhotorealisticScene):
-    def __init__(self, name="cotton", category=settings.TRAINING_SCENE, **kwargs):
-        super(Cotton, self).__init__(name, category=category, **kwargs)
-
-
-class Dino(PhotorealisticScene):
-    def __init__(self, name="dino", category=settings.TRAINING_SCENE, **kwargs):
-        super(Dino, self).__init__(name, category=category, **kwargs)
-
-
-class Sideboard(PhotorealisticScene):
-    def __init__(self, name="sideboard", category=settings.TRAINING_SCENE, **kwargs):
-        super(Sideboard, self).__init__(name, category=category, **kwargs)

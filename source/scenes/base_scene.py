@@ -44,16 +44,22 @@ from utils import misc, file_io
 class BaseScene(object):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, name, gt_scale=1, data_path=None, category="other",
-                 boundary_offset=15, display_name=None):
+    def __init__(self, name, category=None, gt_scale=1, data_path=None, boundary_offset=15, display_name=None,
+                 eval_general_metrics_on_high_res=False):
 
         self.name = name  # corresponds to the file name
-        if display_name is None:  # is used for figures etc.
-            self.display_name = name.title()
 
+        if display_name is None:  # is used for figures etc.
+            display_name = name.title()
+        self.display_name = display_name
+
+        if category is None:
+            category = misc.infer_scene_category(name)
         self.category = category
+
         self.gt_scale = gt_scale
         self.boundary_offset = boundary_offset  # how many pixels to ignore on each side during evaluation on gt_scale=1
+        self.eval_general_metrics_on_high_res = eval_general_metrics_on_high_res
 
         if data_path is None:
             data_path = settings.DATA_PATH
@@ -124,10 +130,10 @@ class BaseScene(object):
         return self.is_test()
 
     def is_test(self):
-        return self.category == settings.TEST_SCENE
+        return self.category == settings.TEST
 
     def is_stratified(self):
-        return self.category == settings.STRATIFIED_SCENE
+        return self.category == settings.STRATIFIED
 
     # ----------------------------------------------------------
     # getter for scene data with appropriate scale
@@ -222,31 +228,34 @@ class BaseScene(object):
         self.gt_scale = 1.0
 
     # ----------------------------------------------------------
-    # scores
+    # scene dependent metrics
     # ----------------------------------------------------------
 
-    def get_scores(self, algorithms, metric):
-        scores = np.full(len(algorithms), fill_value=np.nan)
-        gt = self.get_gt()
+    def get_applicable_metrics(self, metrics=None):
+        applicable_metrics = self._get_general_metrics(metrics) + self.get_scene_specific_metrics()
+        if metrics:
+            applicable_metrics = [m for m in applicable_metrics if m in metrics]
+        applicable_metrics = [m for m in applicable_metrics if "runtime" not in m.get_id()]
+        return applicable_metrics
 
-        for idx_a, algorithm in enumerate(algorithms):
-            algo_result = misc.get_algo_result(self, algorithm)
-            if "runtime" in metric.get_identifier():
-                scores[idx_a] = metric.get_score(self, algorithm)
+    def _get_general_metrics(self, metrics=None):
+        if metrics:
+            general_metrics = [m for m in metrics if m.is_general()]
+        else:
+            general_metrics = misc.get_general_metrics()
+
+        for metric in general_metrics:
+            if self.eval_general_metrics_on_high_res:
+                metric.eval_on_high_res = True
             else:
-                scores[idx_a] = metric.get_score(algo_result, gt, self)
+                metric.eval_on_high_res = False
 
-        return scores
+        return general_metrics
 
-    @staticmethod
-    def get_average_scores(algorithms, metric, scenes):
-        if len(scenes) == 0:
-            return np.full((1, len(algorithms)), fill_value=np.nan)
-        scores = np.full((len(scenes), len(algorithms)), fill_value=np.nan)
+    def get_applicable_metrics_low_res(self, metrics=None):
+        return [m for m in self.get_applicable_metrics(metrics) if
+                m.evaluate_on_low_scene_resolution() and m.evaluation_mask_exists(self, settings.LOWRES)]
 
-        for idx_s, scene in enumerate(scenes):
-            scores[idx_s, :] = scene.get_scores(algorithms, metric)
-
-        avg_scores = np.ma.average(np.ma.masked_array(scores, mask=misc.get_mask_invalid(scores)), axis=0)
-        return avg_scores
-
+    def get_applicable_metrics_high_res(self, metrics=None):
+        return [m for m in self.get_applicable_metrics(metrics) if
+                m.evaluate_on_high_scene_resolution() and m.evaluation_mask_exists(self, settings.HIGHRES)]

@@ -44,10 +44,9 @@ if __name__ == "__main__":
     from utils import misc
 
     for algorithm in algorithms:
-        submission_evaluation.evaluate(selected_scenes=scenes,
+        submission_evaluation.evaluate(scenes=scenes,
                                        metrics=metrics,
                                        visualize=visualize,
                                        ground_truth_path=settings.DATA_PATH,
                                        evaluation_output_path=op.join(settings.ALGO_EVAL_PATH, algorithm.get_name()),
-                                       algorithm_input_path=misc.get_path_to_algo_data(algorithm),
-                                       with_test_scenes=True)
+                                       algorithm_input_path=misc.get_path_to_algo_data(algorithm))

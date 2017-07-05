@@ -120,24 +120,39 @@ def percentage(total, part):
 
 # scenes
 
-def get_available_scene_names(categories=None):
+def get_available_scenes_with_categories(categories=None, data_path=settings.DATA_PATH):
     if categories is None:
-        categories = [d for d in os.listdir(settings.DATA_PATH) if op.isdir(op.join(settings.DATA_PATH, d))]
+        categories = [d for d in os.listdir(data_path) if op.isdir(op.join(data_path, d))]
 
-    scene_names = []
+    scenes_to_categories = dict()
     for category in categories:
-        category_dir = op.join(settings.DATA_PATH, category)
+        category_dir = op.join(data_path, category)
+
         # at least parameter file is required for scene to be "available"
-        scene_names += [d for d in os.listdir(category_dir) if op.isfile(op.join(category_dir, d, "parameters.cfg"))]
+        scene_names = [d for d in os.listdir(category_dir) if op.isfile(op.join(category_dir, d, "parameters.cfg"))]
 
-    return scene_names
+        for scene_name in scene_names:
+            if scene_name not in scenes_to_categories:
+                scenes_to_categories[scene_name] = category
+            else:
+                raise Exception("Scene names must be unique across all categories. "
+                                "Found duplicate for %s." % scene_name)
+
+    return scenes_to_categories
 
 
-def get_scene_dict():
-    scene_dict = dict()
-    for scene in get_benchmark_scenes():
-        scene_dict[scene.get_name()] = scene
-    return scene_dict
+def infer_scene_category(scene_name):
+    if scene_name in settings.get_scene_names_stratified():
+        category = settings.STRATIFIED
+    elif scene_name in settings.get_scene_names_training():
+        category = settings.TRAIN
+    elif scene_name in settings.get_scene_names_test():
+        category = settings.TEST
+    elif scene_name in settings.get_scene_names_additional():
+        category = settings.ADDITIONAL
+    else:
+        category = settings.OTHER
+    return category
 
 
 def get_benchmark_scenes(gt_scale=1.0, data_path=None):
@@ -147,49 +162,61 @@ def get_benchmark_scenes(gt_scale=1.0, data_path=None):
 
 
 def get_training_scenes(gt_scale=1.0, data_path=None):
-    from scenes import Sideboard, Cotton, Dino, Boxes
-    return [Sideboard(data_path=data_path, gt_scale=gt_scale),
-            Cotton(data_path=data_path, gt_scale=gt_scale),
-            Dino(data_path=data_path, gt_scale=gt_scale),
-            Boxes(data_path=data_path, gt_scale=gt_scale)]
+    return _get_photorealistic_scenes_by_name(settings.get_scene_names_training(),
+                                              settings.TRAINING, gt_scale=gt_scale, data_path=data_path)
 
 
 def get_test_scenes(gt_scale=1.0, data_path=None):
-    from scenes import Herbs, Bedroom, Bicycle, Origami
-    return [Herbs(data_path=data_path, gt_scale=gt_scale),
-            Bedroom(data_path=data_path, gt_scale=gt_scale),
-            Bicycle(data_path=data_path, gt_scale=gt_scale),
-            Origami(data_path=data_path, gt_scale=gt_scale)]
-
-
-def get_stratified_scenes(gt_scale=1.0, data_path=None):
-    from scenes import Backgammon, Pyramids, Dots, Stripes
-    scenes = [Backgammon(data_path=data_path, gt_scale=gt_scale),
-              Pyramids(data_path=data_path, gt_scale=gt_scale),
-              Dots(data_path=data_path, gt_scale=gt_scale),
-              Stripes(data_path=data_path, gt_scale=gt_scale)]
-    return scenes
+    return _get_photorealistic_scenes_by_name(settings.get_scene_names_test(),
+                                              settings.TEST,  gt_scale=gt_scale, data_path=data_path)
 
 
 def get_additional_scenes(gt_scale=1.0, data_path=None):
     return _get_photorealistic_scenes_by_name(settings.get_scene_names_additional(),
-                                              settings.ADDITIONAL_SCENE,
-                                              gt_scale=gt_scale,
-                                              data_path=data_path)
+                                              settings.ADDITIONAL, gt_scale=gt_scale, data_path=data_path)
 
 
 def _get_photorealistic_scenes_by_name(scene_names, category, gt_scale=1.0, data_path=None):
-    from scenes import PhotorealisticScene
-    scenes = []
-    for scene_name in scene_names:
-        scenes.append(PhotorealisticScene(name=scene_name,
-                                          data_path=data_path,
-                                          gt_scale=gt_scale,
-                                          category=category))
+    scenes = [get_photorealistic_scene(scene_name, category, gt_scale, data_path) for scene_name in scene_names]
     return scenes
 
 
+def get_stratified_scenes(gt_scale=1.0, data_path=None):
+    scene_names = settings.get_scene_names_stratified()
+    scenes = [get_stratified_scene(scene_name, gt_scale, data_path) for scene_name in scene_names]
+    return scenes
+
+
+def get_scene(scene_name, category, gt_scale=1.0, data_path=None):
+    if category == settings.STRATIFIED:
+        scene = get_stratified_scene(scene_name, gt_scale=gt_scale, data_path=data_path)
+    else:
+        scene = get_photorealistic_scene(scene_name, category, gt_scale=gt_scale, data_path=data_path)
+    return scene
+
+
+def get_photorealistic_scene(scene_name, category, gt_scale=1.0, data_path=None):
+    from scenes import PhotorealisticScene
+    return PhotorealisticScene(name=scene_name, category=category, data_path=data_path, gt_scale=gt_scale)
+
+
+def get_stratified_scene(scene_name, gt_scale=1.0, data_path=None):
+    from scenes import Backgammon, Pyramids, Dots, Stripes
+    if scene_name == "backgammon":
+        scene = Backgammon(data_path=data_path, gt_scale=gt_scale)
+    elif scene_name == "pyramids":
+        scene = Pyramids(data_path=data_path, gt_scale=gt_scale)
+    elif scene_name == "dots":
+        scene = Dots(data_path=data_path, gt_scale=gt_scale)
+    elif scene_name == "stripes":
+        scene = Stripes(data_path=data_path, gt_scale=gt_scale)
+    else:
+        raise Exception("Unknown stratified scene: %s." % scene_name)
+    return scene
+
+
 # metrics
+
 def get_all_metrics(log_runtime=True):
     from metrics import Runtime
     return get_all_metrics_wo_runtime() + [Runtime(log=log_runtime)]
@@ -217,7 +244,7 @@ def get_stratified_metrics():
     from scenes import Backgammon, Pyramids, Dots, Stripes
     metrics = []
     for scene in [Backgammon, Pyramids, Dots, Stripes]:
-        metrics += scene.get_scene_specific_stratified_metrics()
+        metrics += scene.get_scene_specific_metrics()
     return metrics
 
 
@@ -233,7 +260,7 @@ def collect_scores(algorithms, scenes, metrics, masked=False):
             scene_scores = results[scene.get_name()]["scores"]
 
             for idx_m, metric in enumerate(metrics):
-                metric_score = scene_scores.get(metric.get_identifier(), None)
+                metric_score = scene_scores.get(metric.get_id(), None)
 
                 if metric_score is not None:
                     scores_scenes_metrics_algos[idx_s, idx_m, idx_a] = metric_score["value"]

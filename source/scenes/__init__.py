@@ -7,6 +7,3 @@ from stratified.backgammon import Backgammon
 from stratified.dots import Dots
 from stratified.pyramids import Pyramids
 from stratified.stripes import Stripes
-
-# photorealistic scenes
-from photorealistic import Bedroom, Bicycle, Boxes, Cotton, Dino, Herbs, Origami, Sideboard

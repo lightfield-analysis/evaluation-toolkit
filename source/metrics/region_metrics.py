@@ -39,12 +39,12 @@ from utils import misc, plotting
 
 
 class Discontinuities(BadPix):
-    def __init__(self, thresh=settings.BAD_PIX_THRESH, name="Discontinuities"):
-        super(Discontinuities, self).__init__(name=name, thresh=thresh)
+    def __init__(self, thresh=settings.BAD_PIX_THRESH, name="Discontinuities", eval_on_high_res=True):
+        super(Discontinuities, self).__init__(name=name, thresh=thresh, eval_on_high_res=eval_on_high_res)
         self.category = settings.PHOTOREALISTIC_METRIC
         self.mask_name = "mask_discontinuities"
 
-    def get_identifier(self):
+    def get_id(self):
         return ("discontinuities_%0.3f" % self.thresh).replace(".", "")
 
     def get_description(self):
@@ -53,24 +53,20 @@ class Discontinuities(BadPix):
     def get_short_name(self):
         return "Discont."
 
-    @staticmethod
-    def evaluate_on_high_res():
-        return True
-
     def get_evaluation_mask(self, scene, ignore_boundary=True):
         return scene.get_mask(self.mask_name) * scene.get_boundary_mask(ignore_boundary)
 
 
 class BumpinessPlanes(BaseMetric):
-    def __init__(self, clip=0.05, factor=100, name="Bumpiness Planes", vmin=0, vmax=5):
-        super(BumpinessPlanes, self).__init__(name=name, vmin=vmin, vmax=vmax,
+    def __init__(self, clip=0.05, factor=100, name="Bumpiness Planes", vmin=0, vmax=5, eval_on_high_res=False):
+        super(BumpinessPlanes, self).__init__(name=name, vmin=vmin, vmax=vmax, eval_on_high_res=eval_on_high_res,
                                               colorbar_bins=5, cmap=settings.disp_cmap)
         self.clip = clip
         self.factor = factor
         self.category = settings.PHOTOREALISTIC_METRIC
         self.mask_name = "mask_planes"
 
-    def get_identifier(self):
+    def get_id(self):
         return ("bumpiness_planes_%d_%0.3f" % (self.factor, self.clip)).replace(".", "")
 
     def get_description(self):
@@ -113,12 +109,13 @@ class BumpinessPlanes(BaseMetric):
 
 class BumpinessContinSurf(BumpinessPlanes):
 
-    def __init__(self, clip=0.05, factor=100, name="Bumpiness Contin. Surfaces"):
-        super(BumpinessContinSurf, self).__init__(clip=clip, factor=factor, name=name)
+    def __init__(self, clip=0.05, factor=100, name="Bumpiness Contin. Surfaces", eval_on_high_res=False):
+        super(BumpinessContinSurf, self).__init__(clip=clip, factor=factor, name=name,
+                                                  eval_on_high_res=eval_on_high_res)
         self.category = settings.PHOTOREALISTIC_METRIC
         self.mask_name = "mask_smooth_surfaces"
 
-    def get_identifier(self):
+    def get_id(self):
         return ("bumpiness_contin_surfaces_%d_%0.3f" % (self.factor, self.clip)).replace(".", "")
 
     def get_description(self):
@@ -130,8 +127,8 @@ class BumpinessContinSurf(BumpinessPlanes):
 
 
 class MAEPlanes(BaseMetric):
-    def __init__(self, name="MAE Planes", vmin=0, vmax=80):
-        super(MAEPlanes, self).__init__(name=name, vmin=vmin, vmax=vmax,
+    def __init__(self, name="MAE Planes", vmin=0, vmax=80, eval_on_high_res=False):
+        super(MAEPlanes, self).__init__(name=name, vmin=vmin, vmax=vmax, eval_on_high_res=eval_on_high_res,
                                         colorbar_bins=5, cmap=settings.abs_error_cmap)
         self.category = settings.PHOTOREALISTIC_METRIC
         self.mask_name = "mask_planes"
@@ -145,7 +142,7 @@ class MAEPlanes(BaseMetric):
     def get_short_name(self):
         return "MAE Planes"
 
-    def get_identifier(self):
+    def get_id(self):
         return "mae_planes"
 
     def get_evaluation_mask(self, scene, ignore_boundary=True):
@@ -176,15 +173,11 @@ class MAEPlanes(BaseMetric):
 
         return angular_error
 
-    @staticmethod
-    def evaluate_on_high_res():
-        return False
-
 
 class MAEContinSurf(MAEPlanes):
 
-    def __init__(self, name="MAE Contin. Surfaces"):
-        super(MAEContinSurf, self).__init__(name=name)
+    def __init__(self, name="MAE Contin. Surfaces", eval_on_high_res=False, **kwargs):
+        super(MAEContinSurf, self).__init__(name=name, eval_on_high_res=eval_on_high_res, **kwargs)
         self.category = settings.PHOTOREALISTIC_METRIC
         self.mask_name = "mask_smooth_surfaces"
 
@@ -194,17 +187,17 @@ class MAEContinSurf(MAEPlanes):
     def get_short_name(self):
         return "MAE Surfaces"
 
-    def get_identifier(self):
+    def get_id(self):
         return "mae_contin_surfaces"
 
 
 class FineFattening(BadPix):
-    def __init__(self, thresh=-0.15, name="Fine Fattening"):
-        super(FineFattening, self).__init__(thresh=thresh, name=name)
+    def __init__(self, thresh=-0.15, name="Fine Fattening", eval_on_high_res=True):
+        super(FineFattening, self).__init__(thresh=thresh, name=name, eval_on_high_res=eval_on_high_res)
         self.category = settings.PHOTOREALISTIC_METRIC
         self.mask_name = "mask_fine_surrounding"
 
-    def get_identifier(self):
+    def get_id(self):
         return ("fine_fattening_%0.3f" % abs(self.thresh)).replace(".", "")
 
     def get_short_name(self):
@@ -229,21 +222,17 @@ class FineFattening(BadPix):
             m_fattening = (gt - algo_result) < self.thresh
         return m_fattening
 
-    @staticmethod
-    def evaluate_on_high_res():
-        return True
-
     def get_evaluation_mask(self, scene, ignore_boundary=True):
         return scene.get_mask(self.mask_name) * scene.get_boundary_mask(ignore_boundary)
 
 
 class FineThinning(BadPix):
-    def __init__(self, thresh=0.15, name="Fine Thinning"):
-        super(FineThinning, self).__init__(thresh=thresh, name=name)
+    def __init__(self, thresh=0.15, name="Fine Thinning", eval_on_high_res=True):
+        super(FineThinning, self).__init__(thresh=thresh, name=name, eval_on_high_res=eval_on_high_res)
         self.category = settings.PHOTOREALISTIC_METRIC
         self.mask_name = "mask_fine"
 
-    def get_identifier(self):
+    def get_id(self):
         return ("fine_thinning_%0.3f" % self.thresh).replace(".", "")
 
     def get_short_name(self):
@@ -267,10 +256,6 @@ class FineThinning(BadPix):
         with np.errstate(invalid="ignore"):
             mask_thinning = (gt - algo_result) > self.thresh
         return mask_thinning
-
-    @staticmethod
-    def evaluate_on_high_res():
-        return True
 
     def get_evaluation_mask(self, scene, ignore_boundary=True):
         return scene.get_mask(self.mask_name) * scene.get_boundary_mask(ignore_boundary)

@@ -186,6 +186,6 @@ def plot_general_overview(algorithms, scenes, metrics, fig_name=None, subdir=SUB
 
     # save figure
     if fig_name is None:
-        fig_name = "metric_overview_" + "_".join(metric.get_identifier() for metric in metrics)
+        fig_name = "metric_overview_" + "_".join(metric.get_id() for metric in metrics)
     fig_path = plotting.get_path_to_figure(fig_name, subdir=subdir)
     plotting.save_tight_figure(fig, fig_path, hide_frames=True, remove_ticks=True, hspace=0.01, wspace=0.01)

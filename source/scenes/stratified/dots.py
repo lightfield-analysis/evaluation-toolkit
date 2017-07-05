@@ -45,19 +45,11 @@ class Dots(BaseStratified):
     mn_dots_by_size = "mask_dots_by_size"
     mn_boxes = "mask_boxes"
 
-    def __init__(self, name="dots", **kwargs):
-        super(Dots, self).__init__(name, **kwargs)
+    def __init__(self, name="dots", eval_general_metrics_on_high_res=True, **kwargs):
+        super(Dots, self).__init__(name, eval_general_metrics_on_high_res=eval_general_metrics_on_high_res, **kwargs)
 
     @staticmethod
-    def get_applicable_metrics_high_res():
-        return misc.get_general_metrics() + Dots.get_scene_specific_stratified_metrics()
-
-    @staticmethod
-    def get_applicable_metrics_low_res():
-        return []
-
-    @staticmethod
-    def get_scene_specific_stratified_metrics():
+    def get_scene_specific_metrics():
         return [DotsBackgroundMSE(), MissedDots()]
 
     def plot_error_vs_noise(self, algorithms, subdir="stratified"):

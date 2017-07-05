@@ -43,19 +43,11 @@ class Stripes(BaseStratified):
     mn_low_contrast = "mask_low_contrast"
     mn_low_texture = "mask_low_texture"
 
-    def __init__(self, name="stripes", **kwargs):
-        super(Stripes, self).__init__(name, **kwargs)
+    def __init__(self, name="stripes", eval_general_metrics_on_high_res=True, **kwargs):
+        super(Stripes, self).__init__(name, eval_general_metrics_on_high_res=eval_general_metrics_on_high_res, **kwargs)
 
     @staticmethod
-    def get_applicable_metrics_high_res():
-        return misc.get_general_metrics() + Stripes.get_scene_specific_stratified_metrics()
-
-    @staticmethod
-    def get_applicable_metrics_low_res():
-        return []
-
-    @staticmethod
-    def get_scene_specific_stratified_metrics():
+    def get_scene_specific_metrics():
         from metrics import StripesLowTexture, DarkStripes, BrightStripes
         return [StripesLowTexture(), DarkStripes(), BrightStripes()]
 

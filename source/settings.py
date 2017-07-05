@@ -63,13 +63,12 @@ LOWRES = "lowres"
 HIGHRES = "highres"
 PIXELIZE = True
 
-TEST_SCENE = "test"
-TRAINING_SCENE = "training"
-ADDITIONAL_SCENE = "additional"
-STRATIFIED_SCENE = "stratified"
-BENCHMARK_SCENE = "benchmark" # test + training + stratified
-
-SCENE_PACKAGES = [STRATIFIED_SCENE, TRAINING_SCENE, TEST_SCENE, ADDITIONAL_SCENE, BENCHMARK_SCENE]
+TEST = "test"
+TRAINING = "training"
+ADDITIONAL = "additional"
+STRATIFIED = "stratified"
+BENCHMARK = "benchmark"  # test + training + stratified
+OTHER = "other"
 
 # plotting properties
 DMIN = -0.2

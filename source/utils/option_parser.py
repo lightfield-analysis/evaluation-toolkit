@@ -41,7 +41,6 @@ class OptionParser(argparse.ArgumentParser):
     def __init__(self, options=[], *args, **kwargs):
         super(OptionParser, self).__init__(formatter_class=argparse.RawTextHelpFormatter, *args, **kwargs)
         self.actions = []
-
         for option in options:
             self.actions += option.add_arguments(self)
 
@@ -51,11 +50,12 @@ class OptionParser(argparse.ArgumentParser):
 
         # call action with default action if option string was not provided
         # e.g. collect default scenes if no "-s" or "--scenes" was provided
-        # allows for lazy initialization, avoids file parsing.. when specifying default directly
+        # (values are not precomputed and set as default argument to avoid costly and mostly unused initializations)
         for action in self.actions:
             if getattr(namespace, action.dest) is None:
-                log.info('No values provided for option: "%s", initializing with default.' % action.option_strings[0])
                 action.__call__(self, namespace, values=None)
+
+        [log.info("%s: %s" % (action.dest, getattr(namespace, action.dest))) for action in self.actions]
 
         # return values in order of parser options
         values = [getattr(namespace, action.dest) for action in self.actions]
@@ -68,79 +68,69 @@ class SceneOps(object):
         action = parser.add_argument("-s",
                                      dest="scenes", action=self.SceneAction,
                                      type=str, nargs="+",
-                                     help='list of scene names\n'
+                                     help='list of scenes or scene category names\n'
                                           'example: "-s cotton dino"\n'
-                                          'default: all scenes in scene category directories in DATA_PATH \n  %s \n'
-                                          'further options: %s' % (settings.DATA_PATH, ", ".join(settings.SCENE_PACKAGES)))
+                                          'example: "-s training" (will add all locally available training scenes)\n'
+                                          'default: all scenes in category directories in DATA_PATH\n  %s.' % settings.DATA_PATH)
         return [action]
 
     class SceneAction(argparse.Action):
         def __call__(self, parser, namespace, values, option_string=None):
             from utils import misc
-            from scenes import PhotorealisticScene
 
-            available_scene_names = misc.get_available_scene_names()
+            # collect available scenes and scene categories
+            available_scenes_to_categories = misc.get_available_scenes_with_categories()
+            available_scenes = available_scenes_to_categories.keys()
+            available_categories = list(set(list(available_scenes_to_categories.values())))
 
-            # default: use all available scenes
+            # parse given scene and category names and check if
             if not values:
-                scene_names = available_scene_names
+                # default: use all available scenes
+                scenes_to_categories = available_scenes_to_categories
             else:
-                scene_names = []
-                for scene_option in values:
-                    if scene_option not in available_scene_names:
-                        if scene_option in settings.SCENE_PACKAGES:
-                            scene_names += self.get_scene_names_from_package(scene_option)
-                        else:
-                            parser.error("Could not find scene for: %s. "
-                                         "Available scenes are: %s." % (scene_option, ", ".join(available_scene_names)))
+                scenes_to_categories = dict()
+                for value in values:
+                    # add regular scene
+                    if value in available_scenes:
+                        scenes_to_categories[value] = available_scenes_to_categories[value]
                     else:
-                        scene_names.append(scene_option)
+                        # add available scenes of a given category
+                        if value in available_categories:
+                            for scene_name, category in available_scenes_to_categories.items():
+                                if category == value:
+                                    scenes_to_categories[scene_name] = available_scenes_to_categories[scene_name]
+                        else:
+                            parser.error("Could not find scene for: %s.\n"
+                                         "Available scenes are: %s.\n"
+                                         "Available categories are: %s." %
+                                         (value, ", ".join(available_scenes), ", ".join(available_categories)))
 
-            scene_dict = misc.get_scene_dict()
-            scenes = []
-            for scene_option in scene_names:
-                if scene_option in scene_dict:
-                    scene = scene_dict[scene_option]
-                elif scene_option in settings.get_scene_names_additional():
-                    scene = PhotorealisticScene(name=scene_option, category="additional")
-                else:
-                    scene = PhotorealisticScene(name=scene_option, category="other")
-                scenes.append(scene)
+            # initialize scene objects of valid scene names
+            scenes = [misc.get_scene(scene_name, category) for scene_name, category in scenes_to_categories.items()]
 
             setattr(namespace, self.dest, scenes)
-
-        @staticmethod
-        def get_scene_names_from_package(scene_option):
-            package_dict = {settings.TRAINING_SCENE: settings.get_scene_names_training(),
-                            settings.TEST_SCENE: settings.get_scene_names_test(),
-                            settings.STRATIFIED_SCENE: settings.get_scene_names_stratified(),
-                            settings.ADDITIONAL_SCENE: settings.get_scene_names_additional(),
-                            settings.BENCHMARK_SCENE: settings.get_scene_names_training() + \
-                                                      settings.get_scene_names_test() + \
-                                                      settings.get_scene_names_stratified()
-                            }
-
-            return package_dict[scene_option]
 
 
 class AlgorithmOps(object):
 
-    def __init__(self, with_gt=False, additional_help_text="", ignore_meta_algorithms=True):
+    def __init__(self, with_gt=False, default=[], ignore_meta_algorithms=True):
         self.with_gt = with_gt
-        self.additional_help_text = additional_help_text
+        self.default = default
         self.ignore_meta_algorithms = ignore_meta_algorithms
 
     def add_arguments(self, parser):
         help = 'list of algorithm names\n' \
                'example: "-a epi1 lf mv"\n' \
-               'default: all directories in ALGO_PATH\n  %s\n' \
-               '  (per pixel meta algorithms are ignored)' % settings.ALGO_PATH
+               'default: '
+
+        if self.default:
+            help += ' '.join(self.default)
+        else:
+            help += ' all directories in ALGO_PATH\n  %s\n' \
+                    '(per pixel meta algorithms are ignored)' % settings.ALGO_PATH
 
         if self.with_gt:
             help += '\nfurther options: gt'
-
-        if self.additional_help_text:
-            help += '\n' + self.additional_help_text
 
         if self.ignore_meta_algorithms:
             algorithms_to_ignore = [algorithm.get_name() for algorithm in MetaAlgorithmOps().meta_algorithms.values()]
@@ -296,7 +286,7 @@ class MetricOps(object):
     class MetricAction(argparse.Action):
 
         def __call__(self, parser, namespace, values, option_string=None):
-            from metrics import BadPix
+            from metrics import BadPix, Quantile
 
             metric_dict = MetricOps.get_all_options()
             metrics = []
@@ -311,6 +301,9 @@ class MetricOps(object):
                         if re.match("^badpix\d{3}", value):
                             threshold = float((value[6] + "." + value[7:]))
                             metrics += [BadPix(threshold)]
+                        elif re.match("^q\d{2}", value):
+                            percentage = int(value[1:])
+                            metrics += [Quantile(percentage)]
                         else:
                             parser.error("Could not find metrics for: %s. "
                                          "Available options are: %s." % (value, ", ".join(sorted(metric_dict.keys()))))
@@ -329,33 +322,49 @@ class VisualizationOps(object):
 
 
 class FigureOpsACCV16(object):
-    
+    def __init__(self):
+        self.figure_options = {"heatmaps": "figure with algorithm error heatmap per scene",
+                               "radar": "radar charts for stratified and training scenes",
+                               "stratified": "metric visualization figure for each stratified scene",
+                               "training": "metric visualization figure for each training scene",
+                               "charts": "charts along image dimensions of stratified scenes"}
+
     def add_arguments(self, parser):
-        actions = []
+        action = parser.add_argument("-f",
+                                     dest="figure_options", action=FigureOpsACCV2016Action,
+                                     figure_options=self.figure_options,
+                                     type=str, nargs="+",
+                                     help='list of figure names\n'
+                                          'example: "-a heatmaps radar"\n'
+                                          'default: all options\n'
+                                          'options: %s' % "".join("\n  %s: %s" % (key, value)
+                                                                    for key, value in sorted(self.figure_options.items())))
+        return [action]
 
-        actions.append(parser.add_argument("--heatmaps",
-                                           dest="heatmaps", action="store_true",
-                                           help="create figure with error heatmap per scene over all algorithms"))
 
-        actions.append(parser.add_argument("--radar",
-                                           dest="radar_charts", action="store_true",
-                                           help="create radar charts for stratified and training scenes"))
+class FigureOpsACCV2016Action(argparse.Action):
 
-        actions.append(parser.add_argument("--stratified",
-                                           dest="stratified", action="store_true",
-                                           help="create metric visualization figure for each "
-                                                "stratified scene with all algorithms"))
+    def __init__(self, option_strings, figure_options, *args, **kwargs):
+        self.figure_options = figure_options
+        super(FigureOpsACCV2016Action, self).__init__(option_strings=option_strings, *args, **kwargs)
 
-        actions.append(parser.add_argument("--training",
-                                           dest="training", action="store_true",
-                                           help="create metric visualization figure for each "
-                                                "training scene with all algorithms"))
+    def __call__(self, parser, namespace, values, option_string=None):
+        figure_options = []
 
-        actions.append(parser.add_argument("--charts",
-                                           dest="stratified_charts", action="store_true",
-                                           help="create charts along image dimensions of stratified scenes"))
+        available_options = self.figure_options.keys()
 
-        return actions
+        if not values:
+            figure_options = available_options
+        else:
+            for value in values:
+                if value in available_options:
+                    figure_options.append(value)
+                else:
+                    parser.error("Could not find figure option for: %s. "
+                                 "Available options are: %s." % (value, ", ".join(available_options)))
+
+        # save result in action destination
+        setattr(namespace, self.dest, figure_options)
 
 
 class FigureOpsCVPR17(object):
