@@ -66,12 +66,10 @@ class Algorithm(object):
 
         for file_name_algorithm in file_names_algorithms:
             acronym = meta_data[file_name_algorithm]["acronym"]
-
             algorithm = Algorithm(file_name=file_name_algorithm,
                                   display_name=acronym,
                                   is_meta=is_meta,
                                   is_baseline=is_baseline)
-
             algorithms.append(algorithm)
 
         return algorithms

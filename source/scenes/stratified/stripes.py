@@ -51,7 +51,7 @@ class Stripes(BaseStratified):
         from metrics import StripesLowTexture, DarkStripes, BrightStripes
         return [StripesLowTexture(), DarkStripes(), BrightStripes()]
 
-    def visualize_masks(self):
+    def visualize_masks(self, subdir="stratified"):
         self.set_high_gt_scale()
 
         rows, cols = 1, 3
@@ -72,7 +72,7 @@ class Stripes(BaseStratified):
         plotting.plot_img_with_transparent_mask(center_view, self.get_low_contrast()*m_eval, **settings.mask_vis_args())
         plt.title("Low Contrast\n(Bright Stripes)")
 
-        fig_path = plotting.get_path_to_figure("stripes_masks")
+        fig_path = plotting.get_path_to_figure("stripes_masks", subdir=subdir)
         plotting.save_tight_figure(fig, fig_path, hide_frames=True)
 
     # -------------------------

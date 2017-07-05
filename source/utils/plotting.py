@@ -63,7 +63,7 @@ def save_fig(fig, fig_name, dpi=150, bbox_inches='tight', hide_frames=False, rem
     fig.clf()
     plt.close(fig)
     gc.collect()
-    log.info('saved: ' + fig_name)
+    log.info('Saved: ' + fig_name)
 
 
 def save_tight_figure(fig, fig_name, remove_ticks=True, wspace=0.0, hspace=0.0,

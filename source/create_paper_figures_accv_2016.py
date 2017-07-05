@@ -34,43 +34,56 @@ from utils.option_parser import *
 SUBDIR = "paper_accv_2016"
 
 if __name__ == "__main__":
-    default_accv_algorithms = ["epi1", "epi2", "lf_occ", "lf", "mv"]
-    parser = OptionParser([AlgorithmOps(default=default_accv_algorithms), FigureOpsACCV16()])
+    accv_algo_names = ["epi1", "epi2", "lf_occ", "lf", "mv"]
+    parser = OptionParser([AlgorithmOps(default_algo_names=accv_algo_names), FigureOpsACCV16()])
 
-    algorithms, heatmaps, radar_charts, stratified, training, stratified_charts = parser.parse_args()
+    algorithms, figure_options = parser.parse_args()
 
     # delay imports to speed up usage response
     from utils.logger import log
     from utils import misc
-    from scenes import Backgammon, Pyramids, Dots
-    log.info("Creating figures with algorithms: %s" % algorithms)
 
-    if heatmaps:
-        log.info("Creating heatmaps figure.")
+    if "heatmaps" in figure_options:
+        log.info("Creating error heatmaps.")
         from evaluations import error_heatmaps
         scenes = misc.get_stratified_scenes() + misc.get_training_scenes()
         error_heatmaps.plot(algorithms, scenes, subdir=SUBDIR)
 
-    if radar_charts:
+    if "radar" in figure_options:
         log.info("Creating radar charts for stratified and training scenes.")
         from evaluations import paper_accv_2016
         paper_accv_2016.plot_radar_charts(algorithms, subdir=SUBDIR)
 
-    if stratified:
+    if "backgammon" in figure_options:
+        log.info("Creating special chart for backgammon scene.")
+        from scenes import Backgammon
+        Backgammon().plot_fattening_thinning(algorithms, subdir=SUBDIR)
+
+    if "pyramids" in figure_options:
+        log.info("Creating special chart for pyramids scene.")
+        from scenes import Pyramids
+        Pyramids().plot_algo_disp_vs_gt_disp(algorithms, subdir=SUBDIR)
+
+    if "dots" in figure_options:
+        log.info("Creating special chart for dots scene.")
+        from scenes import Dots
+        Dots().plot_error_vs_noise(algorithms, subdir=SUBDIR)
+
+    if "stripes" in figure_options:
+        from scenes import Stripes
+        log.info("Creating special chart for stripes scene.")
+        Stripes().visualize_masks(subdir=SUBDIR)
+
+    if "stratified" in figure_options:
         for scene in misc.get_stratified_scenes():
-            log.info("Processing scene: %s." % scene.get_display_name())
+            log.info("Creating metric visualization table for scene: %s." % scene.get_display_name())
             scene.plot_algo_overview(algorithms, with_metric_vis=True, subdir=SUBDIR)
 
-    if training:
+    if "training" in figure_options:
         for scene in misc.get_training_scenes():
-            log.info("Processing scene: %s." % scene.get_display_name())
+            log.info("Creating metric visualization table for scene: %s." % scene.get_display_name())
             scene.plot_algo_overview(algorithms, subdir=SUBDIR)
 
-    if stratified_charts:
-        log.info("Creating special charts for stratified scenes.")
-        Backgammon().plot_fattening_thinning(algorithms, subdir=SUBDIR)
-        Pyramids().plot_algo_disp_vs_gt_disp(algorithms, subdir=SUBDIR)
-        Dots().plot_error_vs_noise(algorithms, subdir=SUBDIR)
 
 
 

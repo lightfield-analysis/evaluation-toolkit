@@ -145,7 +145,7 @@ def infer_scene_category(scene_name):
     if scene_name in settings.get_scene_names_stratified():
         category = settings.STRATIFIED
     elif scene_name in settings.get_scene_names_training():
-        category = settings.TRAIN
+        category = settings.TRAINING
     elif scene_name in settings.get_scene_names_test():
         category = settings.TEST
     elif scene_name in settings.get_scene_names_additional():

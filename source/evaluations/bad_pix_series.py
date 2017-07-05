@@ -112,9 +112,9 @@ def compute_scores(algorithms, scenes, thresholds=THRESHOLDS, penalize_missing_p
 
     for idx_a, algorithm in enumerate(algorithms):
         combined_diffs = np.full((0), fill_value=np.nan)
+        log.info('Computing BadPix scores for: %s' % algorithm.get_display_name())
 
         for idx_s, scene in enumerate(scenes):
-            log.info('Computing BadPix scores for: %s, %s' % (algorithm.get_display_name(), scene.get_display_name()))
             gt = scene.get_gt()
             algo_result = misc.get_algo_result(scene, algorithm)
             diffs = np.abs(algo_result - gt)

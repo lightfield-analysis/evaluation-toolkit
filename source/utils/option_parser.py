@@ -59,6 +59,9 @@ class OptionParser(argparse.ArgumentParser):
 
         # return values in order of parser options
         values = [getattr(namespace, action.dest) for action in self.actions]
+
+        if len(values) == 1:
+            return values[0]
         return values
 
 
@@ -113,9 +116,9 @@ class SceneOps(object):
 
 class AlgorithmOps(object):
 
-    def __init__(self, with_gt=False, default=[], ignore_meta_algorithms=True):
+    def __init__(self, with_gt=False, default_algo_names=[], ignore_meta_algorithms=True):
         self.with_gt = with_gt
-        self.default = default
+        self.default_algo_names = default_algo_names
         self.ignore_meta_algorithms = ignore_meta_algorithms
 
     def add_arguments(self, parser):
@@ -123,8 +126,8 @@ class AlgorithmOps(object):
                'example: "-a epi1 lf mv"\n' \
                'default: '
 
-        if self.default:
-            help += ' '.join(self.default)
+        if self.default_algo_names:
+            help += ' '.join(self.default_algo_names)
         else:
             help += 'all algorithm directories in ALGO_PATH\n  %s\n' \
                     '  (per pixel meta algorithms are ignored)' % settings.ALGO_PATH
@@ -133,13 +136,14 @@ class AlgorithmOps(object):
             help += '\nfurther options: gt'
 
         if self.ignore_meta_algorithms:
-            algorithms_to_ignore = [algorithm.get_name() for algorithm in MetaAlgorithmOps().meta_algorithms.values()]
+            algo_names_to_ignore = [algorithm.get_name() for algorithm in MetaAlgorithmOps().meta_algorithms.values()]
         else:
-            algorithms_to_ignore = []
+            algo_names_to_ignore = []
 
         action = parser.add_argument("-a",
                                      dest="algorithms", action=AlgorithmAction,
-                                     algorithms_to_ignore=algorithms_to_ignore,
+                                     algo_names_to_ignore=algo_names_to_ignore,
+                                     default_algo_names=self.default_algo_names,
                                      type=str, nargs="+",
                                      help=help)
         return [action]
@@ -147,15 +151,20 @@ class AlgorithmOps(object):
 
 class AlgorithmAction(argparse.Action):
 
-    def __init__(self, option_strings, algorithms_to_ignore=[], *args, **kwargs):
-        self.algorithms_to_ignore = algorithms_to_ignore
+    def __init__(self, option_strings, algo_names_to_ignore=[], default_algo_names=None, *args, **kwargs):
+        self.algo_names_to_ignore = algo_names_to_ignore
+        self.default_algo_names = default_algo_names
         super(AlgorithmAction, self).__init__(option_strings=option_strings, *args, **kwargs)
 
     def __call__(self, parser, namespace, values, option_string=None):
         from utils import misc
         from algorithms import Algorithm
 
-        available_algo_names = [a for a in misc.get_available_algo_names() if a not in self.algorithms_to_ignore]
+        available_algo_names = [a for a in misc.get_available_algo_names() if a not in self.algo_names_to_ignore]
+
+        # default algo names must still be checked whether they are among the available algorithms
+        if not values and self.default_algo_names:
+            values = self.default_algo_names
 
         # default: use all available algorithms
         if not values:
@@ -334,40 +343,32 @@ class ThresholdOps(object):
         return [action]
 
 
-class FigureOpsACCV16(object):
-    def __init__(self):
-        self.figure_options = {"heatmaps": "figure with algorithm error heatmap per scene",
-                               "radar": "radar charts for stratified and training scenes",
-                               "stratified": "metric visualization figure for each stratified scene",
-                               "training": "metric visualization figure for each training scene",
-                               "charts": "charts along image dimensions of stratified scenes"}
+class FigureOps(object):
 
     def add_arguments(self, parser):
         action = parser.add_argument("-f",
-                                     dest="figure_options", action=FigureOpsACCV2016Action,
+                                     dest="figure_options", action=FigureOpsAction,
                                      figure_options=self.figure_options,
                                      type=str, nargs="+",
                                      help='list of figure names\n'
                                           'example: "-a heatmaps radar"\n'
                                           'default: all options\n'
-                                          'options: %s' % "".join("\n  %s: %s" % (key, value)
-                                                                    for key, value in sorted(self.figure_options.items())))
+                                          'options: %s' % "".join("\n  %s: %s" % (key, value) for key, value in
+                                                                  sorted(self.figure_options.items())))
         return [action]
 
 
-class FigureOpsACCV2016Action(argparse.Action):
-
+class FigureOpsAction(argparse.Action):
     def __init__(self, option_strings, figure_options, *args, **kwargs):
         self.figure_options = figure_options
-        super(FigureOpsACCV2016Action, self).__init__(option_strings=option_strings, *args, **kwargs)
+        super(FigureOpsAction, self).__init__(option_strings=option_strings, *args, **kwargs)
 
     def __call__(self, parser, namespace, values, option_string=None):
         figure_options = []
-
         available_options = self.figure_options.keys()
 
         if not values:
-            figure_options = available_options
+            figure_options = sorted(available_options)
         else:
             for value in values:
                 if value in available_options:
@@ -380,52 +381,34 @@ class FigureOpsACCV2016Action(argparse.Action):
         setattr(namespace, self.dest, figure_options)
 
 
-class FigureOpsCVPR17(object):
+class FigureOpsACCV16(FigureOps):
 
-    def add_arguments(self, parser):
-        actions = []
+    def __init__(self):
+        super(FigureOpsACCV16, self).__init__()
+        self.figure_options = {"heatmaps": "figure with algorithm error heatmap per scene",
+                               "radar": "radar charts for stratified and training scenes",
+                               "stratified": "metric visualization figure for each stratified scene",
+                               "training": "metric visualization figure for each training scene",
+                               "backgammon": "fattening and thinning performance along vertical image dimension",
+                               "dots": "background error per box with increasing noise levels",
+                               "pyramids": "algorithm disparities vs ground truth disparities on spheres",
+                               "stripes": "visualization of evaluation masks"}
 
-        actions.append(parser.add_argument("--scenes",
-                                           dest="scene_overview", action="store_true",
-                                           help="create figure with center view and ground truth per scene"))
 
-        actions.append(parser.add_argument("--difficulty",
-                                           dest="scene_difficulty", action="store_true",
-                                           help="create figure with error maps of per pixel median and best disparity"))
+class FigureOpsCVPR17(FigureOps):
 
-        actions.append(parser.add_argument("--normalsdemo",
-                                           dest="normals_demo", action="store_true",
-                                           help="create figure with ground truth normals, algorithm normals, "
-                                                "and angular error for Sideboard scene"))
+    def __init__(self):
+        super(FigureOpsCVPR17, self).__init__()
+        self.figure_options = {"scenes": "center view and ground truth per scene",
+                               "difficulty": "error map of per pixel median and best disparity per scene",
+                               "normalsdemo": "ground truth normals, algorithm normals, and angular error for Sideboard",
+                               "radar": "radar charts for stratified and photorealistic scenes",
+                               "badpix": "BadPix series for stratified and photorealistic scenes",
+                               "median": "MedianDiff comparisons for stratified and training scenes",
+                               "normals": "disparity map, normal map, and angular error per algorithm for Cotton",
+                               "discont": "disparity map and MedianDiff per algorithm for Bicycle",
+                               "accuracy": "create figure with BadPix and Q25 visualizations for Cotton and Boxes"}
 
-        actions.append(parser.add_argument("--radar",
-                                           dest="radar_charts", action="store_true",
-                                           help="create radar charts for stratified and photorealistic scenes"))
-
-        actions.append(parser.add_argument("--badpix",
-                                           dest="bad_pix_series", action="store_true",
-                                           help="create figures with BadPix series "
-                                                "for stratified and photorealistic scenes"))
-
-        actions.append(parser.add_argument("--median",
-                                           dest="median_comparisons", action="store_true",
-                                           help="create figures with MedianDiff comparisons "
-                                                "for stratified and training scenes"))
-
-        actions.append(parser.add_argument("--normals",
-                                           dest="normals_overview", action="store_true",
-                                           help="create figure with disparity map, normal map, "
-                                                "and angular error per algorithm"))
-
-        actions.append(parser.add_argument("--discont",
-                                           dest="discont_overview", action="store_true",
-                                           help="create figure with disparity map and MedianDiff "
-                                                "per algorithm"))
-
-        actions.append(parser.add_argument("--accuracy",
-                                           dest="high_accuracy", action="store_true",
-                                           help="create figure with BadPix and Q25 visualizations"))
-        return actions
 
 
 

@@ -62,6 +62,7 @@ GENERAL_METRIC = "General"
 LOWRES = "lowres"
 HIGHRES = "highres"
 PIXELIZE = True
+USE_TEST_SCENE_GT = False
 
 TEST = "test"
 TRAINING = "training"

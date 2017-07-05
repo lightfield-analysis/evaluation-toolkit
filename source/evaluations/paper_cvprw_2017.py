@@ -38,27 +38,33 @@ from evaluations import bad_pix_series, metric_overviews, radar_chart, meta_algo
 from metrics import *
 import settings
 from utils import misc, plotting
+from utils.logger import log
 
 
-def plot_scene_overview(scenes, subdir="overview", fs=16):
+def plot_benchmark_scene_overview(benchmark_scenes, subdir="overview", fs=16):
     # prepare grid figure
-    rows, cols = 2, len(scenes)
+    rows, cols = 2, 12
     fig = plt.figure(figsize=(21.6, 4))
     grids = plotting.prepare_grid(rows, cols)
 
     # plot center view and ground truth for each scene
-    for idx_s, scene in enumerate(scenes):
+    for idx_s, scene in enumerate(benchmark_scenes):
 
         center_view = scene.get_center_view()
         plt.subplot(grids[idx_s])
         plt.imshow(center_view)
         plt.title("\n\n" + scene.get_display_name(), fontsize=fs)
 
-        gt = scene.get_gt()
-        plt.subplot(grids[cols+idx_s])
-        if scene.hidden_gt():
-            gt = plotting.pixelize(gt, noise_factor=0.5)
-        plt.imshow(gt, **settings.disp_map_args(scene))
+        try:
+            gt = scene.get_gt()
+            plt.subplot(grids[cols+idx_s])
+            if scene.hidden_gt():
+                gt = plotting.pixelize(gt, noise_factor=0.5)
+            plt.imshow(gt, **settings.disp_map_args(scene))
+        except IOError as e:
+            # skip potentially missing ground truth of test scenes
+            log.info(e)
+            continue
 
     # add text
     height = 785
@@ -70,7 +76,7 @@ def plot_scene_overview(scenes, subdir="overview", fs=16):
                        fontsize=fs, xycoords='figure pixels')
 
     # save figure
-    fig_path = plotting.get_path_to_figure("scenes", subdir=subdir)
+    fig_path = plotting.get_path_to_figure("benchmark_scenes", subdir=subdir)
     plotting.save_tight_figure(fig, fig_path, hide_frames=True, remove_ticks=True, hspace=0.02, wspace=0.02, dpi=200)
 
 
@@ -159,8 +165,11 @@ def plot_normals_explanation(scene, algorithm, fs=14, subdir="overview"):
 
 
 def plot_bad_pix_series(algorithms, with_cached_scores=False, penalize_missing_pixels=False, subdir="bad_pix"):
-    scene_sets = [[misc.get_stratified_scenes(), "Stratified Scenes", "stratified"],
-                  [misc.get_training_scenes() + misc.get_test_scenes(), "Test and Training Scenes", "photorealistic"]]
+    scene_sets = [[misc.get_stratified_scenes(), "Stratified Scenes", "stratified"]]
+    if settings.USE_TEST_SCENE_GT:
+        scene_sets.append([misc.get_training_scenes()+misc.get_test_scenes(), "Test and Training Scenes", "photorealistic"])
+    else:
+        scene_sets.append([misc.get_training_scenes(), "Training Scenes", "training"])
 
     for scene_set, title, fig_name in scene_sets:
         bad_pix_series.plot(algorithms, scene_set,
