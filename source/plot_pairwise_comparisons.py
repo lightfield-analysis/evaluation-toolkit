@@ -30,7 +30,8 @@
 ############################################################################
 
 
-from utils.option_parser import *
+from utils.option_parser import OptionParser, SceneOps, AlgorithmOps, MetaAlgorithmOps
+
 
 if __name__ == "__main__":
     parser = OptionParser([AlgorithmOps(), SceneOps(), MetaAlgorithmOps(default=[])])

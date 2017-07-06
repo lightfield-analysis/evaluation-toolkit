@@ -33,9 +33,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-import settings
 from metrics import PyramidsParallelBumpiness, PyramidsSlantedBumpiness
-from scenes import BaseStratified, BaseScene
+from scenes import BaseStratified
 from utils import plotting, misc
 
 

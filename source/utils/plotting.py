@@ -33,17 +33,17 @@ import gc
 import os.path as op
 import warnings
 
-import matplotlib.pyplot as plt
-from matplotlib import ticker
 import matplotlib.gridspec as gridspec
-from mpl_toolkits.axes_grid1 import make_axes_locatable
+import matplotlib.pyplot as plt
 import numpy as np
 import scipy.ndimage.interpolation as sci
+from matplotlib import ticker
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 import file_io
-from logger import log
 import misc
 import settings
+from utils import log
 
 
 def get_path_to_figure(fig_name, subdir=""):

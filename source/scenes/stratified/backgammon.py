@@ -34,7 +34,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import skimage.morphology as skmorph
 
-import settings
 from metrics import BackgammonThinning, BackgammonFattening
 from scenes import BaseStratified
 from utils import misc, plotting

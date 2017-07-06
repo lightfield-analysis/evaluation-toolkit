@@ -31,7 +31,10 @@
 
 
 from evaluations import radar_chart
-from metrics import *
+from metrics import MSE, BadPix, Runtime, \
+    BumpinessPlanes, BumpinessContinSurf, FineThinning, FineFattening, Discontinuities, \
+    PyramidsSlantedBumpiness, PyramidsParallelBumpiness, DotsBackgroundMSE, MissedDots, \
+    StripesLowTexture, BrightStripes, DarkStripes, BackgammonFattening, BackgammonThinning
 from scenes import Pyramids, Dots, Stripes, Backgammon
 from utils import misc
 

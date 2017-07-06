@@ -33,8 +33,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from utils import plotting, misc
-from utils.logger import log
+from utils import log, misc, plotting
 
 
 def plot(algorithms, scenes, metrics, average="median", axis_labels=None, max_per_metric=None,

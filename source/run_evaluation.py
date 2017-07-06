@@ -32,7 +32,8 @@
 
 import os.path as op
 
-from utils.option_parser import *
+from utils.option_parser import OptionParser, SceneOps, AlgorithmOps, MetricOps, VisualizationOps, MetaAlgorithmOps
+
 
 if __name__ == "__main__":
     parser = OptionParser([SceneOps(), AlgorithmOps(), MetricOps(), VisualizationOps(), MetaAlgorithmOps(default=[])])

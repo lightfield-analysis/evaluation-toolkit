@@ -30,7 +30,7 @@
 ############################################################################
 
 
-from utils.option_parser import *
+from utils.option_parser import OptionParser, ConverterOps
 
 
 if __name__ == "__main__":

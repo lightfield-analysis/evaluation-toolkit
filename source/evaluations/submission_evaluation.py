@@ -35,13 +35,8 @@ import os.path as op
 import matplotlib.pyplot as plt
 from matplotlib import ticker
 
-from metrics import Runtime
 import settings
-from utils.logger import log
-from utils import plotting, file_io, misc
-
-
-THUMB_FORMAT = "png"
+from utils import file_io, log, misc, plotting
 
 
 def evaluate(evaluation_output_path, algorithm_input_path, ground_truth_path,
@@ -100,7 +95,7 @@ def evaluate(evaluation_output_path, algorithm_input_path, ground_truth_path,
     return success, error_json
 
 
-def get_relative_path(scene, descr, file_type=THUMB_FORMAT):
+def get_relative_path(scene, descr, file_type=settings.fig_type):
     return "%s/%s_%s.%s" % (scene.get_category(), scene.get_name(), descr, file_type)
 
 

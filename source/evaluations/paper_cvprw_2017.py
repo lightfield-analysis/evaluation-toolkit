@@ -29,16 +29,17 @@
 #                                                                          #
 ############################################################################
 
+
 import matplotlib.pyplot as plt
 from matplotlib import cm
 import numpy as np
 
 from algorithms import PerPixMedianDiff, PerPixBest
 from evaluations import bad_pix_series, metric_overviews, radar_chart, meta_algo_comparisons
-from metrics import *
+from metrics import MSE, Quantile, BadPix, Runtime, MAEContinSurf, MAEPlanes, \
+    BumpinessContinSurf, BumpinessPlanes, Discontinuities, FineFattening, FineThinning
 import settings
-from utils import misc, plotting
-from utils.logger import log
+from utils import log, misc, plotting
 
 
 def plot_benchmark_scene_overview(benchmark_scenes, subdir="overview", fs=16):

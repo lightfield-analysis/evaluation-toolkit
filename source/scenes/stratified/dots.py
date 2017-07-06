@@ -33,7 +33,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-import settings
 from metrics import DotsBackgroundMSE, MissedDots, MSE
 from scenes import BaseStratified
 from utils import plotting, misc

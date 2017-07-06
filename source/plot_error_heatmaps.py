@@ -29,7 +29,8 @@
 #                                                                          #
 ############################################################################
 
-from utils.option_parser import *
+
+from utils.option_parser import OptionParser, SceneOps, AlgorithmOps, ThresholdOps
 
 
 if __name__ == "__main__":

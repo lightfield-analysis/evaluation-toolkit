@@ -29,7 +29,9 @@
 #                                                                          #
 ############################################################################
 
-from utils.option_parser import *
+
+from utils.option_parser import OptionParser, AlgorithmOps, FigureOpsACCV16
+
 
 SUBDIR = "paper_accv_2016"
 
@@ -42,8 +44,7 @@ if __name__ == "__main__":
     # delay imports to speed up usage response
     from evaluations import error_heatmaps, paper_accv_2016
     from scenes import Backgammon, Dots, Pyramids, Stripes
-    from utils.logger import log
-    from utils import misc
+    from utils import log, misc
 
     if "heatmaps" in figure_options:
         log.info("Creating error heatmaps.")

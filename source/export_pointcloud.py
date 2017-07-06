@@ -32,7 +32,7 @@
 
 import os.path as op
 
-from utils.option_parser import *
+from utils.option_parser import OptionParser, SceneOps, AlgorithmOps, MetaAlgorithmOps
 
 
 if __name__ == "__main__":
@@ -42,8 +42,7 @@ if __name__ == "__main__":
     # delay imports to speed up usage response
     from algorithms import MetaAlgorithm
     import settings
-    from utils.logger import log
-    from utils import point_cloud, misc
+    from utils import log, misc, point_cloud
 
     if not load_meta_algorithm_files and meta_algorithms:
         MetaAlgorithm.prepare_meta_algorithms(meta_algorithms, algorithms, scenes)

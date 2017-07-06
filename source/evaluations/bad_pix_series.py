@@ -29,16 +29,16 @@
 #                                                                          #
 ############################################################################
 
+
 import os.path as op
 import pickle
 
 import matplotlib.pyplot as plt
 import numpy as np
 
-import settings
 from metrics import BadPix
-from utils import plotting, misc, file_io
-from utils.logger import log
+import settings
+from utils import file_io, log, misc, plotting
 
 
 THRESHOLDS = np.arange(0, 0.102, 0.002)

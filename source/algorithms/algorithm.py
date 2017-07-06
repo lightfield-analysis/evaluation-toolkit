@@ -29,8 +29,9 @@
 #                                                                          #
 ############################################################################
 
-from utils import file_io
+
 import settings
+from utils import file_io
 
 
 class Algorithm(object):

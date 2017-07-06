@@ -29,14 +29,14 @@
 #                                                                          #
 ############################################################################
 
+
 import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
 import numpy as np
 
-from utils import misc, plotting
-from utils.logger import log
+
+from metrics import MAEContinSurf, MAEPlanes
 import settings
-from metrics import MAEContinSurf, MAEPlanes, Quantile, BadPix
+from utils import log, misc, plotting
 
 
 SUBDIR = "metric_overviews"

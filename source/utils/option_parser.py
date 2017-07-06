@@ -33,7 +33,7 @@ import argparse
 import re
 
 import settings
-from utils.logger import log
+from utils import log
 
 
 class OptionParser(argparse.ArgumentParser):

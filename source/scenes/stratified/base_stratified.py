@@ -37,11 +37,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import settings
-from evaluations import radar_chart
-from metrics import MSE, BadPix
 from scenes import BaseScene
-from utils.logger import log
-from utils import plotting, misc
+from utils import log, misc, plotting
 
 
 class BaseStratified(BaseScene):

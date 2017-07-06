@@ -39,7 +39,7 @@ import zipfile
 
 import numpy as np
 
-from logger import log
+from utils import log
 
 
 def read_file(src_file, **kwargs):

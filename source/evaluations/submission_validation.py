@@ -34,8 +34,7 @@ import os.path as op
 
 import numpy as np
 
-from utils.logger import log
-from utils import file_io, misc
+from utils import file_io, log, misc
 import settings
 
 

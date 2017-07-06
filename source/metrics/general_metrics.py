@@ -36,7 +36,7 @@ import os.path as op
 import numpy as np
 
 import settings
-from utils import file_io, misc, plotting
+from utils import misc, plotting
 
 
 class BaseMetric(object):

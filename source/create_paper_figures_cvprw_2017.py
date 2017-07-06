@@ -29,9 +29,9 @@
 #                                                                          #
 ############################################################################
 
-import os.path as op
 
-from utils.option_parser import *
+from utils.option_parser import OptionParser, FigureOpsCVPR17
+
 
 SUBDIR = "paper_cvprw_2017"
 
@@ -41,8 +41,7 @@ if __name__ == "__main__":
     # delay imports to speed up usage response
     from algorithms import Algorithm
     from evaluations import paper_cvprw_2017
-    from utils import misc
-    from utils.logger import log
+    from utils import log, misc
     from scenes import PhotorealisticScene
     import settings
 

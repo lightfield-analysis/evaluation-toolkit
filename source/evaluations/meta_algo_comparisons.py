@@ -29,11 +29,11 @@
 #                                                                          #
 ############################################################################
 
+
 import matplotlib.pyplot as plt
 from matplotlib import cm
 import numpy as np
 
-from metrics import *
 import settings
 from utils import misc, plotting
 

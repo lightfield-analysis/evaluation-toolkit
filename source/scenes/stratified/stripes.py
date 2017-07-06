@@ -34,7 +34,7 @@ import matplotlib.pyplot as plt
 
 import settings
 from scenes import BaseStratified
-from utils import plotting, misc
+from utils import plotting
 
 
 class Stripes(BaseStratified):

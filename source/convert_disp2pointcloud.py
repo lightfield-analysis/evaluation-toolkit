@@ -30,7 +30,8 @@
 ############################################################################
 
 
-from utils.option_parser import *
+from utils.option_parser import OptionParser, ConverterOpsExt
+
 
 if __name__ == "__main__":
     parser = OptionParser([ConverterOpsExt(input="path to disparity map", output="path to point cloud",

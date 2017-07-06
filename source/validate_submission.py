@@ -35,7 +35,7 @@ import os
 import os.path as op
 import shutil
 
-from utils.logger import log
+from utils import log
 
 
 def run_validation(path_to_submission):

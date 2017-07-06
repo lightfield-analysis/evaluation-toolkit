@@ -35,11 +35,9 @@ from mpl_toolkits.axes_grid1 import ImageGrid
 import numpy as np
 
 import settings
-from metrics import MSE, BadPix,  BumpinessPlanes, Discontinuities, BumpinessContinSurf, FineFattening, \
-    FineThinning, Runtime, MAEPlanes, MAEContinSurf
+from metrics import MSE, BadPix, BumpinessPlanes, BumpinessContinSurf, Discontinuities, FineFattening, FineThinning
 from scenes import BaseScene
-from utils import plotting, misc
-from utils.logger import log
+from utils import log, misc, plotting
 
 
 class PhotorealisticScene(BaseScene):

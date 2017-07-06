@@ -30,7 +30,8 @@
 ############################################################################
 
 
-from utils.option_parser import *
+from utils.option_parser import OptionParser, ConverterOps
+
 
 MIN = 0.
 MAX = 255.
@@ -40,8 +41,7 @@ if __name__ == "__main__":
     pfm_path, config_path, png_path = parser.parse_args()
 
     from scenes import PhotorealisticScene
-    from utils import file_io
-    from utils.logger import log
+    from utils import file_io, log
     import numpy as np
 
     scene = PhotorealisticScene("demo", path_to_config=config_path)

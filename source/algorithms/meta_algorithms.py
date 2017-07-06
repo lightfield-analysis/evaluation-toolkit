@@ -29,6 +29,7 @@
 #                                                                          #
 ############################################################################
 
+
 import numpy as np
 
 from algorithms import Algorithm
