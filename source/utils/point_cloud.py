@@ -58,10 +58,10 @@ def save(points, fpath):
         f.writelines(points)
 
 
-def convert(scene, disp_map):
+def convert(scene, disp_map, color_map=None):
     height, width = np.shape(disp_map)
     assert (height == scene.original_height and width == scene.original_width), \
-        "The shape of the disparity map should be %dx%d but is %dx%d." \
+        "Expected the shape of the disparity map to be %dx%d but got %dx%d." \
         % (scene.original_height, scene.original_width, height, width)
 
     # compute x,y,z coordinates
@@ -81,11 +81,10 @@ def convert(scene, disp_map):
     points[:, 1] = -y.flatten()
     points[:, 2] = -z.flatten()
 
-    # add colors
-    center_view = scene.get_center_view()
-    points[:, 3] = center_view[:, :, 0].flatten()
-    points[:, 4] = center_view[:, :, 1].flatten()
-    points[:, 5] = center_view[:, :, 2].flatten()
+    if color_map is not None:
+        points[:, 3] = color_map[:, :, 0].flatten()
+        points[:, 4] = color_map[:, :, 1].flatten()
+        points[:, 5] = color_map[:, :, 2].flatten()
 
     return points
 

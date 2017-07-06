@@ -30,39 +30,24 @@
 ############################################################################
 
 
-import os.path as op
-
 from utils.option_parser import *
 
-
 if __name__ == "__main__":
-    parser = OptionParser([SceneOps(), AlgorithmOps(with_gt=True), MetaAlgorithmOps(default=[])])
-    scenes, algorithms, meta_algorithms, load_meta_algorithm_files = parser.parse_args()
+    parser = OptionParser([ConverterOpsExt(input="path to disparity map", output="path to point cloud",
+                                           optional_input=[("-c", "color_map_file",
+                                                            "path to color map, e.g. to center view of the scene")])])
+    disp_map_path, config_path, point_cloud_path, color_map_path = parser.parse_args()
 
-    # delay imports to speed up usage response
-    from algorithms import MetaAlgorithm
-    import settings
-    from utils.logger import log
-    from utils import point_cloud, misc
+    from scenes import PhotorealisticScene
+    from utils import file_io, point_cloud
 
-    if not load_meta_algorithm_files and meta_algorithms:
-        MetaAlgorithm.prepare_meta_algorithms(meta_algorithms, algorithms, scenes)
+    scene = PhotorealisticScene("demo", path_to_config=config_path)
+    disp_map = file_io.read_file(disp_map_path)
 
-    algorithms += meta_algorithms
-    algorithm_names = [algorithm.get_name() for algorithm in algorithms]
+    if color_map_path:
+        color_map = file_io.read_file(color_map_path)
+    else:
+        color_map = None
 
-    for scene in scenes:
-        center_view = scene.get_center_view()
-
-        for algorithm in algorithms:
-            if algorithm.get_name() == "gt":
-                disp_map = scene.get_gt()
-            else:
-                disp_map = misc.get_algo_result(scene, algorithm)
-
-            log.info("Creating point cloud for scene '%s' with '%s' disparity map." % (scene.get_name(), algorithm.get_name()))
-            pc = point_cloud.convert(scene, disp_map, center_view)
-
-            fpath = op.join(*[settings.EVAL_PATH, "point_clouds", "%s_%s.ply" % (scene.get_name(), algorithm.get_name())])
-            log.info("Saving point cloud to: %s" % fpath)
-            point_cloud.save(pc, fpath)
+    pc = point_cloud.convert(scene, disp_map, color_map)
+    point_cloud.save(pc, point_cloud_path)
