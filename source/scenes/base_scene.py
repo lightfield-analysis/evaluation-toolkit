@@ -44,8 +44,8 @@ from utils import misc, file_io
 class BaseScene(object):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, name, category=None, gt_scale=1, data_path=None, boundary_offset=15, display_name=None,
-                 eval_general_metrics_on_high_res=False):
+    def __init__(self, name, category=None, gt_scale=1, boundary_offset=15, display_name=None,
+                 eval_general_metrics_on_high_res=False, data_path=None, path_to_config=None):
 
         self.name = name  # corresponds to the file name
 
@@ -66,7 +66,8 @@ class BaseScene(object):
         self.data_path = op.join(*[data_path, self.get_category(), self.get_name()])
 
         # set scene params from file
-        with open(op.join(self.data_path, "parameters.cfg"), "r") as f:
+        path_to_config = op.join(self.data_path, "parameters.cfg") if path_to_config is None else path_to_config
+        with open(path_to_config, "r") as f:
             parser = ConfigParser.ConfigParser()
             parser.readfp(f)
 
@@ -147,6 +148,12 @@ class BaseScene(object):
         return center_view
 
     def get_gt(self):
+        return self.get_disp_map()
+
+    def get_depth_map(self):
+        return self._get_data("gt_depth", "pfm")
+
+    def get_disp_map(self):
         return self._get_data("gt_disp", "pfm")
 
     def get_mask(self, mask_name, binary=True):
@@ -184,6 +191,11 @@ class BaseScene(object):
         q = self.baseline_mm * self.focal_length_mm * max(self.original_width, self.original_height)
         depth_map = 1.0 / ((1000.0 * self.sensor_size_mm) * disp_map / q + (1.0 / self.focus_distance_m))
         return depth_map
+
+    def depth2disp(self, depth_map):
+        factor = (self.baseline_mm / 1000.) * self.focal_length_mm * max(self.original_width, self.original_height)
+        disp_map = (factor * self.focus_distance_m / depth_map - factor) / self.focus_distance_m / self.sensor_size_mm
+        return disp_map
 
     def get_depth_normals(self, depth_map):
         h, w = np.shape(depth_map)

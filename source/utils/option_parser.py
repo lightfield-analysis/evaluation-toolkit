@@ -65,6 +65,22 @@ class OptionParser(argparse.ArgumentParser):
         return values
 
 
+class ConverterOps(object):
+
+    def __init__(self, input="path to input file", output="path to output file",
+                 config="path to 'parameters.cfg' of the scene"):
+        self.input_help = input
+        self.output_help = output
+        self.config_help = config
+
+    def add_arguments(self, parser):
+        actions = []
+        actions.append(parser.add_argument(dest='input_file', type=str, help=self.input_help))
+        actions.append(parser.add_argument(dest='config_file', type=str, help=self.config_help))
+        actions.append(parser.add_argument(dest='output_file', type=str, help=self.output_help))
+        return actions
+
+
 class SceneOps(object):
 
     def add_arguments(self, parser):
