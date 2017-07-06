@@ -38,5 +38,4 @@ if __name__ == "__main__":
 
     # delay imports to speed up usage response
     from evaluations import error_heatmaps
-
     error_heatmaps.plot(algorithms, scenes, thresh=threshold)

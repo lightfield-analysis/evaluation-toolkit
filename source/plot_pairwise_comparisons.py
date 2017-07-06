@@ -33,9 +33,15 @@
 from utils.option_parser import *
 
 if __name__ == "__main__":
-    parser = OptionParser([AlgorithmOps(), SceneOps()])
-    algorithms, scenes = parser.parse_args()
+    parser = OptionParser([AlgorithmOps(), SceneOps(), MetaAlgorithmOps(default=[])])
+    algorithms, scenes, meta_algorithms, load_meta_algorithm_files = parser.parse_args()
 
     # delay imports to speed up usage response
+    from algorithms import MetaAlgorithm
     from evaluations import pairwise_algo_comparisons
+
+    if not load_meta_algorithm_files and meta_algorithms:
+        MetaAlgorithm.prepare_meta_algorithms(meta_algorithms, algorithms, scenes)
+        algorithms += meta_algorithms
+
     pairwise_algo_comparisons.plot_pairwise_comparisons(algorithms, scenes)

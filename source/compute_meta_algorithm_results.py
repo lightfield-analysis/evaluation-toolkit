@@ -33,8 +33,8 @@
 from utils.option_parser import *
 
 if __name__ == "__main__":
-    parser = OptionParser([AlgorithmOps(), SceneOps(), MetaAlgorithmOps()])
+    parser = OptionParser([AlgorithmOps(), SceneOps(), MetaAlgorithmOps(with_load_argument=False)])
     algorithms, scenes, meta_algorithms = parser.parse_args()
 
-    for meta_algorithm in meta_algorithms:
-        meta_algorithm.compute_meta_results(scenes, algorithms)
+    from algorithms import MetaAlgorithm
+    MetaAlgorithm.prepare_meta_algorithms(meta_algorithms, algorithms, scenes)

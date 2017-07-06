@@ -29,22 +29,29 @@
 #                                                                          #
 ############################################################################
 
-from utils.option_parser import *
+
 import os.path as op
+
+from utils.option_parser import *
 
 
 if __name__ == "__main__":
-    scenes, algorithms = OptionParser([SceneOps(), AlgorithmOps(with_gt=True)]).parse_args()
+    parser = OptionParser([SceneOps(), AlgorithmOps(with_gt=True), MetaAlgorithmOps(default=[])])
+    scenes, algorithms, meta_algorithms, load_meta_algorithm_files = parser.parse_args()
 
     # delay imports to speed up usage response
+    from algorithms import MetaAlgorithm
+    import settings
     from utils.logger import log
     from utils import point_cloud, misc
-    import settings
+
+    if not load_meta_algorithm_files and meta_algorithms:
+        MetaAlgorithm.prepare_meta_algorithms(meta_algorithms, algorithms, scenes)
+        algorithms += meta_algorithms
 
     algorithm_names = [algorithm.get_name() for algorithm in algorithms]
 
     for scene in scenes:
-
         for algorithm in algorithms:
             if algorithm.get_name() == "gt":
                 disp_map = scene.get_gt()

@@ -30,18 +30,23 @@
 ############################################################################
 
 
-from utils.option_parser import *
 import os.path as op
 
+from utils.option_parser import *
 
 if __name__ == "__main__":
-    parser = OptionParser([SceneOps(), AlgorithmOps(), MetricOps(), VisualizationOps()])
-    scenes, algorithms, metrics, visualize = parser.parse_args()
+    parser = OptionParser([SceneOps(), AlgorithmOps(), MetricOps(), VisualizationOps(), MetaAlgorithmOps(default=[])])
+    scenes, algorithms, metrics, visualize, meta_algorithms, load_meta_algorithm_files = parser.parse_args()
 
     # delay import to speed up usage response
+    from algorithms import MetaAlgorithm
     from evaluations import submission_evaluation
     import settings
     from utils import misc
+
+    if not load_meta_algorithm_files and meta_algorithms:
+        MetaAlgorithm.prepare_meta_algorithms(meta_algorithms, algorithms, scenes)
+        algorithms += meta_algorithms
 
     for algorithm in algorithms:
         submission_evaluation.evaluate(scenes=scenes,

@@ -159,33 +159,46 @@ def plot_general_overview(algorithms, scenes, metrics, fig_name=None, subdir=SUB
 
     for idx_s, scene in enumerate(scenes):
         gt = scene.get_gt()
+        applicable_metrics = scene.get_applicable_metrics(metrics)
 
         for idx_a, algorithm in enumerate(algorithms):
             algo_result = misc.get_algo_result(scene, algorithm)
 
             for idx_m, metric in enumerate(metrics):
-                score, vis = metric.get_score(algo_result, gt, scene, with_visualization=True)
 
+                ylabel = metric.get_display_name()
                 plt.subplot(grid[(n_vis_types*idx_s+idx_m)*cols + idx_a])
-                cb = plt.imshow(vis, **settings.metric_args(metric))
 
-                # add algorithm name and metric score on top row
-                if idx_s == 0 and idx_m == 0:
-                    plt.title("%s\n%0.2f" % (algorithm.get_display_name(), score), fontsize=fs)
+                if metric in applicable_metrics:
+                    score, vis = metric.get_score(algo_result, gt, scene, with_visualization=True)
+
+                    cb = plt.imshow(vis, **settings.metric_args(metric))
+
+                    # add algorithm name and metric score on top row
+                    if idx_s == 0 and idx_m == 0:
+                        plt.title("%s\n%0.2f" % (algorithm.get_display_name(), score), fontsize=fs)
+                    else:
+                        plt.title("%0.2f" % score, fontsize=fs)
+
+                    # add colorbar to last column
+                    if idx_a == len(algorithms) - 1:
+                        plotting.add_colorbar(grid[(n_vis_types*idx_s+idx_m)*cols + idx_a + 1], cb, cb_height, cb_width,
+                                              colorbar_bins=metric.colorbar_bins, fontsize=fs)
+
+                    # add metric name to first column
+                    if idx_a == 0:
+                        plt.ylabel(ylabel)
+
                 else:
-                    plt.title("%0.2f" % score, fontsize=fs)
-
-                # add metric name to first column
-                if idx_a == 0:
-                    plt.ylabel(metric.get_display_name())
-
-                # add colorbar to last column
-                if idx_a == len(algorithms) - 1:
-                    plotting.add_colorbar(grid[(n_vis_types*idx_s+idx_m)*cols + idx_a + 1], cb, cb_height, cb_width,
-                                          colorbar_bins=metric.colorbar_bins, fontsize=fs)
+                    if idx_a == 0:
+                        log.info("Metric %s not applicable for scene %s." %
+                                 (metric.get_display_name(), scene.get_display_name()))
+                        plt.ylabel(ylabel + "\n(not applicable)")
 
     # save figure
     if fig_name is None:
-        fig_name = "metric_overview_" + "_".join(metric.get_id() for metric in metrics)
+        fig_name = "metric_overview_%s_%s" % ("_".join(metric.get_id() for metric in metrics),
+                                              "_".join(scene.get_name() for scene in scenes))
+
     fig_path = plotting.get_path_to_figure(fig_name, subdir=subdir)
     plotting.save_tight_figure(fig, fig_path, hide_frames=True, remove_ticks=True, hspace=0.01, wspace=0.01)

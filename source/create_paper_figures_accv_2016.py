@@ -40,37 +40,33 @@ if __name__ == "__main__":
     algorithms, figure_options = parser.parse_args()
 
     # delay imports to speed up usage response
+    from evaluations import error_heatmaps, paper_accv_2016
+    from scenes import Backgammon, Dots, Pyramids, Stripes
     from utils.logger import log
     from utils import misc
 
     if "heatmaps" in figure_options:
         log.info("Creating error heatmaps.")
-        from evaluations import error_heatmaps
         scenes = misc.get_stratified_scenes() + misc.get_training_scenes()
         error_heatmaps.plot(algorithms, scenes, subdir=SUBDIR)
 
     if "radar" in figure_options:
         log.info("Creating radar charts for stratified and training scenes.")
-        from evaluations import paper_accv_2016
         paper_accv_2016.plot_radar_charts(algorithms, subdir=SUBDIR)
 
     if "backgammon" in figure_options:
         log.info("Creating special chart for backgammon scene.")
-        from scenes import Backgammon
         Backgammon().plot_fattening_thinning(algorithms, subdir=SUBDIR)
 
     if "pyramids" in figure_options:
         log.info("Creating special chart for pyramids scene.")
-        from scenes import Pyramids
         Pyramids().plot_algo_disp_vs_gt_disp(algorithms, subdir=SUBDIR)
 
     if "dots" in figure_options:
         log.info("Creating special chart for dots scene.")
-        from scenes import Dots
         Dots().plot_error_vs_noise(algorithms, subdir=SUBDIR)
 
     if "stripes" in figure_options:
-        from scenes import Stripes
         log.info("Creating special chart for stripes scene.")
         Stripes().visualize_masks(subdir=SUBDIR)
 

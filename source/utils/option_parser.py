@@ -116,59 +116,50 @@ class SceneOps(object):
 
 class AlgorithmOps(object):
 
-    def __init__(self, with_gt=False, default_algo_names=[], ignore_meta_algorithms=True):
+    def __init__(self, with_gt=False, default_algo_names=None):
         self.with_gt = with_gt
         self.default_algo_names = default_algo_names
-        self.ignore_meta_algorithms = ignore_meta_algorithms
 
     def add_arguments(self, parser):
-        help = 'list of algorithm names\n' \
-               'example: "-a epi1 lf mv"\n' \
-               'default: '
-
-        if self.default_algo_names:
-            help += ' '.join(self.default_algo_names)
+        if self.default_algo_names is not None:
+            default = ' '.join(self.default_algo_names)
         else:
-            help += 'all algorithm directories in ALGO_PATH\n  %s\n' \
-                    '  (per pixel meta algorithms are ignored)' % settings.ALGO_PATH
+            default = 'all algorithm directories in ALGO_PATH\n  %s' % settings.ALGO_PATH
+        default += '\n  (per pixel meta algorithms are ignored)'
 
+        further_options = ""
         if self.with_gt:
-            help += '\nfurther options: gt'
-
-        if self.ignore_meta_algorithms:
-            algo_names_to_ignore = [algorithm.get_name() for algorithm in MetaAlgorithmOps().meta_algorithms.values()]
-        else:
-            algo_names_to_ignore = []
+            further_options += '\nfurther options: gt'
 
         action = parser.add_argument("-a",
                                      dest="algorithms", action=AlgorithmAction,
-                                     algo_names_to_ignore=algo_names_to_ignore,
                                      default_algo_names=self.default_algo_names,
                                      type=str, nargs="+",
-                                     help=help)
+                                     help='list of algorithm names\n'
+                                          'example: "-a epi1 lf mv"\n'
+                                           'default: %s%s' % (default, further_options))
         return [action]
 
 
 class AlgorithmAction(argparse.Action):
 
-    def __init__(self, option_strings, algo_names_to_ignore=[], default_algo_names=None, *args, **kwargs):
-        self.algo_names_to_ignore = algo_names_to_ignore
+    def __init__(self, option_strings, default_algo_names=None, *args, **kwargs):
         self.default_algo_names = default_algo_names
         super(AlgorithmAction, self).__init__(option_strings=option_strings, *args, **kwargs)
 
     def __call__(self, parser, namespace, values, option_string=None):
-        from utils import misc
-        from algorithms import Algorithm
+        from utils import misc, file_io
+        from algorithms import Algorithm, MetaAlgorithm
 
-        available_algo_names = [a for a in misc.get_available_algo_names() if a not in self.algo_names_to_ignore]
-
-        # default algo names must still be checked whether they are among the available algorithms
-        if not values and self.default_algo_names:
-            values = self.default_algo_names
+        algo_names_to_ignore = [algorithm.get_name() for algorithm in MetaAlgorithm.get_meta_algorithms()]
+        available_algo_names = [a for a in misc.get_available_algo_names() if a not in algo_names_to_ignore]
 
         # default: use all available algorithms
         if not values:
-            algo_names = available_algo_names
+            if self.default_algo_names is not None:
+                algo_names = [algo_name for algo_name in self.default_algo_names if algo_name in available_algo_names]
+            else:
+                algo_names = available_algo_names
         # otherwise: check if selected algorithms exist
         else:
             algo_names = []
@@ -180,8 +171,7 @@ class AlgorithmAction(argparse.Action):
                     algo_names.append(algo_name)
 
         # create algorithm objects
-        algorithms = [Algorithm(file_name=algo_file_name) for algo_file_name in algo_names]
-        algorithms = Algorithm.set_colors(algorithms)
+        algorithms = Algorithm.initialize_algorithms(algo_names)
 
         # save result in action destination
         setattr(namespace, self.dest, algorithms)
@@ -189,46 +179,66 @@ class AlgorithmAction(argparse.Action):
 
 class MetaAlgorithmOps(object):
 
-    def __init__(self):
-        from algorithms import PerPixBest, PerPixMean, PerPixMedianDiff, PerPixMedianDisp
-        self.meta_algorithms = {"best": PerPixBest(),
-                                "mean": PerPixMean(),
-                                "mediandisp": PerPixMedianDisp(),
-                                "mediandiff": PerPixMedianDiff()}
+    def __init__(self, default=None, with_load_argument=True):
+        self.with_load_argument = with_load_argument
+
+        # prepare algorithm options
+        from algorithms import MetaAlgorithm
+        self.meta_algorithms = {algo.get_name().replace("per_pix_", ""): algo
+                                for algo in MetaAlgorithm.get_meta_algorithms()}
+
+        self.default_algo_names = sorted(self.meta_algorithms.keys()) if default is None else default
 
     def add_arguments(self, parser):
-        action = parser.add_argument("-p",
-                                     dest="meta_algorithms", action=MetaAlgorithmAction,
-                                     meta_algorithms=self.meta_algorithms,
-                                     type=str, nargs="+",
-                                     help='list of meta algorithm names\n'
-                                          'example: "-a best mean"\n'
-                                          'default: all options\n'
-                                          'options: %s' % ", ".join(sorted(self.meta_algorithms.keys())))
-        return [action]
+        if self.default_algo_names:
+            default = " ".join(self.default_algo_names)
+        else:
+            default = "no meta algorithm"
+
+        actions = []
+
+        actions.append(parser.add_argument("-p",
+                                           dest="meta_algorithms", action=MetaAlgorithmAction,
+                                           meta_algorithms=self.meta_algorithms,
+                                           default_algo_names=self.default_algo_names,
+                                           type=str, nargs="+",
+                                           help='list of meta algorithm names\n'
+                                                'example: "-a best mean"\n'
+                                                'default: %s\n'
+                                                'options: %s' % (default,
+                                                                 ", ".join(sorted(self.meta_algorithms.keys())))))
+
+        if self.with_load_argument:
+            actions.append(parser.add_argument("-u", "--use_existing_meta_files",
+                                               dest="load_meta_algorithm_files", action="store_true",
+                                               help="use existing meta algorithm files (per default meta algorithms\n"
+                                                    "are computed from scratch based on list of 'regular' algorithms)"))
+
+        return actions
 
 
 class MetaAlgorithmAction(argparse.Action):
 
-    def __init__(self, option_strings, meta_algorithms, *args, **kwargs):
+    def __init__(self, option_strings, meta_algorithms, default_algo_names, *args, **kwargs):
         self.meta_algorithms = meta_algorithms
+        self.default_algo_names = default_algo_names
         super(MetaAlgorithmAction, self).__init__(option_strings=option_strings, *args, **kwargs)
 
     def __call__(self, parser, namespace, values, option_string=None):
-        algorithms = []
+        meta_algorithms = []
 
         if not values:
-            algorithms = self.meta_algorithms.values()
+            meta_algorithms = [self.meta_algorithms[algo_name] for algo_name in self.default_algo_names]
         else:
             for value in values:
                 try:
-                    algorithms.append(self.meta_algorithms[value])
+                    meta_algorithms.append(self.meta_algorithms[value])
                 except KeyError:
                     parser.error("Could not find algorithm for: %s. "
                                  "Available options are: %s." % (value, ", ".join(self.meta_algorithms.keys())))
 
         # save result in action destination
-        setattr(namespace, self.dest, algorithms)
+        setattr(namespace, self.dest, meta_algorithms)
 
 
 class MetricOps(object):

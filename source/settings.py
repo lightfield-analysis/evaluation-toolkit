@@ -46,6 +46,8 @@ ALGO_EVAL_PATH = op.normpath(op.join(EVAL_PATH, "algorithms"))
 FIG_PATH = op.normpath(op.join(EVAL_PATH, "figures"))
 TMP_PATH = op.normpath(op.join(base_path, "../tmp"))
 
+PATH_TO_ALGO_META_DATA = op.normpath(op.join(ALGO_PATH, "meta_data.json"))
+
 HEIGHT = 512
 WIDTH = 512
 BAD_PIX_THRESH = 0.07

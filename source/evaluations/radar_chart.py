@@ -38,10 +38,22 @@ from utils.logger import log
 
 
 def plot(algorithms, scenes, metrics, average="median", axis_labels=None, max_per_metric=None,
-         fig_name="radar", subdir="radar", title="", fs=16):
+         fig_name=None, subdir="radar", title=None, fs=16):
 
+    # prepare figure attributes
+    if axis_labels is None:
+        axis_labels = [m.get_display_name().replace(":", "\n") for m in metrics]
+
+    if fig_name is None:
+        fig_name = "radar_%s" % "_".join(scene.get_name() for scene in scenes)
+
+    if title is None:
+        title = "%s scores for scenes:\n%s" % (average.title(), ", ".join(scene.get_display_name() for scene in scenes))
+
+    # get scores per scene
     scores_scenes_metrics_algos = misc.collect_scores(algorithms, scenes, metrics, masked=True)
 
+    # compute average scores across all scenes
     if average == "median":
         scores_metrics_algos = np.ma.median(scores_scenes_metrics_algos, axis=0)
     elif average == "mean":
@@ -49,11 +61,18 @@ def plot(algorithms, scenes, metrics, average="median", axis_labels=None, max_pe
     else:
         raise Exception('Only "median" and "mean" are handled, got "%s".' % average)
 
-    if axis_labels is None:
-        axis_labels = [m.get_display_name().replace(":", "\n") for m in metrics]
+    # remove metric axes without any valid scores (not all metrics are applicable to all scenes)
+    if np.ma.is_masked(scores_metrics_algos):
+        mask_applicable_metrics = np.sum(scores_metrics_algos.mask, axis=1) < len(algorithms)
+        scores_metrics_algos = scores_metrics_algos[mask_applicable_metrics]
+        axis_labels = [label for idx, label in enumerate(axis_labels) if mask_applicable_metrics[idx]]
 
-    plot_scores(scores_metrics_algos, algorithms, axis_labels,
-                fig_name, subdir, title, fs, max_per_metric)
+        non_applicable_metrics = [metric for idx, metric in enumerate(metrics) if not mask_applicable_metrics[idx]]
+        if non_applicable_metrics:
+            log.info("Ignoring (non-applicable) metrics without valid values: %s" %
+                     ", ".join(m.get_id() for m in non_applicable_metrics))
+
+    plot_scores(scores_metrics_algos, algorithms, axis_labels, fig_name, subdir, title, fs, max_per_metric)
 
 
 def plot_scores(scores_metrics_algos, algorithms, axis_labels, fig_name, subdir, title, fs, max_per_metric=None):
@@ -80,25 +99,32 @@ def plot_scores(scores_metrics_algos, algorithms, axis_labels, fig_name, subdir,
     axes_values = []
 
     if max_per_metric is None:
-        max_per_metric = np.max(scores_metrics_algos, axis=1) * 1.2
+        max_per_metric = np.ma.max(scores_metrics_algos, axis=1) * 1.2
 
     for vmax in max_per_metric:
-        steps = list(np.linspace(0, vmax, n_circles))
-        steps = steps[:-1]
-        axes_values.append(steps)
+        if vmax is not np.ma.masked:
+            steps = list(np.linspace(0, vmax, n_circles))
+            steps = steps[:-1]
+            axes_values.append(steps)
+        else:
+            steps = [np.nan] * (n_circles-1)
+            axes_values.append(steps)
 
     # add metric values at axis intersections
     for ax, angle, labels in zip(axes, angles, axes_values):
-        decimals = int(np.ceil(np.log10(np.max(labels))))
-        if decimals <= -1:
-            str_labels = [('%0.3f' % e) for e in labels[1:]]
-        if decimals == 0:
-            str_labels = [('%0.2f' % e) for e in labels[1:]]
-        elif decimals >= 1:
-            str_labels = [('%0.1f' % e) for e in labels[1:]]
-
-        # add zero to inner circle
-        str_labels = ["0"] + str_labels
+        max_labels = max(labels)
+        if not np.isnan(max_labels):
+            decimals = int(np.ceil(np.log10(max_labels)))
+            if decimals <= -1:
+                str_labels = [('%0.3f' % e) for e in labels[1:]]
+            if decimals == 0:
+                str_labels = [('%0.2f' % e) for e in labels[1:]]
+            elif decimals >= 1:
+                str_labels = [('%0.1f' % e) for e in labels[1:]]
+            # add zero to inner circle
+            str_labels = ["0"] + str_labels
+        else:
+            str_labels = [""] * len(labels)
 
         ax.set_rgrids(range(1, n_circles+1), angle=angle, labels=str_labels, fontsize=14)
         ax.spines["polar"].set_visible(False)
@@ -109,12 +135,12 @@ def plot_scores(scores_metrics_algos, algorithms, axis_labels, fig_name, subdir,
 
     # plot one line per algorithm, passing through all metrics
     for idx_a, algorithm in enumerate(algorithms):
-        metric_scores_cur_algo = scores_metrics_algos[:, idx_a]
+        metric_scores_cur_algo = np.full(np.shape(scores_metrics_algos[:, idx_a]), fill_value=np.nan)
 
         for idx_m in range(len(axis_labels)):
             step = axes_values[idx_m][1] - axes_values[idx_m][0]
             scale_factor = n_circles / (float(max_per_metric[idx_m]) + step)
-            adjusted_value = (metric_scores_cur_algo[idx_m] + step) * scale_factor
+            adjusted_value = (scores_metrics_algos[idx_m, idx_a] + step) * scale_factor
             metric_scores_cur_algo[idx_m] = adjusted_value
 
         # add first score at end to close the line-loop

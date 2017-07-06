@@ -284,5 +284,7 @@ def plot_discont_overview(algorithms, scene, n_rows=2, fs=15, subdir="overview",
 
 
 def plot_median_comparisons(scenes, algorithms, subdir, with_gt_row=True):
-    meta_algo_comparisons.plot(scenes, algorithms, PerPixMedianDiff(), subdir=subdir, with_gt_row=with_gt_row)
+    median_algo = PerPixMedianDiff()
+    median_algo.compute_meta_results(scenes, algorithms)
+    meta_algo_comparisons.plot(scenes, algorithms, median_algo, subdir=subdir, with_gt_row=with_gt_row)
 

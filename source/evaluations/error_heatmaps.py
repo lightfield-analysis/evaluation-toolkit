@@ -37,7 +37,7 @@ import settings
 from utils import plotting, misc
 
 
-def plot(algorithms, scenes, thresh=settings.BAD_PIX_THRESH, subdir="heatmaps", fs=18, max_per_row=4):
+def plot(algorithms, scenes, thresh=settings.BAD_PIX_THRESH, subdir="error_heatmaps", fs=18, max_per_row=4):
 
     # prepare figure
     n_scenes = len(scenes)

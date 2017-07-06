@@ -33,9 +33,15 @@ from utils.option_parser import *
 
 
 if __name__ == "__main__":
-    parser = OptionParser([SceneOps(), AlgorithmOps(), MetricOps()])
-    scenes, algorithms, metrics = parser.parse_args()
+    parser = OptionParser([SceneOps(), AlgorithmOps(), MetricOps(), MetaAlgorithmOps(default=[])])
+    scenes, algorithms, metrics, meta_algorithms, load_meta_algorithm_files = parser.parse_args()
 
     # delay imports to speed up usage response
+    from algorithms import MetaAlgorithm
     from evaluations import radar_chart
+
+    if not load_meta_algorithm_files and meta_algorithms:
+        MetaAlgorithm.prepare_meta_algorithms(meta_algorithms, algorithms, scenes)
+        algorithms += meta_algorithms
+
     radar_chart.plot(algorithms, scenes, metrics)
