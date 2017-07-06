@@ -42,6 +42,5 @@ if __name__ == "__main__":
 
     if not load_meta_algorithm_files and meta_algorithms:
         MetaAlgorithm.prepare_meta_algorithms(meta_algorithms, algorithms, scenes)
-        algorithms += meta_algorithms
 
-    bad_pix_series.plot(algorithms, scenes)
+    bad_pix_series.plot(algorithms+meta_algorithms, scenes)

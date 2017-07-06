@@ -47,8 +47,8 @@ if __name__ == "__main__":
 
     if not load_meta_algorithm_files and meta_algorithms:
         MetaAlgorithm.prepare_meta_algorithms(meta_algorithms, algorithms, scenes)
-        algorithms += meta_algorithms
 
+    algorithms += meta_algorithms
     algorithm_names = [algorithm.get_name() for algorithm in algorithms]
 
     for scene in scenes:

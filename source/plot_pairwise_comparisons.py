@@ -42,6 +42,5 @@ if __name__ == "__main__":
 
     if not load_meta_algorithm_files and meta_algorithms:
         MetaAlgorithm.prepare_meta_algorithms(meta_algorithms, algorithms, scenes)
-        algorithms += meta_algorithms
 
-    pairwise_algo_comparisons.plot_pairwise_comparisons(algorithms, scenes)
+    pairwise_algo_comparisons.plot_pairwise_comparisons(algorithms+meta_algorithms, scenes)

@@ -42,6 +42,5 @@ if __name__ == "__main__":
 
     if not load_meta_algorithm_files and meta_algorithms:
         MetaAlgorithm.prepare_meta_algorithms(meta_algorithms, algorithms, scenes)
-        algorithms += meta_algorithms
 
-    metric_overviews.plot_general_overview(algorithms, scenes, metrics)
+    metric_overviews.plot_general_overview(algorithms+meta_algorithms, scenes, metrics)

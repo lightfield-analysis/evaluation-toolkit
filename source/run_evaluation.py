@@ -46,8 +46,8 @@ if __name__ == "__main__":
 
     if not load_meta_algorithm_files and meta_algorithms:
         MetaAlgorithm.prepare_meta_algorithms(meta_algorithms, algorithms, scenes)
-        algorithms += meta_algorithms
 
+    algorithms += meta_algorithms
     for algorithm in algorithms:
         submission_evaluation.evaluate(scenes=scenes,
                                        metrics=metrics,

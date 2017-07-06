@@ -42,6 +42,5 @@ if __name__ == "__main__":
 
     if not load_meta_algorithm_files and meta_algorithms:
         MetaAlgorithm.prepare_meta_algorithms(meta_algorithms, algorithms, scenes)
-        algorithms += meta_algorithms
 
-    radar_chart.plot(algorithms, scenes, metrics)
+    radar_chart.plot(algorithms+meta_algorithms, scenes, metrics)
