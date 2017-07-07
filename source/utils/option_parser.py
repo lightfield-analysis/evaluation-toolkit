@@ -57,7 +57,8 @@ class OptionParser(argparse.ArgumentParser):
             if getattr(namespace, action.dest) is None:
                 action.__call__(self, namespace, values=None)
 
-        [log.info("%s: %s" % (a.dest, getattr(namespace, a.dest))) for a in self.actions]
+        log.info("Command line arguments: ")
+        [log.info("%s: %s" % (a.dest.title(), getattr(namespace, a.dest))) for a in self.actions]
 
         # return values in order of parser options
         values = [getattr(namespace, action.dest) for action in self.actions]

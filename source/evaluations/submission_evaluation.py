@@ -58,8 +58,8 @@ def evaluate(evaluation_output_path, algorithm_input_path, ground_truth_path,
     log.info("Evaluating algorithm results in:\n  %s" % algorithm_input_path)
     log.info("Writing results to:\n  %s" % evaluation_output_path)
     log.info("Using ground truth data from:\n  %s" % ground_truth_path)
-    log.info("Metrics: %s" % ", ".join(m.get_display_name() for m in metrics))
-    log.info("Scenes: %s" % ", ".join(s.get_display_name() for s in scenes))
+    log.info("Metrics:\n  %s" % ", ".join(m.get_display_name() for m in metrics))
+    log.info("Scenes:\n  %s" % ", ".join(s.get_display_name() for s in scenes))
 
     # evaluate
     for scene in scenes:
@@ -146,8 +146,6 @@ def add_scores(metrics, scene, algo_dir, tgt_dir, scores, visualize):
     algo_result = misc.get_algo_result_from_dir(algo_dir, scene)
 
     for metric in metrics:
-        log.info("Computing score for metric: %s, scale: %0.2f" %
-                 (metric.get_display_name(), scene.gt_scale))
 
         if visualize:
             score, vis = metric.get_score(algo_result, gt, scene, with_visualization=True)
@@ -156,6 +154,9 @@ def add_scores(metrics, scene, algo_dir, tgt_dir, scores, visualize):
         else:
             score = metric.get_score(algo_result, gt, scene)
             metric_data = {"value": float(score)}
+
+        log.info("Score %5.2f for: %s, %s, Scale: %0.2f" %
+                 (score, metric.get_display_name(), scene.get_display_name(), scene.gt_scale))
 
         scores[metric.get_id()] = metric_data
 

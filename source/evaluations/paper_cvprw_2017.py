@@ -168,11 +168,11 @@ def plot_normals_explanation(algorithm, scene, fs=14, subdir="overview"):
     plotting.save_tight_figure(fig, fig_path, hide_frames=False, hspace=0.04, wspace=0.03)
 
 
-def plot_bad_pix_series(algorithms, with_cached_scores=False,
+def plot_bad_pix_series(algorithms, use_test_scene_gt, with_cached_scores=False,
                         penalize_missing_pixels=False, subdir="bad_pix"):
 
     scene_sets = [[misc.get_stratified_scenes(), "Stratified Scenes", "stratified"]]
-    if settings.USE_TEST_SCENE_GT:
+    if use_test_scene_gt:
         scene_sets.append([misc.get_training_scenes() + misc.get_test_scenes(),
                            "Test and Training Scenes", "photorealistic"])
     else:

@@ -172,12 +172,12 @@ class MAEPlanes(BaseMetric):
         return score, vis
 
     @staticmethod
-    def get_angular_error(gt, algo_result, scene):
+    def get_angular_error(algo_result, gt, scene):
         algo_normals = scene.get_depth_normals(scene.disp2depth(algo_result))
         gt_normals = scene.get_depth_normals(scene.disp2depth(gt))
 
         ssum = np.sum(algo_normals * gt_normals, axis=2)
-        ssum[ssum > 1] = 1.
+        ssum = np.clip(ssum, -1., 1.)
         angular_error = np.degrees(np.arccos(ssum))
 
         return angular_error

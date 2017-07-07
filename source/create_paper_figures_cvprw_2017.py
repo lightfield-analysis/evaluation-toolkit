@@ -34,17 +34,23 @@ from utils.option_parser import OptionParser, FigureOpsCVPR17
 
 
 SUBDIR = "paper_cvprw_2017"
+USE_TEST_SCENE_GT = True
 
 
 def main():
     figure_options = OptionParser([FigureOpsCVPR17()]).parse_args()
 
     # delay imports to speed up usage response
-    from algorithms import Algorithm
+    from algorithms import Algorithm, PerPixBest
     from evaluations import paper_cvprw_2017 as cvprw
     from utils import log, misc
     from scenes import PhotorealisticScene
-    import settings
+
+    # prepare scenes
+    if USE_TEST_SCENE_GT:
+        benchmark_scenes = misc.get_benchmark_scenes()
+    else:
+        benchmark_scenes = misc.get_stratified_scenes() + misc.get_training_scenes()
 
     # prepare algorithms
     fnames_baseline_algos = ["epi1", "epi2", "lf", "mv", "lf_occ26"]
@@ -58,7 +64,7 @@ def main():
     for algorithm in other_algorithms:
         algorithm.display_name = "'" + algorithm.display_name
 
-    algorithms = sorted(baseline_algorithms + other_algorithms + challenge_algorithms)
+    algorithms = sorted(baseline_algorithms) + sorted(other_algorithms) + sorted(challenge_algorithms)
     algorithms = Algorithm.set_colors(algorithms)
 
     # create figures
@@ -74,7 +80,9 @@ def main():
 
     if "badpix" in figure_options:
         log.info("Creating figures with BadPix series.")
-        cvprw.plot_bad_pix_series(algorithms, with_cached_scores=False, subdir=SUBDIR)
+        per_pix_best = PerPixBest()
+        per_pix_best.compute_meta_results(algorithms, benchmark_scenes)
+        cvprw.plot_bad_pix_series(algorithms+[per_pix_best], USE_TEST_SCENE_GT, subdir=SUBDIR)
 
     if "median" in figure_options:
         log.info("Creating median comparison figures.")
@@ -85,7 +93,7 @@ def main():
         log.info("Creating surface normal figure with Cotton scene.")
         cvprw.plot_normal_maps(algorithms, PhotorealisticScene("cotton"), subdir=SUBDIR)
 
-    if settings.USE_TEST_SCENE_GT and "discont" in figure_options:
+    if USE_TEST_SCENE_GT and "discont" in figure_options:
         log.info("Creating discontinuity figure with Bicycle scene.")
         cvprw.plot_discont_overview(algorithms, PhotorealisticScene("bicycle"), subdir=SUBDIR)
 
@@ -93,7 +101,10 @@ def main():
         log.info("Creating high accuracy figure.")
         selection = ["ofsy_330dnr2", "zctv1", "obercross", "ober",
                      "sc_gc", "spo_lf4cv", "rm3de", "ps_rf25"]
-        high_accuracy_algorithms = [a for a in algorithms if a.get_name() in selection]
+        high_accuracy_algorithms = []
+        # algorithms should be exactly in the order of 'selection'
+        for algo_name in selection:
+            high_accuracy_algorithms.append([a for a in algorithms if a.get_name() == algo_name][0])
         scenes = [PhotorealisticScene("cotton"), PhotorealisticScene("boxes")]
         cvprw.plot_high_accuracy(high_accuracy_algorithms, scenes, subdir=SUBDIR)
 
@@ -103,12 +114,7 @@ def main():
 
     if "difficulty" in figure_options:
         log.info("Creating scene difficulty figure.")
-        if settings.USE_TEST_SCENE_GT:
-            scenes = misc.get_benchmark_scenes()
-        else:
-            scenes = misc.get_stratified_scenes() + misc.get_training_scenes()
-        cvprw.plot_scene_difficulty(scenes, subdir=SUBDIR)
-
+        cvprw.plot_scene_difficulty(benchmark_scenes, subdir=SUBDIR)
 
 if __name__ == "__main__":
     main()

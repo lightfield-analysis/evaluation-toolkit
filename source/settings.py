@@ -52,7 +52,7 @@ HEIGHT = 512
 WIDTH = 512
 BAD_PIX_THRESH = 0.07
 
-FIG_SIZE_EVALUATION = (8, 4)
+FIG_SIZE_EVALUATION = (6, 3)
 
 DIR_NAME_DISP_MAPS = "disp_maps"
 DIR_NAME_RUNTIMES = "runtimes"
@@ -64,7 +64,6 @@ GENERAL_METRIC = "General"
 LOWRES = "lowres"
 HIGHRES = "highres"
 PIXELIZE = True
-USE_TEST_SCENE_GT = False
 
 TEST = "test"
 TRAINING = "training"
