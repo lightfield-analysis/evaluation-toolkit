@@ -54,7 +54,7 @@ def plot_normals(algorithms, scenes, n_rows=2, subdir=SUBDIR, fs=15):
     metric_mae_planes = MAEPlanes()
 
     for scene in scenes:
-        h, w = scene.get_height(), scene.get_width()
+        h, w = scene.get_shape()
 
         # prepare figure and colorbar size
         fig = plt.figure(figsize=(cols * 1.7, 1.45 * rows * 1.5))
@@ -84,7 +84,7 @@ def plot_normals(algorithms, scenes, n_rows=2, subdir=SUBDIR, fs=15):
 
         # plot algorithm columns
         for idx_a, algorithm in enumerate(algorithms):
-            algo_result = misc.get_algo_result(scene, algorithm)
+            algo_result = misc.get_algo_result(algorithm, scene)
 
             _plot_normals_entry(scene, algo_result, gt, mask_planes, mask_contin,
                                 algorithm.get_display_name(), metric_mae_contin, metric_mae_planes,
@@ -108,25 +108,27 @@ def _plot_normals_entry(scene, disp_map, gt, mask_planes, mask_contin,
     idx_row = (idx / entries_per_row) * n_vis_types
     idx_col = idx % entries_per_row
 
+    idx = idx_row * cols + idx_col
+
     # plot disparity map
-    plt.subplot(grid[idx_row * cols + idx_col])
+    plt.subplot(grid[idx])
     cb = plt.imshow(disp_map, **settings.disp_map_args(scene))
     plt.title(algo_name, fontsize=fs)
 
     if add_ylabel:
         plt.ylabel("DispMap", fontsize=fs)
     if add_colorbar:
-        plotting.add_colorbar(grid[idx_row * cols + idx_col + 1], cb, **colorbar_args)
+        plotting.add_colorbar(grid[idx + 1], cb, **colorbar_args)
 
     # plot normal map
-    plt.subplot(grid[(idx_row + 1) * cols + idx_col])
+    plt.subplot(grid[idx + cols])
     plt.imshow(scene.get_normal_vis_from_disp_map(disp_map))
 
     if add_ylabel:
         plt.ylabel("Normals", fontsize=fs)
 
     # plot angular errors
-    plt.subplot(grid[(idx_row + 2) * cols + idx_col])
+    plt.subplot(grid[idx + 2 * cols])
 
     # compute angular errors
     try:
@@ -147,12 +149,12 @@ def _plot_normals_entry(scene, disp_map, gt, mask_planes, mask_contin,
     # get combined error visualization (if applicable)
     mask = mask_contin + mask_planes
     if np.sum(mask) > 0:
-        _, vis_normals = metric_mae_contin.get_score_from_mask(disp_map, gt, scene, mask,
-                                                               with_visualization=True)
+        score, vis_normals = metric_mae_contin.get_score_from_mask(disp_map, gt, scene, mask,
+                                                                   with_visualization=True)
         cb = plt.imshow(vis_normals, **settings.metric_args(metric_mae_contin))
 
         if add_colorbar:
-            plotting.add_colorbar(grid[(idx_row + 2) * cols + idx_col + 1], cb, **colorbar_args)
+            plotting.add_colorbar(grid[idx + 2 * cols + 1], cb, **colorbar_args)
 
 
 def plot_general_overview(algorithms, scenes, metrics, fig_name=None, subdir=SUBDIR, fs=11):
@@ -168,12 +170,12 @@ def plot_general_overview(algorithms, scenes, metrics, fig_name=None, subdir=SUB
         applicable_metrics = scene.get_applicable_metrics(metrics)
 
         for idx_a, algorithm in enumerate(algorithms):
-            algo_result = misc.get_algo_result(scene, algorithm)
+            algo_result = misc.get_algo_result(algorithm, scene)
 
             for idx_m, metric in enumerate(metrics):
-
+                idx = (n_vis_types*idx_s+idx_m)*cols + idx_a
                 ylabel = metric.get_display_name()
-                plt.subplot(grid[(n_vis_types*idx_s+idx_m)*cols + idx_a])
+                plt.subplot(grid[idx])
 
                 if metric in applicable_metrics:
                     score, vis = metric.get_score(algo_result, gt, scene, with_visualization=True)
@@ -188,8 +190,7 @@ def plot_general_overview(algorithms, scenes, metrics, fig_name=None, subdir=SUB
 
                     # add colorbar to last column
                     if idx_a == len(algorithms) - 1:
-                        plotting.add_colorbar(grid[(n_vis_types*idx_s+idx_m)*cols + idx_a + 1],
-                                              cb, cb_height, cb_width,
+                        plotting.add_colorbar(grid[idx + 1], cb, cb_height, cb_width,
                                               colorbar_bins=metric.colorbar_bins, fontsize=fs)
 
                     # add metric name to first column

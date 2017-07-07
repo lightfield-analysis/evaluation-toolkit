@@ -62,12 +62,16 @@ class PerPixMean(MetaAlgorithm):
     def compute_meta_results(self, algorithms, scenes):
         for scene in scenes:
             # average runtime
-            runtimes = misc.get_runtimes(scene, algorithms)
-            misc.save_runtime(np.mean(runtimes), scene, self)
+            runtimes = misc.get_runtimes(algorithms, scene)
+            misc.save_runtime(np.mean(runtimes), self, scene)
 
             # average disparity estimate per pixel
-            algo_results = misc.get_algo_results(scene, algorithms)
-            misc.save_algo_result(np.ma.average(algo_results, axis=2), scene, self)
+            algo_results = misc.get_algo_results(algorithms, scene)
+            misc.save_algo_result(np.ma.average(algo_results, axis=2), self, scene)
+
+    @staticmethod
+    def get_stacked_gt(scene, n):
+        return np.tile(scene.get_gt()[:, :, np.newaxis], (1, 1, n))
 
 
 class PerPixMedianDisp(MetaAlgorithm):
@@ -80,12 +84,12 @@ class PerPixMedianDisp(MetaAlgorithm):
     def compute_meta_results(self, algorithms, scenes):
         for scene in scenes:
             # median runtime
-            runtimes = misc.get_runtimes(scene, algorithms)
-            misc.save_runtime(np.median(runtimes), scene, self)
+            runtimes = misc.get_runtimes(algorithms, scene)
+            misc.save_runtime(np.median(runtimes), self, scene)
 
             # median disparity estimate per pixel
-            algo_results = misc.get_algo_results(scene, algorithms)
-            misc.save_algo_result(np.ma.median(algo_results, axis=2), scene, self)
+            algo_results = misc.get_algo_results(algorithms, scene)
+            misc.save_algo_result(np.ma.median(algo_results, axis=2), self, scene)
 
 
 class PerPixMedianDiff(MetaAlgorithm):
@@ -97,15 +101,15 @@ class PerPixMedianDiff(MetaAlgorithm):
 
     def compute_meta_results(self, algorithms, scenes):
         for scene in scenes:
-            h, w = scene.get_height(), scene.get_width()
+            h, w = scene.get_shape()
 
             # best runtime
-            runtimes = misc.get_runtimes(scene, algorithms)
-            misc.save_runtime(np.median(runtimes), scene, self)
+            runtimes = misc.get_runtimes(algorithms, scene)
+            misc.save_runtime(np.median(runtimes), self, scene)
 
             # per pixel: disparity estimate of the algorithm with the median absolute error
-            algo_results = misc.get_algo_results(scene, algorithms)
-            gt_stacked = misc.get_stacked_gt(scene, len(algorithms))
+            algo_results = misc.get_algo_results(algorithms, scene)
+            gt_stacked = self.get_stacked_gt(scene, len(algorithms))
 
             mask = misc.get_mask_invalid(algo_results)
             abs_diffs = np.ma.masked_array(np.abs(gt_stacked - algo_results), mask=mask)
@@ -123,7 +127,7 @@ class PerPixMedianDiff(MetaAlgorithm):
                 abs_diffs = 0.5 * (abs_diffs_1 + abs_diffs_2)
 
             abs_diff_median = gt_stacked[:, :, 0] - abs_diffs
-            misc.save_algo_result(abs_diff_median, scene, self)
+            misc.save_algo_result(abs_diff_median, self, scene)
 
 
 class PerPixBest(MetaAlgorithm):
@@ -134,15 +138,15 @@ class PerPixBest(MetaAlgorithm):
 
     def compute_meta_results(self, algorithms, scenes):
         for scene in scenes:
-            h, w = scene.get_height(), scene.get_width()
+            h, w = scene.get_shape()
 
             # best runtime
-            runtimes = misc.get_runtimes(scene, algorithms)
-            misc.save_runtime(np.min(runtimes), scene, self)
+            runtimes = misc.get_runtimes(algorithms, scene)
+            misc.save_runtime(np.min(runtimes), self, scene)
 
             # best disparity estimate per pixel
-            algo_results = misc.get_algo_results(scene, algorithms)
-            gt_stacked = misc.get_stacked_gt(scene, len(algorithms))
+            algo_results = misc.get_algo_results(algorithms, scene)
+            gt_stacked = self.get_stacked_gt(scene, len(algorithms))
 
             mask = misc.get_mask_invalid(algo_results)
             abs_diffs = np.ma.masked_array(np.abs(gt_stacked - algo_results), mask=mask)
@@ -150,4 +154,4 @@ class PerPixBest(MetaAlgorithm):
             xx, yy = np.meshgrid(np.arange(w, dtype=np.int), np.arange(h, dtype=np.int))
             best_disp_per_pixel = algo_results[yy, xx, idx_best_algo_per_pix]
 
-            misc.save_algo_result(best_disp_per_pixel, scene, self)
+            misc.save_algo_result(best_disp_per_pixel, self, scene)

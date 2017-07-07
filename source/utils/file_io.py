@@ -201,6 +201,9 @@ def write_runtime(runtime, fname):
         f.write("%0.10f" % runtime)
 
 
+# misc
+
+
 def unzip(fname_zip, tgt_dir=None):
     if tgt_dir is None:
         tgt_dir = op.abspath(op.join(fname_zip, os.pardir))

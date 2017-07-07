@@ -44,6 +44,7 @@ class BaseMetric(object):
 
     def __init__(self, name, vmin=0, vmax=1, colorbar_bins=1, cmap=settings.CMAP_ABS_ERROR,
                  eval_on_high_res=False):
+
         self.name = name
         self.mask_name = None
         self.category = settings.GENERAL_METRIC
@@ -72,7 +73,6 @@ class BaseMetric(object):
     def __repr__(self):
         return self.get_id()
 
-    # used as identifier for evaluation results on website and for reading/writing temporary results
     @abc.abstractmethod
     def get_id(self):
         return
@@ -117,7 +117,6 @@ class BaseMetric(object):
         # general metrics don't require a mask file with a specific region
         if self.mask_name is None:
             return True
-
         fname = op.join(scene.data_path, "%s_%s.png" % (self.mask_name, resolution))
         return op.isfile(fname)
 
@@ -182,10 +181,10 @@ class BadPix(BaseMetric):
 
 
 class MSE(BaseMetric):
-    def __init__(self, factor=100, name="MSE", eval_on_high_res=False,
-                 vmin=settings.DMIN, vmax=settings.DMAX, cmap=settings.CMAP_ERROR, colorbar_bins=4):
-        super(MSE, self).__init__(name=name, vmin=vmin, vmax=vmax, cmap=cmap,
-                                  colorbar_bins=colorbar_bins, eval_on_high_res=eval_on_high_res)
+    def __init__(self, factor=100, name="MSE", vmin=settings.DMIN, vmax=settings.DMAX,
+                 cmap=settings.CMAP_ERROR, colorbar_bins=4, **kwargs):
+        super(MSE, self).__init__(name=name, vmin=vmin, vmax=vmax,
+                                  cmap=cmap, colorbar_bins=colorbar_bins, **kwargs)
         self.factor = factor
 
     def get_id(self):
@@ -217,14 +216,14 @@ class MSE(BaseMetric):
 
 
 class Quantile(BaseMetric):
-    def __init__(self, percentage, factor=100, name="Quantile", eval_on_high_res=False,
-                 vmin=0, vmax=0.5, colorbar_bins=5, cmap=settings.CMAP_QUANTILE):
-        super(Quantile, self).__init__(name=name, vmin=vmin, vmax=vmax, colorbar_bins=colorbar_bins,
-                                       cmap=cmap, eval_on_high_res=eval_on_high_res)
+    def __init__(self, percentage, factor=100, name="Quantile", vmin=0, vmax=0.5,
+                 cmap=settings.CMAP_QUANTILE, colorbar_bins=5, **kwargs):
+        super(Quantile, self).__init__(name=name, vmin=vmin, vmax=vmax,
+                                       cmap=cmap, colorbar_bins=colorbar_bins, **kwargs)
         self.percentage = percentage
+        self.factor = factor
         self.cmin = 0
         self.cmax = vmax
-        self.factor = factor
 
     def get_id(self):
         return "q_%d_%d" % (self.percentage, self.factor)
@@ -264,8 +263,8 @@ class Quantile(BaseMetric):
 
 
 class Runtime(BaseMetric):
-    def __init__(self, log=False, name="Runtime"):
-        super(Runtime, self).__init__(name=name)
+    def __init__(self, log=False, name="Runtime", **kwargs):
+        super(Runtime, self).__init__(name=name, **kwargs)
         self.log = log
 
     def get_id(self):
@@ -293,13 +292,13 @@ class Runtime(BaseMetric):
         return short_name
 
     def get_score(self, scene, algorithm):
-        runtime = misc.get_runtime(scene, algorithm)
+        runtime = misc.get_runtime(algorithm, scene)
         if self.log:
             runtime = np.log10(runtime)
         return runtime
 
     def get_score_from_dir(self, scene, algo_dir):
-        runtime = misc.get_runtime_from_dir(scene, algo_dir)
+        runtime = misc.get_runtime_from_dir(algo_dir, scene)
         if self.log:
             runtime = np.log10(runtime)
         return runtime

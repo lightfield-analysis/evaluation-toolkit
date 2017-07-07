@@ -40,9 +40,9 @@ from utils import misc, plotting
 
 class Discontinuities(BadPix):
     def __init__(self, thresh=settings.BAD_PIX_THRESH, name="Discontinuities",
-                 eval_on_high_res=True):
+                 eval_on_high_res=True, **kwargs):
         super(Discontinuities, self).__init__(name=name, thresh=thresh,
-                                              eval_on_high_res=eval_on_high_res)
+                                              eval_on_high_res=eval_on_high_res, **kwargs)
         self.category = settings.PHOTOREALISTIC_METRIC
         self.mask_name = "mask_discontinuities"
 
@@ -61,8 +61,8 @@ class Discontinuities(BadPix):
 
 
 class BumpinessPlanes(BaseMetric):
-    def __init__(self, clip=0.05, factor=100, name="Bumpiness Planes", vmin=0, vmax=5,
-                 eval_on_high_res=False):
+    def __init__(self, clip=0.05, factor=100, name="Bumpiness Planes",
+                 vmin=0, vmax=5, eval_on_high_res=False):
         super(BumpinessPlanes, self).__init__(name=name, vmin=vmin, vmax=vmax,
                                               colorbar_bins=5, cmap=settings.CMAP_DISP,
                                               eval_on_high_res=eval_on_high_res)
@@ -115,9 +115,9 @@ class BumpinessPlanes(BaseMetric):
 class BumpinessContinSurf(BumpinessPlanes):
 
     def __init__(self, clip=0.05, factor=100, name="Bumpiness Contin. Surfaces",
-                 eval_on_high_res=False):
+                 eval_on_high_res=False, **kwargs):
         super(BumpinessContinSurf, self).__init__(clip=clip, factor=factor, name=name,
-                                                  eval_on_high_res=eval_on_high_res)
+                                                  eval_on_high_res=eval_on_high_res, **kwargs)
         self.category = settings.PHOTOREALISTIC_METRIC
         self.mask_name = "mask_smooth_surfaces"
 
@@ -201,9 +201,9 @@ class MAEContinSurf(MAEPlanes):
 
 
 class FineFattening(BadPix):
-    def __init__(self, thresh=-0.15, name="Fine Fattening", eval_on_high_res=True):
+    def __init__(self, thresh=-0.15, name="Fine Fattening", eval_on_high_res=True, **kwargs):
         super(FineFattening, self).__init__(thresh=thresh, name=name,
-                                            eval_on_high_res=eval_on_high_res)
+                                            eval_on_high_res=eval_on_high_res, **kwargs)
         self.category = settings.PHOTOREALISTIC_METRIC
         self.mask_name = "mask_fine_surrounding"
 
@@ -238,9 +238,9 @@ class FineFattening(BadPix):
 
 
 class FineThinning(BadPix):
-    def __init__(self, thresh=0.15, name="Fine Thinning", eval_on_high_res=True):
+    def __init__(self, thresh=0.15, name="Fine Thinning", eval_on_high_res=True, **kwargs):
         super(FineThinning, self).__init__(thresh=thresh, name=name,
-                                           eval_on_high_res=eval_on_high_res)
+                                           eval_on_high_res=eval_on_high_res, **kwargs)
         self.category = settings.PHOTOREALISTIC_METRIC
         self.mask_name = "mask_fine"
 

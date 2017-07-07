@@ -47,13 +47,16 @@ def validate_extracted_submission(submission_dir, data_path=None):
 
     # check disparity maps
     disp_maps_dir = op.normpath(op.join(submission_dir, settings.DIR_NAME_DISP_MAPS))
+
     if not op.isdir(disp_maps_dir):
         errors.append('Could not find disparity map directory: "%s".' % settings.DIR_NAME_DISP_MAPS)
     else:
         log.info("Validating disparity map files.")
+
         for scene_name in scene_names:
             path_disp_maps = op.join(disp_maps_dir, "%s.pfm" % scene_name)
             relative_path_disp_maps = op.join(settings.DIR_NAME_DISP_MAPS, "%s.pfm" % scene_name)
+
             if not op.isfile(path_disp_maps):
                 errors.append('Frame %s: Could not find disparity file: "%s".' %
                               (scene_name, relative_path_disp_maps))
@@ -61,6 +64,7 @@ def validate_extracted_submission(submission_dir, data_path=None):
                 try:
                     disp_map = file_io.read_pfm(path_disp_maps)
                     height, width = np.shape(disp_map)
+
                     if height != exp_height or width != exp_width:
                         errors.append("Frame %s, File %s: Resolution mismatch. "
                                       "Expected (%d, %d), got (%d, %d)." %
@@ -73,13 +77,16 @@ def validate_extracted_submission(submission_dir, data_path=None):
 
     # check runtimes
     runtimes_dir = op.normpath(op.join(submission_dir, "runtimes"))
+
     if not op.isdir(runtimes_dir):
         errors.append('Could not find runtimes directory: "%s".' % settings.DIR_NAME_RUNTIMES)
     else:
         log.info("Validating runtime files.")
+
         for scene_name in scene_names:
             path_runtimes = op.join(runtimes_dir, "%s.txt" % scene_name)
             relative_path_runtimes = op.join(settings.DIR_NAME_RUNTIMES, "%s.txt" % scene_name)
+
             if not op.isfile(path_runtimes):
                 errors.append('Frame %s: Could not find runtime file: "%s".' %
                               (scene_name, relative_path_runtimes))

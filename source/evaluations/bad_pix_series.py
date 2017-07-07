@@ -118,7 +118,7 @@ def compute_scores(algorithms, scenes, thresholds=THRESHOLDS, penalize_missing_p
 
         for scene in scenes:
             gt = scene.get_gt()
-            algo_result = misc.get_algo_result(scene, algorithm)
+            algo_result = misc.get_algo_result(algorithm, scene)
             diffs = np.abs(algo_result - gt)
 
             mask_valid = misc.get_mask_valid(algo_result) * misc.get_mask_valid(diffs)

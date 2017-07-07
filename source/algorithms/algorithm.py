@@ -77,7 +77,6 @@ class Algorithm(object):
     def get_color(self):
         if self.color is None:
             return settings.get_color(0)
-
         return self.color
 
     def get_line_style(self):

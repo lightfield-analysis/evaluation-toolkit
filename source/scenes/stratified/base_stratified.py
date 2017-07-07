@@ -93,7 +93,7 @@ class BaseStratified(BaseScene):
         # algorithm columns
         for idx_a, algorithm in enumerate(algorithms):
             log.info("Processing algorithm: %s" % algorithm)
-            algo_result = misc.get_algo_result(self, algorithm)
+            algo_result = misc.get_algo_result(algorithm, self)
 
             # algorithm disparities
             plt.subplot(gs[idx_a+1])

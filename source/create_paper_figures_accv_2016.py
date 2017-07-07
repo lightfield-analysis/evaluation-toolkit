@@ -38,7 +38,7 @@ SUBDIR = "paper_accv_2016"
 
 def main():
     accv_algo_names = ["epi1", "epi2", "lf_occ", "lf", "mv"]
-    parser = OptionParser([AlgorithmOps(default_algo_names=accv_algo_names), FigureOpsACCV16()])
+    parser = OptionParser([AlgorithmOps(default=accv_algo_names), FigureOpsACCV16()])
 
     algorithms, figure_options = parser.parse_args()
 

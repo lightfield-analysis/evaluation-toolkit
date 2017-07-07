@@ -78,7 +78,7 @@ class Pyramids(BaseStratified):
         legend_labels = []
 
         for algorithm in algorithms:
-            algo_result = misc.get_algo_result(self, algorithm)
+            algo_result = misc.get_algo_result(algorithm, self)
 
             # go through ground truth disparity values
             for idx_d in range(n_values):

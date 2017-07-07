@@ -97,7 +97,7 @@ def get_relative_path(scene, descr, file_type=settings.FIG_TYPE):
 
 
 def visualize_algo_result(scene, algo_dir, tgt_dir):
-    algo_result = misc.get_algo_result_from_dir(scene, algo_dir)
+    algo_result = misc.get_algo_result_from_dir(algo_dir, scene)
 
     # visualize
     fig = init_figure()
@@ -118,7 +118,7 @@ def visualize_algo_result(scene, algo_dir, tgt_dir):
 def compute_scores(scene, metrics, algo_dir, tgt_dir, visualize):
     scores = dict()
 
-    # resolution for evaluation is metric specific
+    # resolution for evaluation depends on metric
     low_res_metrics = scene.get_applicable_metrics_low_res(metrics)
     if low_res_metrics:
         scene.set_low_gt_scale()
@@ -143,7 +143,7 @@ def add_runtime(scene, algo_dir, scores, metrics):
 
 def add_scores(metrics, scene, algo_dir, tgt_dir, scores, visualize):
     gt = scene.get_gt()
-    algo_result = misc.get_algo_result_from_dir(scene, algo_dir)
+    algo_result = misc.get_algo_result_from_dir(algo_dir, scene)
 
     for metric in metrics:
         log.info("Computing score for metric: %s, scale: %0.2f" %
@@ -169,7 +169,7 @@ def save_visualization(algo_result, metric_vis, metric, scene, tgt_dir):
     plt.imshow(algo_result, **settings.disp_map_args(scene, cmap="gray"))
 
     # metric visualization on top
-    if scene.hidden_gt() and metric.pixelize_results():
+    if scene.hidden_gt() and metric.pixelize_results() and settings.PIXELIZE:
         metric_vis = plotting.pixelize(metric_vis, noise_factor=0.05)
     cm = plt.imshow(metric_vis, **settings.metric_args(metric))
     add_colorbar(cm, metric.colorbar_bins)

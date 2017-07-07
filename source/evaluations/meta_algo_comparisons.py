@@ -38,28 +38,30 @@ import settings
 from utils import misc, plotting
 
 
-def plot(algorithms, scenes, meta_algo,
-         subdir="meta_algo_comparisons", fig_name=None, with_gt_row=False, fs=12):
+def plot(algorithms, scenes, meta_algo, subdir="meta_algo_comparisons",
+         fig_name=None, with_gt_row=False, fs=12):
 
     # prepare figure
     rows, cols = len(algorithms) + int(with_gt_row), len(scenes)*3+1
     fig = plt.figure(figsize=(cols * 1.3, rows * 1.5))
     grid, cb_height, cb_width = plotting.get_grid_with_colorbar(rows, cols, scenes[0])
-    cb_height *= 0.8
+    colorbar_args = {"height": cb_height*0.8, "width": cb_width, "colorbar_bins": 4, "fontsize": fs}
 
     for idx_s, scene in enumerate(scenes):
         gt = scene.get_gt()
-        meta_algo_result = misc.get_algo_result(scene, meta_algo)
+        meta_algo_result = misc.get_algo_result(meta_algo, scene)
         add_label = idx_s == 0  # is first column
         add_colorbar = idx_s == len(scenes)-1  # is last column
 
         # plot one row per algorithm
         for idx_a, algorithm in enumerate(algorithms):
-            algo_result = misc.get_algo_result(scene, algorithm)
+            algo_result = misc.get_algo_result(algorithm, scene)
             add_title = idx_a == 0  # is top row
 
+            idx = idx_a * cols + 3 * idx_s
+
             # disparity map
-            plt.subplot(grid[idx_a*cols+3*idx_s])
+            plt.subplot(grid[idx])
             plt.imshow(algo_result, **settings.disp_map_args(scene))
             if add_title:
                 plt.title("DispMap", fontsize=fs)
@@ -67,13 +69,13 @@ def plot(algorithms, scenes, meta_algo,
                 plt.ylabel(algorithm.get_display_name(), fontsize=fs)
 
             # error map: gt - algo
-            plt.subplot(grid[idx_a*cols+3*idx_s+1])
+            plt.subplot(grid[idx + 1])
             cb1 = plt.imshow(gt-algo_result, **settings.diff_map_args(vmin=-.1, vmax=.1))
             if add_title:
                 plt.title("GT-Algo", fontsize=fs)
 
             # error map: |meta-gt| - |algo-gt|
-            plt.subplot(grid[idx_a*cols+3*idx_s+2])
+            plt.subplot(grid[idx + 2])
             median_diff = np.abs(meta_algo_result - gt) - np.abs(algo_result - gt)
             cb2 = plt.imshow(median_diff, interpolation="none", cmap=cm.RdYlGn, vmin=-.05, vmax=.05)
             if add_title:
@@ -81,29 +83,26 @@ def plot(algorithms, scenes, meta_algo,
 
             if add_colorbar:
                 if idx_a % 2 == 0:
-                    plotting.add_colorbar(grid[idx_a*cols + 3*idx_s+2+1], cb1,
-                                          cb_height, cb_width, colorbar_bins=4, fontsize=fs)
+                    plotting.add_colorbar(grid[idx + 3], cb1, **colorbar_args)
                 else:
-                    plotting.add_colorbar(grid[idx_a*cols + 3*idx_s+2+1], cb2,
-                                          cb_height, cb_width, colorbar_bins=4, fontsize=fs)
+                    plotting.add_colorbar(grid[idx + 3], cb2, **colorbar_args)
 
         if with_gt_row:
-            idx_a = len(algorithms)
+            idx = len(algorithms) * cols + 3 * idx_s
 
-            plt.subplot(grid[idx_a * cols + 3 * idx_s])
+            plt.subplot(grid[idx])
             plt.imshow(gt, **settings.disp_map_args(scene))
             plt.xlabel("GT", fontsize=fs)
 
             if add_label:
                 plt.ylabel("Reference")
 
-            plt.subplot(grid[idx_a * cols + 3 * idx_s + 1])
+            plt.subplot(grid[idx + 1])
             cb1 = plt.imshow(np.abs(gt - meta_algo_result), **settings.abs_diff_map_args())
             plt.xlabel("|GT-%s|" % meta_algo.get_display_name(), fontsize=fs-2)
 
             if add_colorbar:
-                plotting.add_colorbar(grid[idx_a * cols + 3 * idx_s + 2 + 1], cb1, cb_height,
-                                      cb_width, colorbar_bins=4, fontsize=fs)
+                plotting.add_colorbar(grid[idx + 3], cb1, **colorbar_args)
 
     if fig_name is None:
         scene_names = "_".join(s.get_name() for s in scenes)

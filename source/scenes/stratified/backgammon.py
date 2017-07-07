@@ -102,7 +102,7 @@ class Backgammon(BaseStratified):
         # compute scores for vertical bins
         x_values = np.arange(0, n_bins, 1)
         for algorithm in algorithms:
-            algo_result = misc.get_algo_result(self, algorithm)
+            algo_result = misc.get_algo_result(algorithm, self)
             props = {"color": algorithm.get_color(), "lw": 2,
                      "alpha": 0.8, "markersize": 7, "markeredgewidth": 0}
 
@@ -143,12 +143,12 @@ class Backgammon(BaseStratified):
     # -------------------------
 
     def get_fg_extrapolation(self):
-        fg_extr = np.zeros((self.get_height(), self.get_width()), dtype=np.float)
+        fg_extr = np.zeros(self.get_shape(), dtype=np.float)
         fg_extr[:, :] = self.get_gt()[:, int(14*self.gt_scale):int(14*self.gt_scale)+1]
         return fg_extr
 
     def get_bg_extrapolation(self):
-        bg_extr = np.zeros((self.get_height(), self.get_width()), dtype=np.float)
+        bg_extr = np.zeros(self.get_shape(), dtype=np.float)
         bg_extr[:, :] = self.get_gt()[:, self.get_width()-11:self.get_width()-10]
         return bg_extr
 

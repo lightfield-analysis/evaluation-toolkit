@@ -38,9 +38,9 @@ from utils import misc, plotting
 
 
 class StratifiedBadPix(BadPix):
-    def __init__(self, thresh, name, vmin, vmax, scene_display_name, eval_on_high_res):
-        super(StratifiedBadPix, self).__init__(name=name, vmin=vmin, vmax=vmax,
-                                               thresh=thresh, eval_on_high_res=eval_on_high_res)
+    def __init__(self, thresh, name, vmin, vmax, scene_display_name, eval_on_high_res, **kwargs):
+        super(StratifiedBadPix, self).__init__(name=name, vmin=vmin, vmax=vmax, thresh=thresh,
+                                               eval_on_high_res=eval_on_high_res, **kwargs)
         self.category = settings.STRATIFIED_METRIC
         self.scene_display_name = scene_display_name
 
@@ -61,10 +61,10 @@ class StratifiedBadPix(BadPix):
 
 class BackgammonFattening(StratifiedBadPix):
     def __init__(self, thresh=settings.BAD_PIX_THRESH, name="Fattening", vmin=0, vmax=22,
-                 eval_on_high_res=True):
+                 eval_on_high_res=True, **kwargs):
         super(BackgammonFattening, self).__init__(thresh=thresh, eval_on_high_res=eval_on_high_res,
                                                   name=name, vmin=vmin, vmax=vmax,
-                                                  scene_display_name="Backgammon")
+                                                  scene_display_name="Backgammon", **kwargs)
 
     def get_id(self):
         return ("backgammon_fattening_%0.3f" % self.thresh).replace(".", "")
@@ -100,10 +100,10 @@ class BackgammonFattening(StratifiedBadPix):
 
 class BackgammonThinning(StratifiedBadPix):
     def __init__(self, thresh=settings.BAD_PIX_THRESH, name="Thinning", vmin=0, vmax=3,
-                 eval_on_high_res=True):
+                 eval_on_high_res=True, **kwargs):
         super(BackgammonThinning, self).__init__(thresh=thresh, eval_on_high_res=eval_on_high_res,
                                                  name=name, vmin=vmin, vmax=vmax,
-                                                 scene_display_name="Backgammon")
+                                                 scene_display_name="Backgammon", **kwargs)
 
     def get_id(self):
         return ("backgammon_thinning_%0.3f" % self.thresh).replace(".", "")
@@ -144,9 +144,10 @@ class BackgammonThinning(StratifiedBadPix):
 
 class PyramidsBaseBumpiness(BumpinessPlanes):
 
-    def __init__(self, clip, factor, name, vmax, eval_on_high_res):
-        super(PyramidsBaseBumpiness, self).__init__(clip=clip, factor=factor, name=name, vmax=vmax,
-                                                    eval_on_high_res=eval_on_high_res)
+    def __init__(self, clip, factor, name, vmin, vmax, eval_on_high_res, **kwargs):
+        super(PyramidsBaseBumpiness, self).__init__(clip=clip, factor=factor, name=name,
+                                                    vmin=vmin, vmax=vmax,
+                                                    eval_on_high_res=eval_on_high_res, **kwargs)
         self.category = settings.STRATIFIED_METRIC
         self.scene_display_name = "Pyramids"
         self.cmin = 0
@@ -161,11 +162,11 @@ class PyramidsBaseBumpiness(BumpinessPlanes):
 
 class PyramidsSlantedBumpiness(PyramidsBaseBumpiness):
 
-    def __init__(self, clip=0.05, factor=100, name="Bump. Slanted", vmax=3.5,
-                 eval_on_high_res=False):
+    def __init__(self, clip=0.05, factor=100, name="Bump. Slanted", vmin=0, vmax=3.5,
+                 eval_on_high_res=False, **kwargs):
         super(PyramidsSlantedBumpiness, self).__init__(clip=clip, factor=factor,
-                                                       name=name, vmax=vmax,
-                                                       eval_on_high_res=eval_on_high_res)
+                                                       name=name, vmin=vmin, vmax=vmax,
+                                                       eval_on_high_res=eval_on_high_res, **kwargs)
 
     def get_id(self):
         return ("bumpiness_slanted_%d_%0.3f" % (self.factor, self.clip)).replace(".", "")
@@ -176,11 +177,11 @@ class PyramidsSlantedBumpiness(PyramidsBaseBumpiness):
 
 class PyramidsParallelBumpiness(PyramidsBaseBumpiness):
 
-    def __init__(self, clip=0.05, factor=100, name="Bump. Parallel", vmax=3.5,
-                 eval_on_high_res=False):
+    def __init__(self, clip=0.05, factor=100, name="Bump. Parallel", vmin=0, vmax=3.5,
+                 eval_on_high_res=False, **kwargs):
         super(PyramidsParallelBumpiness, self).__init__(clip=clip, factor=factor,
-                                                        name=name, vmax=vmax,
-                                                        eval_on_high_res=eval_on_high_res)
+                                                        name=name, vmin=vmin, vmax=vmax,
+                                                        eval_on_high_res=eval_on_high_res, **kwargs)
 
     def get_id(self):
         return ("bumpiness_parallel_%d_%0.3f" % (self.factor, self.clip)).replace(".", "")
@@ -197,10 +198,10 @@ class PyramidsParallelBumpiness(PyramidsBaseBumpiness):
 class MissedDots(StratifiedBadPix):
 
     def __init__(self, thresh=0.4, missed_dot_bad_pix=50, name="Missed Dots",
-                 vmin=0, vmax=70, eval_on_high_res=True):
+                 vmin=0, vmax=70, eval_on_high_res=True, **kwargs):
         super(MissedDots, self).__init__(thresh=thresh, name=name, vmin=vmin, vmax=vmax,
                                          scene_display_name="Dots",
-                                         eval_on_high_res=eval_on_high_res)
+                                         eval_on_high_res=eval_on_high_res, **kwargs)
         self.missed_dot_bad_pix = missed_dot_bad_pix
 
     def get_id(self):
@@ -256,9 +257,10 @@ class MissedDots(StratifiedBadPix):
 
 
 class DotsBackgroundMSE(MSE):
-    def __init__(self, factor=100, name="Background MSE", vmin=0, vmax=4, eval_on_high_res=True):
+    def __init__(self, factor=100, name="Background MSE", vmin=0, vmax=4,
+                 eval_on_high_res=True, **kwargs):
         super(DotsBackgroundMSE, self).__init__(factor=factor, name=name, vmin=vmin, vmax=vmax,
-                                                eval_on_high_res=eval_on_high_res)
+                                                eval_on_high_res=eval_on_high_res, **kwargs)
         self.category = settings.STRATIFIED_METRIC
         self.scene_display_name = "Dots"
         self.cmin = settings.DMIN
@@ -284,10 +286,10 @@ class DotsBackgroundMSE(MSE):
 
 class StripesLowTexture(StratifiedBadPix):
     def __init__(self, thresh=settings.BAD_PIX_THRESH, name="Low Texture", vmin=0, vmax=60,
-                 eval_on_high_res=True):
+                 eval_on_high_res=True, **kwargs):
         super(StripesLowTexture, self).__init__(thresh=thresh, eval_on_high_res=eval_on_high_res,
                                                 name=name, vmin=vmin, vmax=vmax,
-                                                scene_display_name="Stripes")
+                                                scene_display_name="Stripes", **kwargs)
 
     def get_id(self):
         return ("low_texture_%0.3f" % self.thresh).replace(".", "")
@@ -302,10 +304,10 @@ class StripesLowTexture(StratifiedBadPix):
 
 class DarkStripes(StratifiedBadPix):
     def __init__(self, thresh=settings.BAD_PIX_THRESH, name="Dark Stripes", vmin=0, vmax=60,
-                 eval_on_high_res=True):
+                 eval_on_high_res=True, **kwargs):
         super(DarkStripes, self).__init__(thresh=thresh, eval_on_high_res=eval_on_high_res,
                                           name=name, vmin=vmin, vmax=vmax,
-                                          scene_display_name="Stripes")
+                                          scene_display_name="Stripes", **kwargs)
 
     def get_id(self):
         return ("dark_stripes_%0.3f" % self.thresh).replace(".", "")
@@ -316,10 +318,10 @@ class DarkStripes(StratifiedBadPix):
 
 class BrightStripes(StratifiedBadPix):
     def __init__(self, thresh=settings.BAD_PIX_THRESH, name="Bright Stripes", vmin=0, vmax=60,
-                 eval_on_high_res=True):
+                 eval_on_high_res=True, **kwargs):
         super(BrightStripes, self).__init__(thresh=thresh, eval_on_high_res=eval_on_high_res,
                                             name=name, vmin=vmin, vmax=vmax,
-                                            scene_display_name="Stripes")
+                                            scene_display_name="Stripes", **kwargs)
 
     def get_id(self):
         return ("bright_stripes_%0.3f" % self.thresh).replace(".", "")

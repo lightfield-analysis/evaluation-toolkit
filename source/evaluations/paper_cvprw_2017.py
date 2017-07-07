@@ -95,32 +95,34 @@ def plot_scene_difficulty(scenes, subdir="overview", fs=10):
     for idx_s, scene in enumerate(scenes):
         # prepare data
         gt = scene.get_gt()
-        median_result = misc.get_algo_result(scene, median_algo)
-        best_result = misc.get_algo_result(scene, best_algo)
+        median_result = misc.get_algo_result(median_algo, scene)
+        best_result = misc.get_algo_result(best_algo, scene)
 
         idx_row = idx_s / n_scenes_per_row * 2
         idx_col = (idx_s % n_scenes_per_row)
         add_ylabel = not idx_s % n_scenes_per_row  # is first column
         add_colorbar = idx_col == (n_scenes_per_row - 1)  # is last column
 
+        idx = idx_row * cols + idx_col
+
         # plot errors for median result
-        plt.subplot(grid[idx_row * cols + idx_col])
+        plt.subplot(grid[idx])
         plt.title(scene.get_display_name(), fontsize=fs)
         cb = plt.imshow(np.abs(gt - median_result), **settings.abs_diff_map_args())
 
         if add_ylabel:
             plt.ylabel("|GT - %s|" % median_algo.get_display_name(), fontsize=fs-2)
         if add_colorbar:
-            plotting.add_colorbar(grid[idx_row * cols + idx_col + 1], cb, **colorbar_args)
+            plotting.add_colorbar(grid[idx + 1], cb, **colorbar_args)
 
         # plot error for best result
-        plt.subplot(grid[(idx_row+1) * cols + idx_col])
+        plt.subplot(grid[idx + cols])
         cb = plt.imshow(np.abs(gt - best_result), **settings.abs_diff_map_args())
 
         if add_ylabel:
             plt.ylabel("|GT - %s|" % best_algo.get_display_name(), fontsize=fs-2)
         if add_colorbar:
-            plotting.add_colorbar(grid[(idx_row+1) * cols + idx_col + 1], cb, **colorbar_args)
+            plotting.add_colorbar(grid[idx + cols + 1], cb, **colorbar_args)
 
     fig_path = plotting.get_path_to_figure("scene_difficulty", subdir=subdir)
     plotting.save_tight_figure(fig, fig_path, hide_frames=True, hspace=0.08, wspace=0.03)
@@ -138,7 +140,7 @@ def plot_normals_explanation(algorithm, scene, fs=14, subdir="overview"):
 
     # prepare data
     gt = scene.get_gt()
-    algo_result = misc.get_algo_result(scene, algorithm)
+    algo_result = misc.get_algo_result(algorithm, scene)
     mask = normals_contin.get_evaluation_mask(scene) + normals_planes.get_evaluation_mask(scene)
     score_normals, vis_normals = normals_contin.get_score_from_mask(algo_result, gt, scene, mask,
                                                                     with_visualization=True)
@@ -279,7 +281,7 @@ def plot_discont_overview(algorithms, scene, n_rows=2, fs=15, subdir="overview",
     # prepare data
     median_algo = PerPixMedianDiff()
     gt = scene.get_gt()
-    median_result = misc.get_algo_result(scene, median_algo)
+    median_result = misc.get_algo_result(median_algo, scene)
     center_view = scene.get_center_view()
 
     # center view
@@ -291,7 +293,7 @@ def plot_discont_overview(algorithms, scene, n_rows=2, fs=15, subdir="overview",
     plt.ylabel("MedianDiff", fontsize=fs)
 
     for idx_a, algorithm in enumerate(algorithms):
-        algo_result = misc.get_algo_result(scene, algorithm)
+        algo_result = misc.get_algo_result(algorithm, scene)
         idx = idx_a + 1
 
         add_ylabel = not idx % n_entries_per_row  # is first column
@@ -299,8 +301,10 @@ def plot_discont_overview(algorithms, scene, n_rows=2, fs=15, subdir="overview",
         idx_row = (idx / n_entries_per_row) * n_vis_types
         idx_col = idx % n_entries_per_row
 
+        idx = idx_row * cols + idx_col
+
         # top row with algorithm disparity map
-        plt.subplot(grid[idx_row * cols + idx_col])
+        plt.subplot(grid[idx])
         algo_result_crop = algo_result[ymin:ymin+ww, xmin:xmin+ww]
         cb_depth = plt.imshow(algo_result_crop, **settings.disp_map_args(scene))
         plt.title(algorithm.get_display_name(), fontsize=fs)
@@ -308,17 +312,17 @@ def plot_discont_overview(algorithms, scene, n_rows=2, fs=15, subdir="overview",
         if add_ylabel:
             plt.ylabel("DispMap", fontsize=fs)
         if add_colorbar:
-            plotting.add_colorbar(grid[idx_row*cols+idx_col+1], cb_depth, **colorbar_args)
+            plotting.add_colorbar(grid[idx + 1], cb_depth, **colorbar_args)
 
         # second row with median diff
-        plt.subplot(grid[(idx_row + 1) * cols + idx_col])
+        plt.subplot(grid[idx + cols])
         diff = (np.abs(median_result-gt)-np.abs(algo_result-gt))[ymin:ymin+ww, xmin:xmin+ww]
         cb_error = plt.imshow(diff, interpolation="none", cmap=cm.RdYlGn, vmin=-.05, vmax=.05)
 
         if add_ylabel:
             plt.ylabel("MedianDiff", fontsize=fs)
         if add_colorbar:
-            plotting.add_colorbar(grid[(idx_row+1)*cols+idx_col+1], cb_error, **colorbar_args)
+            plotting.add_colorbar(grid[idx + cols + 1], cb_error, **colorbar_args)
 
     fig_path = plotting.get_path_to_figure("discont_%s" % scene.get_name(), subdir=subdir)
     plotting.save_tight_figure(fig, fig_path, hide_frames=True, hspace=0.03, wspace=0.03, dpi=100)

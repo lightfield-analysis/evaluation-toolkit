@@ -184,11 +184,11 @@ class BaseScene(object):
 
     def get_boundary_mask(self, ignore_boundary=True):
         if ignore_boundary:
-            mask = np.full((self.get_height(), self.get_width()), fill_value=0, dtype=np.bool)
+            mask = np.full(self.get_shape(), fill_value=0, dtype=np.bool)
             f_offset = self.get_boundary_offset()
             mask[f_offset:self.get_height()-f_offset, f_offset:self.get_width()-f_offset] = True
         else:
-            mask = np.full((self.get_height(), self.get_width()), fill_value=1, dtype=np.bool)
+            mask = np.full(self.get_shape(), fill_value=1, dtype=np.bool)
         return mask
 
     def disp2depth(self, disp_map):

@@ -49,8 +49,8 @@ def plot_pairwise_comparison(algo1, algo2, scenes, n_scenes_per_row=4, subdir="p
     fig = plt.figure(figsize=(4*cols, 3*rows))
 
     for idx_s, scene in enumerate(scenes):
-        algo_result_1 = misc.get_algo_result(scene, algo1)
-        algo_result_2 = misc.get_algo_result(scene, algo2)
+        algo_result_1 = misc.get_algo_result(algo1, scene)
+        algo_result_2 = misc.get_algo_result(algo2, scene)
         gt = scene.get_gt()
 
         plt.subplot(rows, cols, idx_s+1)

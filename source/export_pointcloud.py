@@ -56,10 +56,11 @@ def main():
             if algorithm.get_name() == "gt":
                 disp_map = scene.get_gt()
             else:
-                disp_map = misc.get_algo_result(scene, algorithm)
+                disp_map = misc.get_algo_result(algorithm, scene)
 
             log.info("Creating point cloud for scene '%s' with '%s' disparity map." %
                      (scene.get_name(), algorithm.get_name()))
+
             pc = point_cloud.convert(scene, disp_map, center_view)
 
             file_name = "%s_%s.ply" % (scene.get_name(), algorithm.get_name())

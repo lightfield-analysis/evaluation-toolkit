@@ -134,7 +134,7 @@ def get_grid_with_colorbar(rows, cols, scene, hscale=5, wscale=7):
     grid = gridspec.GridSpec(rows, cols,
                              height_ratios=[hscale] * rows,
                              width_ratios=[wscale] * (cols - 1) + [1])
-    cb_height, w = scene.get_height(), scene.get_width()
+    cb_height, w = scene.get_shape()
     cb_width = w / float(wscale)
     return grid, cb_height, cb_width
 
@@ -160,10 +160,26 @@ def pixelize(data, factor=0.1, order=0, mode="nearest", add_noise=True, noise_fa
 
 def plot_img_with_transparent_mask(img, mask, alpha=0.5, color=(1.0, 0.0, 0.0), cmap="gray"):
     if np.size(np.shape(img)) > 2:
-        img = misc.rgb2gray(img)
+        img = rgb2gray(img)
 
     plt.imshow(img, cmap=cmap)
-    mask_vis = misc.make_rgba(mask)
+    mask_vis = np.dstack((img, img, img, np.ones(np.shape(img))))
     mask_vis[:, :, 3] = mask*alpha
     mask_vis[:, :, 0:3] *= color
     plt.imshow(mask_vis)
+
+
+def rgb2gray(img):
+    n_dims = len(np.shape(img))
+    if n_dims == 2:
+        return img
+    elif n_dims == 3:
+        n_channels = np.shape(img)[2]
+        if n_channels == 3 or n_channels == 4:
+            new_img = 0.2125*img[:, :, 0] + 0.7154*img[:, :, 1] + 0.0721*img[:, :, 2]
+            new_img = np.asarray(new_img, dtype=img.dtype)
+            return new_img
+        else:
+            raise ValueError("unexpected number of channels: %d" % n_channels)
+    else:
+        raise ValueError("unexpected number of dimensions: %d" % n_dims)

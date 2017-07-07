@@ -37,8 +37,8 @@ import settings
 from utils import plotting, misc
 
 
-def plot(algorithms, scenes,
-         thresh=settings.BAD_PIX_THRESH, subdir="error_heatmaps", fs=18, max_per_row=4):
+def plot(algorithms, scenes, thresh=settings.BAD_PIX_THRESH,
+         subdir="error_heatmaps", fs=18, max_per_row=4):
 
     # prepare figure
     n_scenes = len(scenes)
@@ -79,11 +79,11 @@ def plot(algorithms, scenes,
 
 
 def get_bad_count(scene, algorithms, thresh, percentage=False):
-    bad_count = np.zeros((scene.get_height(), scene.get_width()))
+    bad_count = np.zeros(scene.get_shape())
     gt = scene.get_gt()
 
     for algorithm in algorithms:
-        algo_result = misc.get_algo_result(scene, algorithm)
+        algo_result = misc.get_algo_result(algorithm, scene)
         abs_diffs = np.abs(gt - algo_result)
 
         with np.errstate(invalid="ignore"):

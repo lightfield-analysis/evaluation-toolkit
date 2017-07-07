@@ -40,30 +40,6 @@ import settings
 from utils import file_io
 
 
-def median_downsampling(img, tile_height=10, tile_width=10):
-    h, w = np.shape(img)
-    if w % tile_width or h % tile_height:
-        raise Exception("Image dimensions must be multiple of tile dimensions.")
-
-    n_tiles_horiz = w / tile_width
-    n_tiles_vert = h / tile_height
-    n_tiles = n_tiles_horiz * n_tiles_vert
-
-    # split vertically into tiles with height=tile_height, width=img_width
-    tiles_vert = np.asarray(np.split(img, n_tiles_vert, 0))  # n_tiles_vert x tile_height x w
-    tiles_vert = tiles_vert.transpose([1, 0, 2]).reshape(tile_height, n_tiles_vert * w)
-
-    # split horizontally into tiles with height=tile_height, width=tile_width
-    tiles = np.asarray(np.split(tiles_vert, n_tiles, 1))
-    tiles = tiles.reshape(n_tiles, tile_width * tile_height)  # n_tiles x px_per_tile
-
-    # compute median per tile (without averaging for even N)
-    tiles = np.sort(tiles, axis=1)[:, tile_width*tile_height/2]
-    small_img = tiles.reshape(n_tiles_vert, n_tiles_horiz)
-
-    return small_img
-
-
 def get_mask_invalid(matrix):
     mask = np.isposinf(matrix) + np.isneginf(matrix) + np.isnan(matrix)
     return mask
@@ -71,34 +47,6 @@ def get_mask_invalid(matrix):
 
 def get_mask_valid(matrix):
     return ~get_mask_invalid(matrix)
-
-
-def make_rgba(img, norm=False):
-    if norm:
-        img /= np.max(img)
-    return np.dstack((img, img, img, np.ones(np.shape(img))))
-
-
-def rgb2gray(img):
-    n_dims = len(np.shape(img))
-    if n_dims == 2:
-        return img
-    elif n_dims == 3:
-        n_channels = np.shape(img)[2]
-        if n_channels == 3 or n_channels == 4:
-            new_img = 0.2125*img[:, :, 0] + 0.7154*img[:, :, 1] + 0.0721*img[:, :, 2]
-            new_img = np.asarray(new_img, dtype=img.dtype)
-            return new_img
-        else:
-            raise ValueError("unexpected number of channels: %d" % n_channels)
-    else:
-        raise ValueError("unexpected number of dimensions: %d" % n_dims)
-
-
-def resize(data, scale_factor, order=1):
-    if len(np.shape(data)) == 3:
-        scale_factor = [scale_factor, scale_factor, 1.0]
-    return sci.zoom(data, scale_factor, order=order)
 
 
 def resize_to_shape(data, height, width, order=1):
@@ -120,26 +68,21 @@ def percentage(total, part):
 
 # scenes
 
-def get_available_scenes_with_categories(categories=None, data_path=settings.DATA_PATH):
+def get_available_scenes_by_category(categories=None, data_path=settings.DATA_PATH):
+
     if categories is None:
         categories = [d for d in os.listdir(data_path) if op.isdir(op.join(data_path, d))]
 
-    scenes_to_categories = dict()
+    scenes_by_category = dict()
     for category in categories:
         category_dir = op.join(data_path, category)
 
         # at least parameter file is required for scene to be "available"
         scene_names = [d for d in os.listdir(category_dir) if
                        op.isfile(op.join(category_dir, d, "parameters.cfg"))]
+        scenes_by_category[category] = scene_names
 
-        for scene_name in scene_names:
-            if scene_name not in scenes_to_categories:
-                scenes_to_categories[scene_name] = category
-            else:
-                raise Exception("Scene names must be unique across all categories. "
-                                "Found duplicate for %s." % scene_name)
-
-    return scenes_to_categories
+    return scenes_by_category
 
 
 def infer_scene_category(scene_name):
@@ -250,7 +193,19 @@ def get_stratified_metrics():
     return metrics
 
 
+def get_metric_groups_by_name():
+    metrics = {
+        "general": get_general_metrics(),
+        "stratified": get_stratified_metrics(),
+        "regions": get_region_metrics(),
+        "all_wo_runtime": get_all_metrics_wo_runtime(),
+        "all": get_all_metrics()
+    }
+    return metrics
+
+
 # scores
+
 def collect_scores(algorithms, scenes, metrics, masked=False):
     scores_scenes_metrics_algos = np.full((len(scenes), len(metrics), len(algorithms)),
                                           fill_value=np.nan)
@@ -275,7 +230,7 @@ def collect_scores(algorithms, scenes, metrics, masked=False):
     return scores_scenes_metrics_algos
 
 
-# project file handling
+# project file handling: algorithms
 
 
 def get_available_algo_names():
@@ -286,62 +241,65 @@ def get_path_to_algo_data(algorithm):
     return op.join(settings.ALGO_PATH, algorithm.get_name())
 
 
-def save_algo_result(algo_result, scene, algorithm):
-    fname = op.normpath(op.join(get_path_to_algo_data(algorithm),
-                                settings.DIR_NAME_DISP_MAPS,
-                                "%s.pfm" % scene.get_name()))
+def get_fname_algo_result(algo_dir, scene):
+    fname = op.normpath(op.join(algo_dir, settings.DIR_NAME_DISP_MAPS, "%s.pfm" % scene.get_name()))
+    return fname
+
+
+def save_algo_result(algo_result, algorithm, scene):
+    fname = get_fname_algo_result(get_path_to_algo_data(algorithm), scene)
     file_io.write_file(algo_result, fname)
 
 
-def get_algo_result(scene, algorithm):
-    return get_algo_result_from_dir(scene, get_path_to_algo_data(algorithm))
+def get_algo_result(algorithm, scene):
+    return get_algo_result_from_dir(get_path_to_algo_data(algorithm), scene)
 
 
-def get_algo_result_from_dir(scene, algo_dir):
-    fname = op.normpath(op.join(algo_dir,
-                                settings.DIR_NAME_DISP_MAPS,
-                                "%s.pfm" % scene.get_name()))
+def get_algo_result_from_dir(algo_dir, scene):
+    fname = get_fname_algo_result(algo_dir, scene)
     algo_result = file_io.read_file(fname)
     if scene.gt_scale != 1:
         algo_result = sci.zoom(algo_result, scene.gt_scale, order=0)
     return algo_result
 
 
-def get_algo_results(scene, algorithms):
+def get_algo_results(algorithms, scene):
     algo_results = np.full((scene.get_height(), scene.get_width(), len(algorithms)),
                            fill_value=np.nan)
 
     for idx_a, algorithm in enumerate(algorithms):
-        algo_results[:, :, idx_a] = get_algo_result(scene, algorithm)
+        algo_results[:, :, idx_a] = get_algo_result(algorithm, scene)
 
     algo_results = np.ma.masked_array(algo_results, mask=get_mask_invalid(algo_results))
     return algo_results
 
 
-def get_runtime(scene, algorithm):
-    return get_runtime_from_dir(scene, get_path_to_algo_data(algorithm))
+# project file handling: runtimes
 
 
-def get_runtime_from_dir(scene, algo_dir):
-    fname = op.normpath(op.join(algo_dir,
-                                settings.DIR_NAME_RUNTIMES,
-                                "%s.txt" % scene.get_name()))
+def get_fname_runtime(algo_dir, scene):
+    fname = op.normpath(op.join(algo_dir, settings.DIR_NAME_RUNTIMES, "%s.txt" % scene.get_name()))
+    return fname
+
+
+def get_runtime(algorithm, scene):
+    return get_runtime_from_dir(get_path_to_algo_data(algorithm), scene)
+
+
+def get_runtime_from_dir(algo_dir, scene):
+    fname = get_fname_runtime(algo_dir, scene)
     return file_io.read_runtime(fname)
 
 
-def get_runtimes(scene, algorithms):
+def get_runtimes(algorithms, scene):
     runtimes = []
     for algorithm in algorithms:
-        runtimes.append(get_runtime(scene, algorithm))
+        runtimes.append(get_runtime(algorithm, scene))
     return runtimes
 
 
-def save_runtime(runtime, scene, algorithm):
-    fname = op.normpath(op.join(get_path_to_algo_data(algorithm),
-                                settings.DIR_NAME_RUNTIMES,
-                                "%s.txt" % scene.get_name()))
+def save_runtime(runtime, algorithm, scene):
+    fname = get_fname_runtime(get_path_to_algo_data(algorithm), scene)
     file_io.write_runtime(runtime, fname)
 
 
-def get_stacked_gt(scene, n):
-    return np.tile(scene.get_gt()[:, :, np.newaxis], (1, 1, n))

@@ -29,6 +29,8 @@
 #                                                                          #
 ############################################################################
 
+
+import abc
 import argparse
 import re
 
@@ -37,6 +39,7 @@ from utils import log
 
 
 class OptionParser(argparse.ArgumentParser):
+
     def __init__(self, options, *args, **kwargs):
         super(OptionParser, self).__init__(formatter_class=argparse.RawTextHelpFormatter,
                                            *args, **kwargs)
@@ -50,8 +53,6 @@ class OptionParser(argparse.ArgumentParser):
 
         # call action with default action if option string was not provided
         # e.g. collect default scenes if no "-s" or "--scenes" was provided
-        # (values are not precomputed and set as default argument
-        #  to avoid costly and mostly unused initializations)
         for action in self.actions:
             if getattr(namespace, action.dest) is None:
                 action.__call__(self, namespace, values=None)
@@ -66,40 +67,19 @@ class OptionParser(argparse.ArgumentParser):
         return values
 
 
-class ConverterOps(object):
-    def __init__(self,
-                 input_help="path to input file",
-                 output_help="path to output file",
-                 config_help="path to parameters.cfg of the scene"):
-        self.input_help = input_help
-        self.output_help = output_help
-        self.config_help = config_help
+class Ops(object):
+    __metaclass__ = abc.ABCMeta
 
+    @abc.abstractmethod
     def add_arguments(self, parser):
-        actions = list()
-        actions.append(parser.add_argument(dest='input_file', type=str, help=self.input_help))
-        actions.append(parser.add_argument(dest='config_file', type=str, help=self.config_help))
-        actions.append(parser.add_argument(dest='output_file', type=str, help=self.output_help))
-
-        return actions
+        return
 
 
-class ConverterOpsExt(ConverterOps):
-    def __init__(self, optional_input, *args, **kwargs):
-        self.optional_input = optional_input
-        super(ConverterOpsExt, self).__init__(*args, **kwargs)
+class SceneOps(Ops):
 
-    def add_arguments(self, parser):
-        actions = super(ConverterOpsExt, self).add_arguments(parser)
-        for flag, name, helptext in self.optional_input:
-            actions.append(parser.add_argument(flag, dest=name, type=str, help=helptext))
-        return actions
-
-
-class SceneOps(object):
     def add_arguments(self, parser):
         action = parser.add_argument("-s",
-                                     dest="scenes", action=self.SceneAction,
+                                     dest="scenes", action=SceneAction,
                                      type=str, nargs="+",
                                      help='list of scenes or scene category names\n'
                                           'example 1: "-s cotton dino"\n'
@@ -109,65 +89,79 @@ class SceneOps(object):
                                           'in DATA_PATH\n  %s.' % settings.DATA_PATH)
         return [action]
 
-    class SceneAction(argparse.Action):
-        def __call__(self, parser, namespace, values, option_string=None):
-            from utils import misc
 
-            # collect available scenes and scene categories
-            available_scenes_with_categories = misc.get_available_scenes_with_categories()
-            available_scenes = available_scenes_with_categories.keys()
-            available_categories = list(set(list(available_scenes_with_categories.values())))
+class SceneAction(argparse.Action):
 
-            # parse given scene and category names
-            if not values:
-                # default: use all available scenes
-                scenes_with_categories = available_scenes_with_categories
-            else:
-                scenes_with_categories = dict()
-                for value in values:
-                    # add regular scene
-                    if value in available_scenes:
-                        scenes_with_categories[value] = available_scenes_with_categories[value]
+    def __call__(self, parser, namespace, values, option_string=None):
+        from utils import misc
+
+        # collect available scenes and scene categories
+        available_scenes_by_category = misc.get_available_scenes_by_category()
+        available_categories = available_scenes_by_category.keys()
+        available_scenes = [s for sublist in available_scenes_by_category.values() for s in sublist]
+
+        # scene names must be unique across categories as they are used as distinct parser arguments
+        n_scenes = len(available_scenes)
+        n_unique_scenes = len(set(available_scenes))
+        if n_scenes > n_unique_scenes:
+            raise Exception("Scene names must be unique across all categories. "
+                            "Found %d duplicate(s)." % (n_scenes - n_unique_scenes))
+
+        # parse given scene and category names
+        scenes_by_category = dict()
+
+        if not values:
+            # default: use all available scenes
+            scenes_by_category = available_scenes_by_category
+        else:
+            for value in values:
+                if value in available_scenes:
+                    # retrieve category and add regular scene
+                    category = [category for category, scenes
+                                in available_scenes_by_category.items() if value in scenes][0]
+                    scenes_by_category.setdefault(category, []).append(value)
+                else:
+                    # add available scenes of a given category
+                    if value in available_categories:
+                        scenes = available_scenes_by_category[value]
+                        category_scenes = scenes_by_category.get(value, [])
+                        scenes_by_category[value] = category_scenes + scenes
                     else:
-                        # add available scenes of a given category
-                        if value in available_categories:
-                            for scene_name, category in available_scenes_with_categories.items():
-                                if category == value:
-                                    category = available_scenes_with_categories[scene_name]
-                                    scenes_with_categories[scene_name] = category
-                        else:
-                            parser.error("Could not find scene for: %s.\n"
-                                         "Available scenes are: %s.\n"
-                                         "Available categories are: %s." %
-                                         (value,
-                                          ", ".join(available_scenes),
-                                          ", ".join(available_categories)))
+                        parser.error("Could not find scene for: %s.\n"
+                                     "Available scenes are: %s.\n"
+                                     "Available categories are: %s." %
+                                     (value,
+                                      ", ".join(available_scenes),
+                                      ", ".join(available_categories)))
 
-            # initialize scene objects for all valid scene names
-            scenes = [misc.get_scene(n, c) for n, c in sorted(scenes_with_categories.items())]
+        # initialize scene objects
+        scenes = []
+        for category, scene_names in scenes_by_category.items():
+            scenes += [misc.get_scene(scene_name, category) for scene_name in scene_names]
 
-            setattr(namespace, self.dest, scenes)
+        setattr(namespace, self.dest, scenes)
 
 
-class AlgorithmOps(object):
-    def __init__(self, with_gt=False, default_algo_names=None):
+class AlgorithmOps(Ops):
+
+    def __init__(self, default=None, with_gt=False):
         self.with_gt = with_gt
-        self.default_algo_names = default_algo_names
+        self.default = default
 
     def add_arguments(self, parser):
-        if self.default_algo_names is not None:
-            default = ' '.join(self.default_algo_names)
+
+        # prepare help text
+        if self.default is not None:
+            default = ' '.join(self.default)
         else:
             default = 'all algorithm directories in ALGO_PATH\n  %s' % settings.ALGO_PATH
         default += '\n  (per pixel meta algorithms are ignored)'
 
-        further_options = ""
-        if self.with_gt:
-            further_options += '\nfurther options: gt'
+        further_options = '\nfurther options: gt' if self.with_gt else ''
 
         action = parser.add_argument("-a",
                                      dest="algorithms", action=AlgorithmAction,
-                                     default_algo_names=self.default_algo_names,
+                                     default_algo_names=self.default,
                                      type=str, nargs="+",
                                      help='list of algorithm names\n'
                                           'example: "-a epi1 lf mv"\n'
@@ -176,6 +170,7 @@ class AlgorithmOps(object):
 
 
 class AlgorithmAction(argparse.Action):
+
     def __init__(self, option_strings, default_algo_names=None, *args, **kwargs):
         self.default_algo_names = default_algo_names
         super(AlgorithmAction, self).__init__(option_strings=option_strings, *args, **kwargs)
@@ -187,15 +182,14 @@ class AlgorithmAction(argparse.Action):
         ignore = [a.get_name() for a in MetaAlgorithm.get_meta_algorithms()]
         available_algo_names = [a for a in misc.get_available_algo_names() if a not in ignore]
 
-        # default: use all available algorithms
         if not values:
+            # use given default or all available algorithms
             if self.default_algo_names is not None:
-                algo_names = [algo_name for algo_name in self.default_algo_names
-                              if algo_name in available_algo_names]
+                algo_names = [a for a in self.default_algo_names if a in available_algo_names]
             else:
                 algo_names = available_algo_names
-        # otherwise: check if selected algorithms exist
         else:
+            # otherwise: check if selected algorithms exist
             algo_names = []
             for algo_name in values:
                 if algo_name not in available_algo_names and algo_name != "gt":
@@ -212,36 +206,38 @@ class AlgorithmAction(argparse.Action):
         setattr(namespace, self.dest, algorithms)
 
 
-class MetaAlgorithmOps(object):
+class MetaAlgorithmOps(Ops):
+
     def __init__(self, default=None, with_load_argument=True):
+        self.default = default
         self.with_load_argument = with_load_argument
 
-        # prepare algorithm options
-        from algorithms import MetaAlgorithm
-        self.meta_algorithms = {algo.get_name().replace("per_pix_", ""): algo
-                                for algo in MetaAlgorithm.get_meta_algorithms()}
-
-        if default is None:
-            default = sorted(self.meta_algorithms.keys())
-        self.default_algo_names = default
-
     def add_arguments(self, parser):
-        if self.default_algo_names:
-            default = " ".join(self.default_algo_names)
-        else:
-            default = "no meta algorithm"
+        from algorithms import MetaAlgorithm
 
-        actions = []
-        options = ", ".join(sorted(self.meta_algorithms.keys()))
+        # prepare algorithm options
+        algorithms_by_name = {algo.get_name().replace("per_pix_", ""): algo
+                              for algo in MetaAlgorithm.get_meta_algorithms()}
+        meta_algorithm_keys = sorted(algorithms_by_name.keys())
+
+        if self.default is None:
+            self.default = meta_algorithm_keys
+
+        # prepare help text
+        option_text = ", ".join(meta_algorithm_keys)
+        default_text = " ".join(self.default) if self.default else "no meta algorithm"
+
+        # add arguments
+        actions = list()
         actions.append(parser.add_argument("-p",
                                            dest="meta_algorithms", action=MetaAlgorithmAction,
-                                           meta_algorithms=self.meta_algorithms,
-                                           default_algo_names=self.default_algo_names,
+                                           algorithms_by_name=algorithms_by_name,
+                                           default_algo_names=self.default,
                                            type=str, nargs="+",
                                            help='list of meta algorithm names\n'
                                                 'example: "-a best mean"\n'
                                                 'default: %s\n'
-                                                'options: %s' % (default, options)))
+                                                'options: %s' % (default_text, option_text)))
 
         if self.with_load_argument:
             actions.append(parser.add_argument("-u", "--use_existing_meta_files",
@@ -250,136 +246,128 @@ class MetaAlgorithmOps(object):
                                                     "(per default, meta algorithms\n"
                                                     "are computed from scratch "
                                                     "based on list of 'regular' algorithms)"))
-
         return actions
 
 
 class MetaAlgorithmAction(argparse.Action):
-    def __init__(self, option_strings, meta_algorithms, default_algo_names, *args, **kwargs):
-        self.meta_algorithms = meta_algorithms
+
+    def __init__(self, option_strings, algorithms_by_name, default_algo_names, *args, **kwargs):
+        self.algorithms_by_name = algorithms_by_name
         self.default_algo_names = default_algo_names
         super(MetaAlgorithmAction, self).__init__(option_strings=option_strings, *args, **kwargs)
 
     def __call__(self, parser, namespace, values, option_string=None):
-        meta_algorithms = []
+        algorithms = []
 
         if not values:
-            meta_algorithms = [self.meta_algorithms[a] for a in self.default_algo_names]
+            algorithms = [self.algorithms_by_name[a] for a in self.default_algo_names]
         else:
             for value in values:
                 try:
-                    meta_algorithms.append(self.meta_algorithms[value])
+                    algorithms.append(self.algorithms_by_name[value])
                 except KeyError:
                     parser.error("Could not find algorithm for: %s. "
                                  "Available options are: %s." %
-                                 (value, ", ".join(self.meta_algorithms.keys())))
+                                 (value, ", ".join(self.algorithms_by_name.keys())))
 
         # save result in action destination
-        setattr(namespace, self.dest, meta_algorithms)
+        setattr(namespace, self.dest, algorithms)
 
 
-class MetricOps(object):
-    @staticmethod
-    def get_metric_groups():
-        from utils import misc
-        metric_dict = {
-            "general": misc.get_general_metrics(),
-            "stratified": misc.get_stratified_metrics(),
-            "regions": misc.get_region_metrics(),
-            "all_wo_runtime": misc.get_all_metrics_wo_runtime(),
-            "all": misc.get_all_metrics()
-        }
-        return metric_dict
-
-    @staticmethod
-    def get_individual_metrics():
-        from metrics import Runtime
-        from utils import misc
-
-        metrics = misc.get_all_metrics_wo_runtime() + [Runtime(log=True), Runtime(log=False)]
-        metric_dict = {}
-
-        for metric in metrics:
-            to_be_removed = ["(", ")", ".", ":"]
-            metric_key = metric.get_display_name().lower().replace(" ", "_")
-            metric_key = metric_key.translate(None, "".join(to_be_removed))
-            metric_dict[metric_key] = [metric]
-
-        return metric_dict
-
-    @staticmethod
-    def get_all_options():
-        metric_dict = MetricOps.get_individual_metrics()
-        metric_dict.update(MetricOps.get_metric_groups())
-        return metric_dict
+class MetricOps(Ops):
 
     def add_arguments(self, parser):
-        invididual_metric_str = ""
-        metric_keys = sorted(self.get_individual_metrics().keys())
-        lines = [metric_keys[n:n + 3] for n in range(0, len(metric_keys), 3)]
-        for line in lines:
-            invididual_metric_str += "  " + ", ".join(line) + ",\n"
-        invididual_metric_str = invididual_metric_str[:-2]
+        from utils import misc
+        from metrics import Runtime
 
-        general_metrics_str = ", ".join(m.get_display_name() for m in
-                                        self.get_metric_groups()["general"])
+        # prepare metric groups with names: {"stratified": stratified_metrics, ...}
+        metric_groups_by_name = misc.get_metric_groups_by_name()
+
+        # prepare individual metrics with short keys: {"fine_thinning": [FineThinning()], ...}
+        all_metrics = misc.get_all_metrics_wo_runtime() + [Runtime(log=True), Runtime(log=False)]
+        ignored_chars = "".join(["(", ")", ".", ":"])
+
+        metrics_by_name = {}
+        for metric in all_metrics:
+            key = metric.get_display_name().lower().replace(" ", "_").translate(None, ignored_chars)
+            metrics_by_name[key] = [metric]
+
+        # prepare help text for general metrics
+        general_metrics = ", ".join(m.get_display_name() for m in metric_groups_by_name["general"])
+
+        # prepare help text for all individual metrics
+        metric_keys = sorted(metrics_by_name.keys())
+        # add line break after each metric triple
+        lines = [metric_keys[n:n + 3] for n in range(0, len(metric_keys), 3)]
+        all_metrics = ",\n".join(["  " + ", ".join(line) for line in lines])
+
+        # combine all valid options
+        all_options = metrics_by_name.copy()
+        all_options.update(metric_groups_by_name)
 
         action = parser.add_argument("-m",
-                                     dest="metrics", action=self.MetricAction,
+                                     dest="metrics", action=MetricAction,
+                                     metric_options=all_options,
                                      type=str, nargs="+",
                                      help='list of metric names\n'
                                           'example: "-m badpix007 mse"\n'
                                           'default: all\n'
                                           'individual metrics:\n%s\n'
                                           'metric sets:\n'
-                                          '  stratified: all metrics of the stratified scenes\n'
+                                          '  stratified: special metrics of the stratified scenes\n'
                                           '  regions: region metrics of the photorealistic scenes\n'
                                           '  general: %s\n'
                                           '  all_wo_runtime: applicable metrics without runtime\n'
-                                          '  all: applicable metrics including runtime\n' %
-                                          (invididual_metric_str, general_metrics_str))
+                                          '  all: applicable metrics including runtime\n'
+                                          % (all_metrics, general_metrics))
         return [action]
 
-    class MetricAction(argparse.Action):
 
-        def __call__(self, parser, namespace, values, option_string=None):
-            from metrics import BadPix, Quantile
+class MetricAction(argparse.Action):
 
-            metric_dict = MetricOps.get_all_options()
-            metrics = []
+    def __init__(self, option_strings, metric_options, *args, **kwargs):
+        self.metric_options = metric_options
+        super(MetricAction, self).__init__(option_strings=option_strings, *args, **kwargs)
 
-            if not values:
-                metrics = metric_dict["all"]
-            else:
-                for value in values:
-                    try:
-                        metrics += metric_dict[value]
-                    except KeyError:
-                        if re.match("^badpix\d{3}", value):
-                            threshold = float((value[6] + "." + value[7:]))
-                            metrics += [BadPix(threshold)]
-                        elif re.match("^q\d{2}", value):
-                            percentage = int(value[1:])
-                            metrics += [Quantile(percentage)]
-                        else:
-                            parser.error("Could not find metrics for: %s. "
-                                         "Available options are: %s." %
-                                         (value, ", ".join(sorted(metric_dict.keys()))))
+    def __call__(self, parser, namespace, values, option_string=None):
+        from metrics import BadPix, Quantile
+        metrics = []
 
-            # save result in action destination
-            setattr(namespace, self.dest, metrics)
+        if not values:
+            metrics = self.metric_options["all"]
+        else:
+            for value in values:
+                try:
+                    metrics += self.metric_options[value]
+                except KeyError:
+                    # try to match BadPix metric with threshold
+                    if re.match("^badpix\d{3}", value):
+                        threshold = float((value[6] + "." + value[7:]))
+                        metrics.append(BadPix(threshold))
+                    # try to match Quantile metric with percentage
+                    elif re.match("^q\d{2}", value):
+                        percentage = int(value[1:])
+                        metrics.append(Quantile(percentage))
+                    else:
+                        parser.error("Could not find metrics for: %s. "
+                                     "Available options are: %s." %
+                                     (value, ", ".join(sorted(self.metric_options.keys()))))
+
+        # save result in action destination
+        setattr(namespace, self.dest, metrics)
 
 
-class VisualizationOps(object):
-    @staticmethod
-    def add_arguments(parser):
+class VisualizationOps(Ops):
+
+    def add_arguments(self, parser):
         action = parser.add_argument("-v", "--visualize",
                                      dest="visualize", action="store_true",
                                      help="set flag to save figures during evaluation")
         return [action]
 
 
-class ThresholdOps(object):
+class ThresholdOps(Ops):
+
     def __init__(self, threshold=0.07):
         self.threshold = threshold
 
@@ -390,14 +378,46 @@ class ThresholdOps(object):
         return [action]
 
 
-class FigureOps(object):
+class ConverterOps(Ops):
+
+    def __init__(self,
+                 input_help="path to input file",
+                 output_help="path to output file",
+                 config_help="path to parameters.cfg of the scene"):
+        self.input_help = input_help
+        self.output_help = output_help
+        self.config_help = config_help
+
+    def add_arguments(self, parser):
+        actions = list()
+        actions.append(parser.add_argument(dest='input_file', type=str, help=self.input_help))
+        actions.append(parser.add_argument(dest='config_file', type=str, help=self.config_help))
+        actions.append(parser.add_argument(dest='output_file', type=str, help=self.output_help))
+        return actions
+
+
+class ConverterOpsExt(ConverterOps):
+
+    def __init__(self, optional_input, *args, **kwargs):
+        self.optional_input = optional_input
+        super(ConverterOpsExt, self).__init__(*args, **kwargs)
+
+    def add_arguments(self, parser):
+        actions = super(ConverterOpsExt, self).add_arguments(parser)
+        for flag, name, help_text in self.optional_input:
+            actions.append(parser.add_argument(flag, dest=name, type=str, help=help_text))
+        return actions
+
+
+class FigureOps(Ops):
+
     def __init__(self, figure_options):
         self.figure_options = figure_options
 
     def add_arguments(self, parser):
         options = "".join("\n  %s: %s" % (k, v) for k, v in sorted(self.figure_options.items()))
         action = parser.add_argument("-f",
-                                     dest="figure_options", action=FigureOpsAction,
+                                     dest="figure_options", action=FigureAction,
                                      figure_options=self.figure_options,
                                      type=str, nargs="+",
                                      help='list of figure names\n'
@@ -407,71 +427,57 @@ class FigureOps(object):
         return [action]
 
 
-class FigureOpsAction(argparse.Action):
+class FigureAction(argparse.Action):
+
     def __init__(self, option_strings, figure_options, *args, **kwargs):
         self.figure_options = figure_options
-        super(FigureOpsAction, self).__init__(option_strings=option_strings, *args, **kwargs)
+        super(FigureAction, self).__init__(option_strings=option_strings, *args, **kwargs)
 
     def __call__(self, parser, namespace, values, option_string=None):
-        figure_options = []
-        available_options = self.figure_options.keys()
+        options = []
+        available_options = sorted(self.figure_options.keys())
 
         if not values:
-            figure_options = sorted(available_options)
+            options = available_options
         else:
             for value in values:
                 if value in available_options:
-                    figure_options.append(value)
+                    options.append(value)
                 else:
                     parser.error("Could not find figure option for: %s. "
                                  "Available options are: %s." %
                                  (value, ", ".join(available_options)))
 
         # save result in action destination
-        setattr(namespace, self.dest, figure_options)
+        setattr(namespace, self.dest, options)
 
 
 class FigureOpsACCV16(FigureOps):
-    def __init__(self):
-        figure_options = {"heatmaps":
-                              "figure with algorithm error heatmap per scene",
-                          "radar":
-                              "radar charts for stratified and training scenes",
-                          "stratified":
-                              "metric visualization figure for each stratified scene",
-                          "training":
-                              "metric visualization figure for each training scene",
-                          "backgammon":
-                              "fattening and thinning along vertical image dimension",
-                          "dots":
-                              "background error per box with increasing noise levels",
-                          "pyramids":
-                              "algorithm disparities vs ground truth disparities on spheres",
-                          "stripes":
-                              "visualization of evaluation masks"}
 
-        super(FigureOpsACCV16, self).__init__(figure_options)
+    def __init__(self):
+        options = {"heatmaps": "figure with algorithm error heatmap per scene",
+                   "radar": "radar charts for stratified and training scenes",
+                   "stratified": "metric visualization figure for each stratified scene",
+                   "training": "metric visualization figure for each training scene",
+                   "backgammon": "fattening and thinning along vertical image dimension",
+                   "dots": "background error per box with increasing noise levels",
+                   "pyramids": "algorithm disparities vs ground truth disparities on spheres",
+                   "stripes": "visualization of evaluation masks"}
+
+        super(FigureOpsACCV16, self).__init__(options)
 
 
 class FigureOpsCVPR17(FigureOps):
-    def __init__(self):
-        figure_options = {"scenes":
-                              "center view and ground truth per scene",
-                          "difficulty":
-                              "error map of per pixel median and best disparity per scene",
-                          "normalsdemo":
-                              "ground truth and algorithm normals + angular error (Sideboard)",
-                          "radar":
-                              "radar charts for stratified and photorealistic scenes",
-                          "badpix":
-                              "BadPix series for stratified and photorealistic scenes",
-                          "median":
-                              "MedianDiff comparisons for stratified and training scenes",
-                          "normals":
-                              "disparity and normal map + angular error per algorithm (Cotton)",
-                          "discont":
-                              "disparity map and MedianDiff per algorithm (Bicycle)",
-                          "accuracy":
-                              "BadPix and Q25 visualizations (Cotton and Boxes)"}
 
-        super(FigureOpsCVPR17, self).__init__(figure_options)
+    def __init__(self):
+        options = {"scenes": "center view and ground truth per scene",
+                   "difficulty": "error map of per pixel median and best disparity per scene",
+                   "normalsdemo": "ground truth and algorithm normals + angular error (Sideboard)",
+                   "radar": "radar charts for stratified and photorealistic scenes",
+                   "badpix": "BadPix series for stratified and photorealistic scenes",
+                   "median": "MedianDiff comparisons for stratified and training scenes",
+                   "normals": "disparity and normal map + angular error per algorithm (Cotton)",
+                   "discont": "disparity map and MedianDiff per algorithm (Bicycle)",
+                   "accuracy": "BadPix and Q25 visualizations (Cotton and Boxes)"}
+
+        super(FigureOpsCVPR17, self).__init__(options)

@@ -43,9 +43,6 @@ from utils import log, misc, plotting
 
 class PhotorealisticScene(BaseScene):
 
-    def __init__(self, name, **kwargs):
-        super(PhotorealisticScene, self).__init__(name, **kwargs)
-
     def get_scene_specific_metrics(self):
         return [m for m in misc.get_region_metrics() if
                 m.mask_exists(self, settings.LOWRES) or m.mask_exists(self, settings.HIGHRES)]
@@ -110,7 +107,7 @@ class PhotorealisticScene(BaseScene):
 
         for idx_a, algorithm in enumerate(algorithms):
             log.info("Algorithm: %s" % algorithm)
-            algo_result = misc.get_algo_result(self, algorithm)
+            algo_result = misc.get_algo_result(algorithm, self)
 
             # add algorithm disparity map
             plt.sca(grids[0][idx_a + 1])
