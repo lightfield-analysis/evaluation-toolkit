@@ -455,7 +455,7 @@ class FigureAction(argparse.Action):
 class FigureOpsACCV16(FigureOps):
 
     def __init__(self):
-        options = {"heatmaps": "algorithm error heatmap per scene",
+        options = {"heatmaps": "figure with algorithm error heatmap per scene",
                    "radar": "radar charts for stratified and training scenes",
                    "stratified": "metric visualization figure for each stratified scene",
                    "training": "metric visualization figure for each training scene",

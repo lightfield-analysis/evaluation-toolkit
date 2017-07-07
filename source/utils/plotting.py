@@ -163,7 +163,7 @@ def plot_img_with_transparent_mask(img, mask, alpha=0.5, color=(1.0, 0.0, 0.0), 
         img = rgb2gray(img)
 
     plt.imshow(img, cmap=cmap)
-    mask_vis = np.dstack((img, img, img, np.ones(np.shape(img))))
+    mask_vis = np.dstack((mask, mask, mask, np.ones(np.shape(mask))))
     mask_vis[:, :, 3] = mask*alpha
     mask_vis[:, :, 0:3] *= color
     plt.imshow(mask_vis)

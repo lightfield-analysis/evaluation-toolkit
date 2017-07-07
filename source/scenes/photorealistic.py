@@ -145,7 +145,7 @@ class PhotorealisticScene(BaseScene):
         score, vis = metric.get_score(algo_result, gt, self, with_visualization=True)
 
         if hide_gt and metric.pixelize_results():
-            vis = misc.pixelize(vis)
+            vis = plotting.pixelize(vis)
 
         # plot algorithm disparity map as background
         plt.imshow(algo_result, **settings.disp_map_args(self, cmap="gray"))
