@@ -37,7 +37,7 @@ import numpy as np
 import scipy.ndimage.interpolation as sci
 
 import settings
-from utils import file_io
+from utils import file_io, log
 
 
 def get_mask_invalid(matrix):
@@ -212,7 +212,14 @@ def collect_scores(algorithms, scenes, metrics, masked=False):
 
     for idx_a, algorithm in enumerate(algorithms):
         fname_json = op.join(settings.ALGO_EVAL_PATH, algorithm.get_name(), "results.json")
-        results = file_io.read_file(fname_json)
+
+        try:
+            results = file_io.read_file(fname_json)
+        except IOError:
+            log.error("Could not find scores at: %s. \n"
+                      "Please execute 'run_evaluation.py' with the algorithms, scenes and metrics "
+                      "that you want to use in your figure." % fname_json)
+            exit()
 
         for idx_s, scene in enumerate(scenes):
             scene_scores = results[scene.get_name()]["scores"]

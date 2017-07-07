@@ -67,11 +67,11 @@ class PhotorealisticScene(BaseScene):
         plt.ylabel("Disparity Map", fontsize=fs)
 
         # mask visualizations + algorithm disparity maps + metric visualizations
-        log.info("Computing scores and visualizations for LOW resolution metrics.")
+        log.info("Computing scores and visualizations for low resolution metrics.")
         self.set_low_gt_scale()
         self.plot_metric_rows(grids, algorithms, metrics_low_res, offset=0, fontsize=fs)
 
-        log.info("Computing scores and visualizations for HIGH resolution metrics.")
+        log.info("Computing scores and visualizations for high resolution metrics.")
         self.set_high_gt_scale()
         self.plot_metric_rows(grids, algorithms, metrics_high_res,
                               offset=len(metrics_low_res), fontsize=fs)

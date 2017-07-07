@@ -127,8 +127,8 @@ class SceneAction(argparse.Action):
                         category_scenes = scenes_by_category.get(value, [])
                         scenes_by_category[value] = category_scenes + scenes
                     else:
-                        parser.error("Could not find scene for: %s.\n"
-                                     "Available scenes are: %s.\n"
+                        parser.error("Could not find scene for: %s.\n  "
+                                     "Available scenes are: %s.\n  "
                                      "Available categories are: %s." %
                                      (value,
                                       ", ".join(available_scenes),
@@ -193,7 +193,7 @@ class AlgorithmAction(argparse.Action):
             algo_names = []
             for algo_name in values:
                 if algo_name not in available_algo_names and algo_name != "gt":
-                    parser.error("Could not find algorithm for: %s. "
+                    parser.error("Could not find algorithm for: %s.\n  "
                                  "Available options are: %s." %
                                  (algo_name, ", ".join(available_algo_names)))
                 else:
@@ -266,7 +266,7 @@ class MetaAlgorithmAction(argparse.Action):
                 try:
                     algorithms.append(self.algorithms_by_name[value])
                 except KeyError:
-                    parser.error("Could not find algorithm for: %s. "
+                    parser.error("Could not find algorithm for: %s.\n  "
                                  "Available options are: %s." %
                                  (value, ", ".join(self.algorithms_by_name.keys())))
 
@@ -349,7 +349,7 @@ class MetricAction(argparse.Action):
                         percentage = int(value[1:])
                         metrics.append(Quantile(percentage))
                     else:
-                        parser.error("Could not find metrics for: %s. "
+                        parser.error("Could not find metrics for: %s.\n  "
                                      "Available options are: %s." %
                                      (value, ", ".join(sorted(self.metric_options.keys()))))
 
@@ -444,7 +444,7 @@ class FigureAction(argparse.Action):
                 if value in available_options:
                     options.append(value)
                 else:
-                    parser.error("Could not find figure option for: %s. "
+                    parser.error("Could not find figure option for: %s.\n  "
                                  "Available options are: %s." %
                                  (value, ", ".join(available_options)))
 
@@ -455,7 +455,7 @@ class FigureAction(argparse.Action):
 class FigureOpsACCV16(FigureOps):
 
     def __init__(self):
-        options = {"heatmaps": "figure with algorithm error heatmap per scene",
+        options = {"heatmaps": "algorithm error heatmap per scene",
                    "radar": "radar charts for stratified and training scenes",
                    "stratified": "metric visualization figure for each stratified scene",
                    "training": "metric visualization figure for each training scene",

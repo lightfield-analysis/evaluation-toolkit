@@ -113,7 +113,7 @@ class Pyramids(BaseStratified):
 
         legend = plt.legend(legend_lines, legend_labels, frameon=False, ncol=1, scatterpoints=1,
                             title="Algorithms:", bbox_to_anchor=(1.25, .85), borderaxespad=0.0)
-        for idx in range(legend.legendHandles):
+        for idx in range(len(legend.legendHandles)):
             legend.legendHandles[idx]._sizes = [22]
         plt.suptitle("Ground Truth Disparities vs. Algorithm Disparities", fontsize=fontsize)
 

@@ -51,6 +51,10 @@ class MetaAlgorithm(Algorithm):
     def get_meta_algorithms():
         return [PerPixBest(), PerPixMean(), PerPixMedianDiff(), PerPixMedianDisp()]
 
+    @staticmethod
+    def get_stacked_gt(scene, n):
+        return np.tile(scene.get_gt()[:, :, np.newaxis], (1, 1, n))
+
 
 class PerPixMean(MetaAlgorithm):
 
@@ -68,10 +72,6 @@ class PerPixMean(MetaAlgorithm):
             # average disparity estimate per pixel
             algo_results = misc.get_algo_results(algorithms, scene)
             misc.save_algo_result(np.ma.average(algo_results, axis=2), self, scene)
-
-    @staticmethod
-    def get_stacked_gt(scene, n):
-        return np.tile(scene.get_gt()[:, :, np.newaxis], (1, 1, n))
 
 
 class PerPixMedianDisp(MetaAlgorithm):
@@ -94,7 +94,7 @@ class PerPixMedianDisp(MetaAlgorithm):
 
 class PerPixMedianDiff(MetaAlgorithm):
 
-    def __init__(self, file_name="per_pix_median_diff", display_name="PerPixMedian",
+    def __init__(self, file_name="per_pix_median_diff", display_name="PerPixMedianDiff",
                  color=(0.2, 0.2, 0.2), **kwargs):
         super(PerPixMedianDiff, self).__init__(file_name=file_name, display_name=display_name,
                                                color=color, **kwargs)

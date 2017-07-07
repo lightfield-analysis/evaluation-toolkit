@@ -64,7 +64,7 @@ def plot_benchmark_scene_overview(benchmark_scenes, subdir="overview", fs=16):
             plt.imshow(gt, **settings.disp_map_args(scene))
         except IOError as e:
             # skip potentially missing ground truth of test scenes
-            log.info(e)
+            log.warning(e)
             continue
 
     # add text

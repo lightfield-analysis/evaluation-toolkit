@@ -68,8 +68,8 @@ def plot(algorithms, scenes, metrics, average="median", axis_labels=None, max_pe
 
         non_applicable_metrics = [m for i, m in enumerate(metrics) if not m_applicable_metrics[i]]
         if non_applicable_metrics:
-            log.info("Ignoring (non-applicable) metrics without valid values: %s" %
-                     ", ".join(m.get_id() for m in non_applicable_metrics))
+            log.warning("Ignoring (non-applicable) metrics without valid values:\n  %s" %
+                        ", ".join(m.get_id() for m in non_applicable_metrics))
 
     plot_scores(scores_metrics_algos, algorithms, axis_labels, fig_name, subdir,
                 title, max_per_metric)

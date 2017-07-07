@@ -63,18 +63,6 @@ def main():
 
     # create figures
 
-    if "scenes" in figure_options:
-        log.info("Creating scene overview figure.")
-        cvprw.plot_benchmark_scene_overview(misc.get_benchmark_scenes(), subdir=SUBDIR)
-
-    if "difficulty" in figure_options:
-        log.info("Creating scene difficulty figure.")
-        if settings.USE_TEST_SCENE_GT:
-            scenes = misc.get_benchmark_scenes()
-        else:
-            scenes = misc.get_stratified_scenes() + misc.get_training_scenes()
-        cvprw.plot_scene_difficulty(scenes, subdir=SUBDIR)
-
     if "normalsdemo" in figure_options:
         log.info("Creating normals demo figure with Sideboard scene.")
         scene = PhotorealisticScene("sideboard")
@@ -108,6 +96,18 @@ def main():
         high_accuracy_algorithms = [a for a in algorithms if a.get_name() in selection]
         scenes = [PhotorealisticScene("cotton"), PhotorealisticScene("boxes")]
         cvprw.plot_high_accuracy(high_accuracy_algorithms, scenes, subdir=SUBDIR)
+
+    if "scenes" in figure_options:
+        log.info("Creating scene overview figure.")
+        cvprw.plot_benchmark_scene_overview(misc.get_benchmark_scenes(), subdir=SUBDIR)
+
+    if "difficulty" in figure_options:
+        log.info("Creating scene difficulty figure.")
+        if settings.USE_TEST_SCENE_GT:
+            scenes = misc.get_benchmark_scenes()
+        else:
+            scenes = misc.get_stratified_scenes() + misc.get_training_scenes()
+        cvprw.plot_scene_difficulty(scenes, subdir=SUBDIR)
 
 
 if __name__ == "__main__":

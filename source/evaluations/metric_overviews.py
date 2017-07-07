@@ -65,14 +65,14 @@ def plot_normals(algorithms, scenes, n_rows=2, subdir=SUBDIR, fs=15):
         try:
             mask_contin = metric_mae_contin.get_evaluation_mask(scene)
         except IOError:
-            log.info("No evaluation mask found for non-planar "
-                     "continuous surfaces on: %s" % scene.get_display_name())
+            log.warning("No evaluation mask found for non-planar "
+                        "continuous surfaces on: %s" % scene.get_display_name())
             mask_contin = np.zeros((h, w), dtype=np.bool)
         try:
             mask_planes = metric_mae_planes.get_evaluation_mask(scene)
         except IOError:
-            log.info("No evaluation mask found for planar "
-                     "continuous surfaces on: %s" % scene.get_display_name())
+            log.warning("No evaluation mask found for planar "
+                        "continuous surfaces on: %s" % scene.get_display_name())
             mask_planes = np.zeros((h, w), dtype=np.bool)
 
         # plot ground truth column
@@ -199,8 +199,8 @@ def plot_general_overview(algorithms, scenes, metrics, fig_name=None, subdir=SUB
 
                 else:
                     if idx_a == 0:
-                        log.info("Metric %s not applicable for scene %s." %
-                                 (metric.get_display_name(), scene.get_display_name()))
+                        log.warning("Metric %s not applicable for scene %s." %
+                                    (metric.get_display_name(), scene.get_display_name()))
                         plt.ylabel(ylabel + "\n(not applicable)")
 
     # save figure

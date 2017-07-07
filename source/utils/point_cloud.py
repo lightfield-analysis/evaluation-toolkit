@@ -59,9 +59,9 @@ def save(points, fpath):
 
 def convert(scene, disp_map, color_map=None):
     height, width = np.shape(disp_map)
-    assert (height == scene.original_height and width == scene.original_width), \
+    assert (height == scene.height and width == scene.width), \
         "Expected the shape of the disparity map to be %dx%d but got %dx%d." \
-        % (scene.original_height, scene.original_width, height, width)
+        % (scene.height, scene.width, height, width)
 
     # compute x,y,z coordinates
     points = np.zeros((np.size(disp_map), 6))
