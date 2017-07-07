@@ -33,10 +33,14 @@
 from utils.option_parser import OptionParser, SceneOps, AlgorithmOps, ThresholdOps
 
 
-if __name__ == "__main__":
+def main():
     parser = OptionParser([SceneOps(), AlgorithmOps(), ThresholdOps()])
     scenes, algorithms, threshold = parser.parse_args()
 
     # delay imports to speed up usage response
     from evaluations import error_heatmaps
     error_heatmaps.plot(algorithms, scenes, thresh=threshold)
+
+
+if __name__ == "__main__":
+    main()

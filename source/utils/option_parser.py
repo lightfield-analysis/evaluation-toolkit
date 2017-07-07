@@ -37,8 +37,7 @@ from utils import log
 
 
 class OptionParser(argparse.ArgumentParser):
-
-    def __init__(self, options=[], *args, **kwargs):
+    def __init__(self, options, *args, **kwargs):
         super(OptionParser, self).__init__(formatter_class=argparse.RawTextHelpFormatter,
                                            *args, **kwargs)
         self.actions = []
@@ -68,36 +67,36 @@ class OptionParser(argparse.ArgumentParser):
 
 
 class ConverterOps(object):
-
-    def __init__(self, input="path to input file", output="path to output file",
-                 config="path to parameters.cfg of the scene"):
-        self.input_help = input
-        self.output_help = output
-        self.config_help = config
+    def __init__(self,
+                 input_help="path to input file",
+                 output_help="path to output file",
+                 config_help="path to parameters.cfg of the scene"):
+        self.input_help = input_help
+        self.output_help = output_help
+        self.config_help = config_help
 
     def add_arguments(self, parser):
-        actions = []
+        actions = list()
         actions.append(parser.add_argument(dest='input_file', type=str, help=self.input_help))
         actions.append(parser.add_argument(dest='config_file', type=str, help=self.config_help))
         actions.append(parser.add_argument(dest='output_file', type=str, help=self.output_help))
+
         return actions
 
 
 class ConverterOpsExt(ConverterOps):
-
     def __init__(self, optional_input, *args, **kwargs):
         self.optional_input = optional_input
         super(ConverterOpsExt, self).__init__(*args, **kwargs)
 
     def add_arguments(self, parser):
         actions = super(ConverterOpsExt, self).add_arguments(parser)
-        for flag, name, help in self.optional_input:
-            actions.append(parser.add_argument(flag, dest=name, type=str, help=help))
+        for flag, name, helptext in self.optional_input:
+            actions.append(parser.add_argument(flag, dest=name, type=str, help=helptext))
         return actions
 
 
 class SceneOps(object):
-
     def add_arguments(self, parser):
         action = parser.add_argument("-s",
                                      dest="scenes", action=self.SceneAction,
@@ -151,7 +150,6 @@ class SceneOps(object):
 
 
 class AlgorithmOps(object):
-
     def __init__(self, with_gt=False, default_algo_names=None):
         self.with_gt = with_gt
         self.default_algo_names = default_algo_names
@@ -173,12 +171,11 @@ class AlgorithmOps(object):
                                      type=str, nargs="+",
                                      help='list of algorithm names\n'
                                           'example: "-a epi1 lf mv"\n'
-                                           'default: %s%s' % (default, further_options))
+                                          'default: %s%s' % (default, further_options))
         return [action]
 
 
 class AlgorithmAction(argparse.Action):
-
     def __init__(self, option_strings, default_algo_names=None, *args, **kwargs):
         self.default_algo_names = default_algo_names
         super(AlgorithmAction, self).__init__(option_strings=option_strings, *args, **kwargs)
@@ -216,7 +213,6 @@ class AlgorithmAction(argparse.Action):
 
 
 class MetaAlgorithmOps(object):
-
     def __init__(self, default=None, with_load_argument=True):
         self.with_load_argument = with_load_argument
 
@@ -259,7 +255,6 @@ class MetaAlgorithmOps(object):
 
 
 class MetaAlgorithmAction(argparse.Action):
-
     def __init__(self, option_strings, meta_algorithms, default_algo_names, *args, **kwargs):
         self.meta_algorithms = meta_algorithms
         self.default_algo_names = default_algo_names
@@ -284,7 +279,6 @@ class MetaAlgorithmAction(argparse.Action):
 
 
 class MetricOps(object):
-
     @staticmethod
     def get_metric_groups():
         from utils import misc
@@ -322,7 +316,7 @@ class MetricOps(object):
     def add_arguments(self, parser):
         invididual_metric_str = ""
         metric_keys = sorted(self.get_individual_metrics().keys())
-        lines = [metric_keys[n:n+3] for n in range(0, len(metric_keys), 3)]
+        lines = [metric_keys[n:n + 3] for n in range(0, len(metric_keys), 3)]
         for line in lines:
             invididual_metric_str += "  " + ", ".join(line) + ",\n"
         invididual_metric_str = invididual_metric_str[:-2]
@@ -377,8 +371,8 @@ class MetricOps(object):
 
 
 class VisualizationOps(object):
-
-    def add_arguments(self, parser):
+    @staticmethod
+    def add_arguments(parser):
         action = parser.add_argument("-v", "--visualize",
                                      dest="visualize", action="store_true",
                                      help="set flag to save figures during evaluation")
@@ -386,12 +380,10 @@ class VisualizationOps(object):
 
 
 class ThresholdOps(object):
-
     def __init__(self, threshold=0.07):
         self.threshold = threshold
 
     def add_arguments(self, parser):
-
         action = parser.add_argument("-t", "--threshold",
                                      dest="threshold", type=float, default=self.threshold,
                                      help="default: %0.3f" % self.threshold)
@@ -399,6 +391,8 @@ class ThresholdOps(object):
 
 
 class FigureOps(object):
+    def __init__(self, figure_options):
+        self.figure_options = figure_options
 
     def add_arguments(self, parser):
         options = "".join("\n  %s: %s" % (k, v) for k, v in sorted(self.figure_options.items()))
@@ -438,51 +432,46 @@ class FigureOpsAction(argparse.Action):
 
 
 class FigureOpsACCV16(FigureOps):
-
     def __init__(self):
-        super(FigureOpsACCV16, self).__init__()
-        self.figure_options = {"heatmaps":
-                                   "figure with algorithm error heatmap per scene",
-                               "radar":
-                                   "radar charts for stratified and training scenes",
-                               "stratified":
-                                   "metric visualization figure for each stratified scene",
-                               "training":
-                                   "metric visualization figure for each training scene",
-                               "backgammon":
-                                   "fattening and thinning along vertical image dimension",
-                               "dots":
-                                   "background error per box with increasing noise levels",
-                               "pyramids":
-                                   "algorithm disparities vs ground truth disparities on spheres",
-                               "stripes":
-                                   "visualization of evaluation masks"}
+        figure_options = {"heatmaps":
+                              "figure with algorithm error heatmap per scene",
+                          "radar":
+                              "radar charts for stratified and training scenes",
+                          "stratified":
+                              "metric visualization figure for each stratified scene",
+                          "training":
+                              "metric visualization figure for each training scene",
+                          "backgammon":
+                              "fattening and thinning along vertical image dimension",
+                          "dots":
+                              "background error per box with increasing noise levels",
+                          "pyramids":
+                              "algorithm disparities vs ground truth disparities on spheres",
+                          "stripes":
+                              "visualization of evaluation masks"}
+
+        super(FigureOpsACCV16, self).__init__(figure_options)
 
 
 class FigureOpsCVPR17(FigureOps):
-
     def __init__(self):
-        super(FigureOpsCVPR17, self).__init__()
-        self.figure_options = {"scenes":
-                                   "center view and ground truth per scene",
-                               "difficulty":
-                                   "error map of per pixel median and best disparity per scene",
-                               "normalsdemo":
-                                   "ground truth and algorithm normals + angular error (Sideboard)",
-                               "radar":
-                                   "radar charts for stratified and photorealistic scenes",
-                               "badpix":
-                                   "BadPix series for stratified and photorealistic scenes",
-                               "median":
-                                   "MedianDiff comparisons for stratified and training scenes",
-                               "normals":
-                                   "disparity and normal map + angular error per algorithm (Cotton)",
-                               "discont":
-                                   "disparity map and MedianDiff per algorithm (Bicycle)",
-                               "accuracy":
-                                   "BadPix and Q25 visualizations (Cotton and Boxes)"}
+        figure_options = {"scenes":
+                              "center view and ground truth per scene",
+                          "difficulty":
+                              "error map of per pixel median and best disparity per scene",
+                          "normalsdemo":
+                              "ground truth and algorithm normals + angular error (Sideboard)",
+                          "radar":
+                              "radar charts for stratified and photorealistic scenes",
+                          "badpix":
+                              "BadPix series for stratified and photorealistic scenes",
+                          "median":
+                              "MedianDiff comparisons for stratified and training scenes",
+                          "normals":
+                              "disparity and normal map + angular error per algorithm (Cotton)",
+                          "discont":
+                              "disparity map and MedianDiff per algorithm (Bicycle)",
+                          "accuracy":
+                              "BadPix and Q25 visualizations (Cotton and Boxes)"}
 
-
-
-
-
+        super(FigureOpsCVPR17, self).__init__(figure_options)

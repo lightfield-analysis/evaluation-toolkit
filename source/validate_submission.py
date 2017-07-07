@@ -39,6 +39,9 @@ from utils import log
 
 
 def run_validation(submission_path):
+    # delay imports to speed up usage response
+    from evaluations import submission_validation as validation
+
     is_unpacked = op.isdir(submission_path)
 
     try:
@@ -101,9 +104,10 @@ def parse_submission_validation_options():
     return fname_submission
 
 
-if __name__ == "__main__":
+def main():
     path_to_submission = parse_submission_validation_options()
-
-    # delay imports to speed up usage response
-    from evaluations import submission_validation as validation
     run_validation(path_to_submission)
+
+
+if __name__ == "__main__":
+    main()

@@ -67,7 +67,7 @@ class Dots(BaseStratified):
 
         x_values = np.arange(1, n_boxes + 1)
 
-        for idx_a, algorithm in enumerate(algorithms):
+        for algorithm in algorithms:
             algo_result = misc.get_algo_result(self, algorithm)
             y_values = np.full(n_boxes, fill_value=np.nan)
 
@@ -100,6 +100,3 @@ class Dots(BaseStratified):
 
     def get_dots_by_size(self):
         return self.get_mask(self.mn_dots_by_size, binary=False)
-
-
-

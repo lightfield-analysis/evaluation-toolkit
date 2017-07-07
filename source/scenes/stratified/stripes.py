@@ -38,7 +38,6 @@ from utils import plotting
 
 
 class Stripes(BaseStratified):
-
     mn_high_contrast = "mask_high_contrast"
     mn_low_contrast = "mask_low_contrast"
     mn_low_texture = "mask_low_texture"
@@ -64,19 +63,19 @@ class Stripes(BaseStratified):
         plt.subplot(rows, cols, 1)
         plt.title("Low Texture")
         plotting.plot_img_with_transparent_mask(center_view,
-                                                self.get_low_texture()*m_eval,
+                                                self.get_low_texture() * m_eval,
                                                 **settings.mask_vis_args())
 
         plt.subplot(rows, cols, 2)
         plt.title("High Contrast\n(Dark Stripes)")
         plotting.plot_img_with_transparent_mask(center_view,
-                                                self.get_high_contrast()*m_eval,
+                                                self.get_high_contrast() * m_eval,
                                                 **settings.mask_vis_args())
 
         plt.subplot(rows, cols, 3)
         plt.title("Low Contrast\n(Bright Stripes)")
         plotting.plot_img_with_transparent_mask(center_view,
-                                                self.get_low_contrast()*m_eval,
+                                                self.get_low_contrast() * m_eval,
                                                 **settings.mask_vis_args())
 
         fig_path = plotting.get_path_to_figure("stripes_masks", subdir=subdir)

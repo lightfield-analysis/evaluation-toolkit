@@ -65,20 +65,20 @@ def convert(scene, disp_map, color_map=None):
 
     # compute x,y,z coordinates
     points = np.zeros((np.size(disp_map), 6))
-    x, y = np.meshgrid(range(0, height), range(0, width))
+    xx, yy = np.meshgrid(range(0, height), range(0, width))
 
     max_res = max(width, height)
     focus_dist_mm = scene.focus_dist_m * 1000
     b = scene.baseline_mm * scene.focal_length_mm * max_res
 
-    z = (b * focus_dist_mm) / (disp_map[:, :] * focus_dist_mm * scene.sensor_mm + b)
-    x = (x / (height - 1.0) - 0.5) * scene.sensor_mm * z / scene.focal_length_mm
-    y = (y / (width - 1.0) - 0.5) * scene.sensor_mm * z / scene.focal_length_mm
+    zz = (b * focus_dist_mm) / (disp_map[:, :] * focus_dist_mm * scene.sensor_mm + b)
+    xx = (xx / (height - 1.0) - 0.5) * scene.sensor_mm * zz / scene.focal_length_mm
+    yy = (yy / (width - 1.0) - 0.5) * scene.sensor_mm * zz / scene.focal_length_mm
 
     # add coordinates
-    points[:, 0] = x.flatten()
-    points[:, 1] = -y.flatten()
-    points[:, 2] = -z.flatten()
+    points[:, 0] = xx.flatten()
+    points[:, 1] = -yy.flatten()
+    points[:, 2] = -zz.flatten()
 
     if color_map is not None:
         points[:, 3] = color_map[:, :, 0].flatten()
@@ -86,7 +86,3 @@ def convert(scene, disp_map, color_map=None):
         points[:, 5] = color_map[:, :, 2].flatten()
 
     return points
-
-
-
-

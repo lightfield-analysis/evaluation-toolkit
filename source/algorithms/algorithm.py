@@ -36,8 +36,9 @@ from utils import file_io
 
 class Algorithm(object):
 
-    def __init__(self, file_name, display_name=None, is_baseline=False,
-                 is_meta=False, color=None, line_style=None):
+    def __init__(self, file_name, display_name=None,
+                 is_baseline=False, is_meta=False,
+                 color=None, line_style=None):
 
         self.file_name = file_name
         self.display_name = file_name.upper() if display_name is None else display_name
@@ -76,13 +77,11 @@ class Algorithm(object):
     def get_color(self):
         if self.color is None:
             return settings.get_color(0)
+
         return self.color
 
     def get_line_style(self):
-        if self.line_style is not None:
-            return self.line_style
-        else:
-            return "-"
+        return self.line_style
 
     @staticmethod
     def set_colors(algorithms, offset=0):

@@ -44,7 +44,7 @@ from utils import file_io, log, misc, plotting
 THRESHOLDS = np.arange(0, 0.102, 0.002)
 
 
-def get_fname_scores(scenes=[]):
+def get_fname_scores(scenes):
     descr = "_".join([s.get_name() for s in scenes])
     return op.join(settings.TMP_PATH, "bad_pix_series_scores_%s.pickle" % descr)
 
@@ -113,10 +113,10 @@ def compute_scores(algorithms, scenes, thresholds=THRESHOLDS, penalize_missing_p
     max_diff = np.max(thresholds)
 
     for idx_a, algorithm in enumerate(algorithms):
-        combined_diffs = np.full((0), fill_value=np.nan)
+        combined_diffs = np.full(0, fill_value=np.nan)
         log.info('Computing BadPix scores for: %s' % algorithm.get_display_name())
 
-        for idx_s, scene in enumerate(scenes):
+        for scene in scenes:
             gt = scene.get_gt()
             algo_result = misc.get_algo_result(scene, algorithm)
             diffs = np.abs(algo_result - gt)

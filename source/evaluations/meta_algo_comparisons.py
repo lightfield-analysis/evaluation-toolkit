@@ -38,7 +38,7 @@ import settings
 from utils import misc, plotting
 
 
-def plot(scenes, algorithms, meta_algo,
+def plot(algorithms, scenes, meta_algo,
          subdir="meta_algo_comparisons", fig_name=None, with_gt_row=False, fs=12):
 
     # prepare figure
@@ -88,7 +88,7 @@ def plot(scenes, algorithms, meta_algo,
                                           cb_height, cb_width, colorbar_bins=4, fontsize=fs)
 
         if with_gt_row:
-            idx_a += 1
+            idx_a = len(algorithms)
 
             plt.subplot(grid[idx_a * cols + 3 * idx_s])
             plt.imshow(gt, **settings.disp_map_args(scene))
@@ -110,4 +110,3 @@ def plot(scenes, algorithms, meta_algo,
         fig_name = "%s_comparison_%s" % (meta_algo.get_name(), scene_names)
     fig_path = plotting.get_path_to_figure(fig_name, subdir=subdir)
     plotting.save_tight_figure(fig, fig_path, hide_frames=True, hspace=0.02, wspace=0.0)
-

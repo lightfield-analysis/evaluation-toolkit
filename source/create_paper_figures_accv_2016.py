@@ -35,7 +35,8 @@ from utils.option_parser import OptionParser, AlgorithmOps, FigureOpsACCV16
 
 SUBDIR = "paper_accv_2016"
 
-if __name__ == "__main__":
+
+def main():
     accv_algo_names = ["epi1", "epi2", "lf_occ", "lf", "mv"]
     parser = OptionParser([AlgorithmOps(default_algo_names=accv_algo_names), FigureOpsACCV16()])
 
@@ -82,5 +83,5 @@ if __name__ == "__main__":
             scene.plot_algo_overview(algorithms, subdir=SUBDIR)
 
 
-
-
+if __name__ == "__main__":
+    main()

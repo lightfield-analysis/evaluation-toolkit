@@ -33,8 +33,10 @@
 from utils.option_parser import OptionParser, ConverterOps
 
 
-if __name__ == "__main__":
-    parser = OptionParser([ConverterOps(input="path to depth map", output="path to disparity map")])
+def main():
+    parser = OptionParser([ConverterOps(input_help="path to depth map",
+                                        output_help="path to disparity map")])
+
     depth_map_path, config_path, disp_map_path = parser.parse_args()
 
     from scenes import PhotorealisticScene
@@ -44,3 +46,7 @@ if __name__ == "__main__":
     depth_map = file_io.read_file(depth_map_path)
     disp_map = scene.depth2disp(depth_map)
     file_io.write_file(disp_map, disp_map_path)
+
+
+if __name__ == "__main__":
+    main()

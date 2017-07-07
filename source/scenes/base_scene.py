@@ -270,8 +270,8 @@ class BaseScene(object):
 
     def get_applicable_metrics_low_res(self, metrics=None):
         return [m for m in self.get_applicable_metrics(metrics) if
-                m.evaluate_on_low_scene_resolution() and m.mask_exists(self, settings.LOWRES)]
+                m.evaluate_on_low_resolution() and m.mask_exists(self, settings.LOWRES)]
 
     def get_applicable_metrics_high_res(self, metrics=None):
         return [m for m in self.get_applicable_metrics(metrics) if
-                m.evaluate_on_high_scene_resolution() and m.mask_exists(self, settings.HIGHRES)]
+                m.evaluate_on_high_resolution() and m.mask_exists(self, settings.HIGHRES)]

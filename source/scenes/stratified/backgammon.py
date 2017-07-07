@@ -101,7 +101,7 @@ class Backgammon(BaseStratified):
 
         # compute scores for vertical bins
         x_values = np.arange(0, n_bins, 1)
-        for idx_a, algorithm in enumerate(algorithms):
+        for algorithm in algorithms:
             algo_result = misc.get_algo_result(self, algorithm)
             props = {"color": algorithm.get_color(), "lw": 2,
                      "alpha": 0.8, "markersize": 7, "markeredgewidth": 0}

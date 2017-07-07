@@ -45,7 +45,7 @@ class MetaAlgorithm(Algorithm):
     @staticmethod
     def prepare_meta_algorithms(meta_algorithms, algorithms, scenes):
         for meta_algorithm in meta_algorithms:
-            meta_algorithm.compute_meta_results(scenes, algorithms)
+            meta_algorithm.compute_meta_results(algorithms, scenes)
 
     @staticmethod
     def get_meta_algorithms():
@@ -59,8 +59,8 @@ class PerPixMean(MetaAlgorithm):
         super(PerPixMean, self).__init__(file_name=file_name, display_name=display_name,
                                          color=color, **kwargs)
 
-    def compute_meta_results(self, scenes, algorithms):
-        for idx_s, scene in enumerate(scenes):
+    def compute_meta_results(self, algorithms, scenes):
+        for scene in scenes:
             # average runtime
             runtimes = misc.get_runtimes(scene, algorithms)
             misc.save_runtime(np.mean(runtimes), scene, self)
@@ -73,12 +73,12 @@ class PerPixMean(MetaAlgorithm):
 class PerPixMedianDisp(MetaAlgorithm):
 
     def __init__(self, file_name="per_pix_median_disp", display_name="PerPixMedianDisp",
-                 color=(0.4, 0.4, 0.4),  **kwargs):
+                 color=(0.4, 0.4, 0.4), **kwargs):
         super(PerPixMedianDisp, self).__init__(file_name=file_name, display_name=display_name,
                                                color=color, **kwargs)
 
-    def compute_meta_results(self, scenes, algorithms):
-        for idx_s, scene in enumerate(scenes):
+    def compute_meta_results(self, algorithms, scenes):
+        for scene in scenes:
             # median runtime
             runtimes = misc.get_runtimes(scene, algorithms)
             misc.save_runtime(np.median(runtimes), scene, self)
@@ -95,8 +95,8 @@ class PerPixMedianDiff(MetaAlgorithm):
         super(PerPixMedianDiff, self).__init__(file_name=file_name, display_name=display_name,
                                                color=color, **kwargs)
 
-    def compute_meta_results(self, scenes, algorithms):
-        for idx_s, scene in enumerate(scenes):
+    def compute_meta_results(self, algorithms, scenes):
+        for scene in scenes:
             h, w = scene.get_height(), scene.get_width()
 
             # best runtime
@@ -132,8 +132,8 @@ class PerPixBest(MetaAlgorithm):
         super(PerPixBest, self).__init__(file_name=file_name, display_name=display_name,
                                          color=color, **kwargs)
 
-    def compute_meta_results(self, scenes, algorithms):
-        for idx_s, scene in enumerate(scenes):
+    def compute_meta_results(self, algorithms, scenes):
+        for scene in scenes:
             h, w = scene.get_height(), scene.get_width()
 
             # best runtime

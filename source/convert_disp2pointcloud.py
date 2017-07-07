@@ -33,9 +33,9 @@
 from utils.option_parser import OptionParser, ConverterOpsExt
 
 
-if __name__ == "__main__":
-    parser = OptionParser([ConverterOpsExt(input="path to disparity map",
-                                           output="path to point cloud",
+def main():
+    parser = OptionParser([ConverterOpsExt(input_help="path to disparity map",
+                                           output_help="path to point cloud",
                                            optional_input=[("-c", "color_map_file",
                                                             "path to color map, "
                                                             "e.g. to center view of the scene")])])
@@ -53,5 +53,9 @@ if __name__ == "__main__":
     else:
         color_map = None
 
-    pc = point_cloud.convert(scene, disp_map, color_map)
-    point_cloud.save(pc, point_cloud_path)
+    points = point_cloud.convert(scene, disp_map, color_map)
+    point_cloud.save(points, point_cloud_path)
+
+
+if __name__ == "__main__":
+    main()

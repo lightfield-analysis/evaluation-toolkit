@@ -38,7 +38,6 @@ from utils import log, misc, plotting
 
 def plot(algorithms, scenes, metrics, average="median", axis_labels=None, max_per_metric=None,
          fig_name=None, subdir="radar", title=None):
-
     # prepare figure attributes
     if axis_labels is None:
         axis_labels = [m.get_display_name().replace(":", "\n") for m in metrics]
@@ -78,7 +77,6 @@ def plot(algorithms, scenes, metrics, average="median", axis_labels=None, max_pe
 
 def plot_scores(scores_metrics_algos, algorithms, axis_labels, fig_name, subdir,
                 title, max_per_metric=None, fs=18):
-
     # prepare figure
     fig = plt.figure(figsize=(10, 10))
     n_circles = 4 + 1
@@ -86,7 +84,7 @@ def plot_scores(scores_metrics_algos, algorithms, axis_labels, fig_name, subdir,
     rect = [0.1, 0.1, 0.8, 0.8]  # left, bottom, width, height
     n_axes = np.shape(scores_metrics_algos)[0]
     axes = [fig.add_axes(rect, projection="polar", label="axes%d" % i) for i in range(n_axes)]
-    angles = np.arange(90, 90+360, 360.0/n_axes) % 360
+    angles = np.arange(90, 90 + 360, 360.0 / n_axes) % 360
 
     # add metric labels
     axes[0].set_thetagrids(angles, labels=axis_labels, fontsize=16)
@@ -109,7 +107,7 @@ def plot_scores(scores_metrics_algos, algorithms, axis_labels, fig_name, subdir,
             steps = steps[:-1]
             axes_values.append(steps)
         else:
-            steps = [np.nan] * (n_circles-1)
+            steps = [np.nan] * (n_circles - 1)
             axes_values.append(steps)
 
     # add metric values at axis intersections
@@ -119,16 +117,16 @@ def plot_scores(scores_metrics_algos, algorithms, axis_labels, fig_name, subdir,
             decimals = int(np.ceil(np.log10(max_labels)))
             if decimals <= -1:
                 str_labels = [('%0.3f' % e) for e in labels[1:]]
-            if decimals == 0:
+            elif decimals == 0:
                 str_labels = [('%0.2f' % e) for e in labels[1:]]
-            elif decimals >= 1:
+            else:
                 str_labels = [('%0.1f' % e) for e in labels[1:]]
             # add zero to inner circle
             str_labels = ["0"] + str_labels
         else:
             str_labels = [""] * len(labels)
 
-        ax.set_rgrids(range(1, n_circles+1), angle=angle, labels=str_labels, fontsize=14)
+        ax.set_rgrids(range(1, n_circles + 1), angle=angle, labels=str_labels, fontsize=14)
         ax.spines["polar"].set_visible(False)
         ax.set_ylim(0, n_circles)
 
@@ -150,7 +148,7 @@ def plot_scores(scores_metrics_algos, algorithms, axis_labels, fig_name, subdir,
         ax.plot(angle, metric_scores, label=algorithm.get_display_name(),
                 ls=algorithm.get_line_style(), lw=2, alpha=1, color=algorithm.get_color())
 
-    ax.legend(loc='upper right', bbox_to_anchor=(1.45, 1.1), frameon=False,
-              prop={'size': fs}, labelspacing=0.2)
-    plt.title(title + "\n\n", fontsize=fs+4)
+    plt.gca().legend(loc='upper right', bbox_to_anchor=(1.45, 1.1), frameon=False,
+                     prop={'size': fs}, labelspacing=0.2)
+    plt.title(title + "\n\n", fontsize=fs + 4)
     plotting.save_fig(fig, plotting.get_path_to_figure(fig_name, subdir=subdir))

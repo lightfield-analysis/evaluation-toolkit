@@ -81,11 +81,11 @@ def make_rgba(img, norm=False):
 
 def rgb2gray(img):
     n_dims = len(np.shape(img))
-    if 2 == n_dims:
+    if n_dims == 2:
         return img
-    elif 3 == n_dims:
+    elif n_dims == 3:
         n_channels = np.shape(img)[2]
-        if 3 == n_channels or 4 == n_channels:
+        if n_channels == 3 or n_channels == 4:
             new_img = 0.2125*img[:, :, 0] + 0.7154*img[:, :, 1] + 0.0721*img[:, :, 2]
             new_img = np.asarray(new_img, dtype=img.dtype)
             return new_img
@@ -169,7 +169,7 @@ def get_training_scenes(gt_scale=1.0, data_path=None):
 
 def get_test_scenes(gt_scale=1.0, data_path=None):
     return _get_photorealistic_scenes_by_name(settings.get_scene_names_test(),
-                                              settings.TEST,  gt_scale, data_path)
+                                              settings.TEST, gt_scale, data_path)
 
 
 def get_additional_scenes(gt_scale=1.0, data_path=None):
@@ -331,7 +331,7 @@ def get_runtime_from_dir(scene, algo_dir):
 
 def get_runtimes(scene, algorithms):
     runtimes = []
-    for idx_a, algorithm in enumerate(algorithms):
+    for algorithm in algorithms:
         runtimes.append(get_runtime(scene, algorithm))
     return runtimes
 

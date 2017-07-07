@@ -140,7 +140,7 @@ class PhotorealisticScene(BaseScene):
                 if idx_a == 0:
                     plt.sca(grids[idx_m + offset + 1][0])
                     plotting.plot_img_with_transparent_mask(center_view, mask,
-                                                            alpha=0.7, color=settings.color_mask)
+                                                            alpha=0.7, color=settings.MASK_COLOR)
                     plt.ylabel(metric.get_short_name(), fontsize=fontsize)
                     plt.title("Region Mask", fontsize=fontsize)
 

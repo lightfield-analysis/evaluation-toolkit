@@ -40,7 +40,6 @@ from utils import misc
 
 
 def plot_radar_charts(algorithms, log_runtime=True, with_test_scenes=False, subdir="radar"):
-
     # photorealistic training
     photorealistic_metrics = [MSE(),
                               BadPix(0.07),

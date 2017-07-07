@@ -46,7 +46,7 @@ class Pyramids(BaseStratified):
     mn_pyramids = "mask_pyramids"
 
     def __init__(self, name="pyramids", general_metrics_high_res=False, **kwargs):
-        super(Pyramids, self).__init__(name,  general_metrics_high_res=general_metrics_high_res,
+        super(Pyramids, self).__init__(name, general_metrics_high_res=general_metrics_high_res,
                                        **kwargs)
 
     @staticmethod
@@ -77,7 +77,7 @@ class Pyramids(BaseStratified):
         legend_lines = []
         legend_labels = []
 
-        for idx_a, algorithm in enumerate(algorithms):
+        for algorithm in algorithms:
             algo_result = misc.get_algo_result(self, algorithm)
 
             # go through ground truth disparity values
@@ -113,7 +113,7 @@ class Pyramids(BaseStratified):
 
         legend = plt.legend(legend_lines, legend_labels, frameon=False, ncol=1, scatterpoints=1,
                             title="Algorithms:", bbox_to_anchor=(1.25, .85), borderaxespad=0.0)
-        for idx, handle in enumerate(legend.legendHandles):
+        for idx in range(legend.legendHandles):
             legend.legendHandles[idx]._sizes = [22]
         plt.suptitle("Ground Truth Disparities vs. Algorithm Disparities", fontsize=fontsize)
 

@@ -82,7 +82,7 @@ def get_bad_count(scene, algorithms, thresh, percentage=False):
     bad_count = np.zeros((scene.get_height(), scene.get_width()))
     gt = scene.get_gt()
 
-    for idx_a, algorithm in enumerate(algorithms):
+    for algorithm in algorithms:
         algo_result = misc.get_algo_result(scene, algorithm)
         abs_diffs = np.abs(gt - algo_result)
 
@@ -96,5 +96,3 @@ def get_bad_count(scene, algorithms, thresh, percentage=False):
         bad_count = misc.percentage(len(algorithms), bad_count)
 
     return bad_count
-
-

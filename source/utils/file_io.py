@@ -119,11 +119,11 @@ def write_pfm(data, fpath, scale=1, file_identifier="Pf", dtype="float32"):
     if endianess == '<' or (endianess == '=' and sys.byteorder == 'little'):
         scale *= -1
 
-    with open(fpath, 'wb') as file:
-        file.write(file_identifier + '\n')
-        file.write('%d %d\n' % (width, height))
-        file.write('%d\n' % scale)
-        file.write(values)
+    with open(fpath, 'wb') as ff:
+        ff.write(file_identifier + '\n')
+        ff.write('%d %d\n' % (width, height))
+        ff.write('%d\n' % scale)
+        ff.write(values)
 
 
 def read_pfm(fpath, expected_identifier="Pf", print_limit=30):
@@ -172,11 +172,11 @@ def read_pfm(fpath, expected_identifier="Pf", print_limit=30):
         return data
 
 
-def _get_next_line(file):
+def _get_next_line(ff):
     try:
-        next_line = file.readline().rstrip()
+        next_line = ff.readline().rstrip()
         while next_line.startswith('#'):  # ignore comments
-            next_line = file.readline().rstrip()
+            next_line = ff.readline().rstrip()
     except:
         raise PFMExeption('Incomplete file.')
     return next_line
@@ -223,4 +223,3 @@ def check_dir(tgt_dir):
 def create_dir(path):
     if not op.isdir(path):
         du.mkpath(path)
-

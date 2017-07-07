@@ -36,7 +36,7 @@ from utils.option_parser import OptionParser, SceneOps, AlgorithmOps, MetricOps,
     VisualizationOps, MetaAlgorithmOps
 
 
-if __name__ == "__main__":
+def main():
     parser = OptionParser([SceneOps(), AlgorithmOps(), MetricOps(),
                            VisualizationOps(), MetaAlgorithmOps(default=[])])
     scenes, algorithms, metrics, with_vis, meta_algorithms, compute_meta_algos = parser.parse_args()
@@ -61,3 +61,7 @@ if __name__ == "__main__":
                                        ground_truth_path=settings.DATA_PATH,
                                        evaluation_output_path=evaluation_output_path,
                                        algorithm_input_path=algorithm_input_path)
+
+
+if __name__ == "__main__":
+    main()

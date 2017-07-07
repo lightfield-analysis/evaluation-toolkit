@@ -42,10 +42,11 @@ from utils import misc, plotting
 class BaseMetric(object):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, name, vmin=0, vmax=1, colorbar_bins=1, cmap=settings.abs_error_cmap,
+    def __init__(self, name, vmin=0, vmax=1, colorbar_bins=1, cmap=settings.CMAP_ABS_ERROR,
                  eval_on_high_res=False):
         self.name = name
         self.mask_name = None
+        self.category = settings.GENERAL_METRIC
 
         # default: evaluate on low/original scene resolution
         self.eval_on_high_res = eval_on_high_res
@@ -99,10 +100,10 @@ class BaseMetric(object):
         # default mask: everything except for image boundary
         return scene.get_boundary_mask(ignore_boundary)
 
-    def evaluate_on_high_scene_resolution(self):
+    def evaluate_on_high_resolution(self):
         return self.eval_on_high_res
 
-    def evaluate_on_low_scene_resolution(self):
+    def evaluate_on_low_resolution(self):
         return not self.eval_on_high_res
 
     @staticmethod
@@ -116,9 +117,9 @@ class BaseMetric(object):
         # general metrics don't require a mask file with a specific region
         if self.mask_name is None:
             return True
-        else:
-            fname = op.join(scene.data_path, "%s_%s.png" % (self.mask_name, resolution))
-            return op.isfile(fname)
+
+        fname = op.join(scene.data_path, "%s_%s.png" % (self.mask_name, resolution))
+        return op.isfile(fname)
 
     def pixelize_results(self):
         return self.get_id().startswith(("mse", "badpix", "q"))
@@ -128,7 +129,6 @@ class BadPix(BaseMetric):
     def __init__(self, thresh=settings.BAD_PIX_THRESH, name="BadPix", **kwargs):
         super(BadPix, self).__init__(name=name, **kwargs)
         self.thresh = thresh
-        self.category = settings.GENERAL_METRIC
         self.cmin = 0
         self.cmax = 1
 
@@ -138,6 +138,7 @@ class BadPix(BaseMetric):
     def get_display_name(self):
         if self.name == "BadPix":
             return "BadPix(%0.2f)" % self.thresh
+
         return self.name
 
     def get_short_name(self):
@@ -158,10 +159,10 @@ class BadPix(BaseMetric):
 
         if not with_visualization:
             return score
-        else:
-            m_bad_pix = plotting.adjust_binary_vis(m_bad_pix)
-            vis = np.ma.masked_array(m_bad_pix, mask=~mask)
-            return score, vis
+
+        m_bad_pix = plotting.adjust_binary_vis(m_bad_pix)
+        vis = np.ma.masked_array(m_bad_pix, mask=~mask)
+        return score, vis
 
     def get_bad_pix(self, diffs):
         with np.errstate(invalid="ignore"):
@@ -171,20 +172,21 @@ class BadPix(BaseMetric):
     def get_score_from_diffs(self, diffs):
         if np.size(diffs) == 0:
             return np.nan
+
         m_bad_pix = self.get_bad_pix(diffs)
         return misc.percentage(np.size(diffs), np.sum(m_bad_pix))
 
-    def format_score(self, score):
+    @staticmethod
+    def format_score(score):
         return "%0.2f%%" % score
 
 
 class MSE(BaseMetric):
     def __init__(self, factor=100, name="MSE", eval_on_high_res=False,
-                 vmin=settings.DMIN, vmax=settings.DMAX, cmap=settings.error_cmap, colorbar_bins=4):
+                 vmin=settings.DMIN, vmax=settings.DMAX, cmap=settings.CMAP_ERROR, colorbar_bins=4):
         super(MSE, self).__init__(name=name, vmin=vmin, vmax=vmax, cmap=cmap,
                                   colorbar_bins=colorbar_bins, eval_on_high_res=eval_on_high_res)
         self.factor = factor
-        self.category = settings.GENERAL_METRIC
 
     def get_id(self):
         return "mse_%d" % self.factor
@@ -204,27 +206,22 @@ class MSE(BaseMetric):
 
         if not with_visualization:
             return score
-        else:
-            vis = np.ma.masked_array(gt - algo_result, mask=~mask)
-            return score, vis
+
+        vis = np.ma.masked_array(gt - algo_result, mask=~mask)
+        return score, vis
 
     def get_masked_score(self, algo_result, gt, mask):
         with np.errstate(invalid="ignore"):
             diff = np.square(gt - algo_result)
         return np.average(diff[mask]) * self.factor
 
-    @staticmethod
-    def format_score(score):
-        return "%0.2f" % score
-
 
 class Quantile(BaseMetric):
     def __init__(self, percentage, factor=100, name="Quantile", eval_on_high_res=False,
-                 vmin=0, vmax=0.5, colorbar_bins=5, cmap=settings.quantile_cmap, **kwargs):
+                 vmin=0, vmax=0.5, colorbar_bins=5, cmap=settings.CMAP_QUANTILE):
         super(Quantile, self).__init__(name=name, vmin=vmin, vmax=vmax, colorbar_bins=colorbar_bins,
-                                       cmap=cmap, eval_on_high_res=eval_on_high_res, **kwargs)
+                                       cmap=cmap, eval_on_high_res=eval_on_high_res)
         self.percentage = percentage
-        self.category = settings.GENERAL_METRIC
         self.cmin = 0
         self.cmax = vmax
         self.factor = factor
@@ -246,24 +243,23 @@ class Quantile(BaseMetric):
 
     def get_score(self, algo_result, gt, scene, with_visualization=False):
         diffs = np.abs(algo_result - gt) * self.factor
-        mask = self.get_evaluation_mask(scene) * \
-               misc.get_mask_valid(diffs) * \
-               misc.get_mask_valid(algo_result)
+        mask = self.get_evaluation_mask(scene) * misc.get_mask_valid(diffs) * misc.get_mask_valid(algo_result)
         sorted_diffs = np.sort(diffs[mask])
         idx = np.size(sorted_diffs) * self.percentage / 100.
         score = sorted_diffs[int(idx)]
 
         if not with_visualization:
             return score
-        else:
-            with np.errstate(invalid="ignore"):
-                m_bad_pix = np.abs(diffs) > score
-            vis = np.abs(diffs)
-            vis[m_bad_pix] = -1
-            vis = np.ma.masked_array(vis, mask=~mask)
-            return score, vis
 
-    def format_score(self, score):
+        with np.errstate(invalid="ignore"):
+            m_bad_pix = np.abs(diffs) > score
+        vis = np.abs(diffs)
+        vis[m_bad_pix] = -1
+        vis = np.ma.masked_array(vis, mask=~mask)
+        return score, vis
+
+    @staticmethod
+    def format_score(score):
         return "%0.2f%%" % score
 
 
@@ -271,20 +267,18 @@ class Runtime(BaseMetric):
     def __init__(self, log=False, name="Runtime"):
         super(Runtime, self).__init__(name=name)
         self.log = log
-        self.category = settings.GENERAL_METRIC
 
     def get_id(self):
         if self.log:
             return "runtime_log"
-        else:
-            return "runtime"
+        return "runtime"
 
     def get_description(self):
         if self.log:
             return "Decadic logarithm of the runtime in seconds as reported by the authors " \
                    "(hence runtime scores below 1 second are negative)."
-        else:
-            return "The runtime in seconds as reported by the authors."
+
+        return "The runtime in seconds as reported by the authors."
 
     def get_display_name(self):
         display_name = self.name

@@ -33,7 +33,7 @@
 from utils.option_parser import OptionParser, SceneOps, AlgorithmOps, MetricOps, MetaAlgorithmOps
 
 
-if __name__ == "__main__":
+def main():
     parser = OptionParser([SceneOps(), AlgorithmOps(), MetricOps(), MetaAlgorithmOps(default=[])])
     scenes, algorithms, metrics, meta_algorithms, compute_meta_algos = parser.parse_args()
 
@@ -45,3 +45,7 @@ if __name__ == "__main__":
         MetaAlgorithm.prepare_meta_algorithms(meta_algorithms, algorithms, scenes)
 
     metric_overviews.plot_general_overview(algorithms+meta_algorithms, scenes, metrics)
+
+
+if __name__ == "__main__":
+    main()

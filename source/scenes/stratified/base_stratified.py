@@ -111,7 +111,7 @@ class BaseStratified(BaseScene):
                 plotting.add_colorbar(gs[cols + idx_a + 2], cm2, cb_height, cb_width,
                                       colorbar_bins=5, fontsize=fs-4)
 
-            # score + background color for metrics
+            # score and background color for metrics
             for idx_m, metric in enumerate(metrics):
 
                 if with_metric_vis:

@@ -64,7 +64,7 @@ class BumpinessPlanes(BaseMetric):
     def __init__(self, clip=0.05, factor=100, name="Bumpiness Planes", vmin=0, vmax=5,
                  eval_on_high_res=False):
         super(BumpinessPlanes, self).__init__(name=name, vmin=vmin, vmax=vmax,
-                                              colorbar_bins=5, cmap=settings.disp_cmap,
+                                              colorbar_bins=5, cmap=settings.CMAP_DISP,
                                               eval_on_high_res=eval_on_high_res)
         self.clip = clip
         self.factor = factor
@@ -94,9 +94,9 @@ class BumpinessPlanes(BaseMetric):
 
         if not with_visualization:
             return score
-        else:
-            vis = np.ma.masked_array(bumpiness * self.factor, mask=~mask)
-            return score, vis
+
+        vis = np.ma.masked_array(bumpiness * self.factor, mask=~mask)
+        return score, vis
 
     def get_bumpiness(self, gt, algo_result):
         # Frobenius norm of the Hesse matrix
@@ -136,7 +136,7 @@ class MAEPlanes(BaseMetric):
     def __init__(self, name="MAE Planes", vmin=0, vmax=80, eval_on_high_res=False):
         super(MAEPlanes, self).__init__(name=name, vmin=vmin, vmax=vmax,
                                         eval_on_high_res=eval_on_high_res,
-                                        colorbar_bins=5, cmap=settings.abs_error_cmap)
+                                        colorbar_bins=5, cmap=settings.CMAP_ABS_ERROR)
         self.category = settings.PHOTOREALISTIC_METRIC
         self.mask_name = "mask_planes"
 
@@ -167,16 +167,17 @@ class MAEPlanes(BaseMetric):
 
         if not with_visualization:
             return score
-        else:
-            vis = np.ma.masked_array(angular_error, mask=~mask)
-            return score, vis
 
-    def get_angular_error(self, gt, algo_result, scene):
+        vis = np.ma.masked_array(angular_error, mask=~mask)
+        return score, vis
+
+    @staticmethod
+    def get_angular_error(gt, algo_result, scene):
         algo_normals = scene.get_depth_normals(scene.disp2depth(algo_result))
         gt_normals = scene.get_depth_normals(scene.disp2depth(gt))
 
         ssum = np.sum(algo_normals * gt_normals, axis=2)
-        ssum[ssum>1] = 1.
+        ssum[ssum > 1] = 1.
         angular_error = np.degrees(np.arccos(ssum))
 
         return angular_error
@@ -223,9 +224,9 @@ class FineFattening(BadPix):
 
         if not with_visualization:
             return score
-        else:
-            vis = np.ma.masked_array(plotting.adjust_binary_vis(m_fattening), mask=~mask)
-            return score, vis
+
+        vis = np.ma.masked_array(plotting.adjust_binary_vis(m_fattening), mask=~mask)
+        return score, vis
 
     def get_fattening(self, algo_result, gt):
         with np.errstate(invalid="ignore"):
@@ -260,9 +261,9 @@ class FineThinning(BadPix):
 
         if not with_visualization:
             return score
-        else:
-            vis = np.ma.masked_array(plotting.adjust_binary_vis(m_thinning), mask=~mask)
-            return score, vis
+
+        vis = np.ma.masked_array(plotting.adjust_binary_vis(m_thinning), mask=~mask)
+        return score, vis
 
     def get_thinning(self, algo_result, gt):
         with np.errstate(invalid="ignore"):

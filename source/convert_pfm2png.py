@@ -36,9 +36,10 @@ from utils.option_parser import OptionParser, ConverterOps
 MIN = 0.
 MAX = 255.
 
-if __name__ == "__main__":
-    parser = OptionParser([ConverterOps(input="path to pfm disparity map",
-                                        output="path to png disparity map")])
+
+def main():
+    parser = OptionParser([ConverterOps(input_help="path to pfm disparity map",
+                                        output_help="path to png disparity map")])
 
     pfm_path, config_path, png_path = parser.parse_args()
 
@@ -56,3 +57,7 @@ if __name__ == "__main__":
     log.info("Output range: [%0.1f, %0.1f]" % (np.min(disp_map), np.max(disp_map)))
 
     file_io.write_file(disp_map, png_path)
+
+
+if __name__ == "__main__":
+    main()

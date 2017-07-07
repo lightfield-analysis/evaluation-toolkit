@@ -92,7 +92,7 @@ def evaluate(evaluation_output_path, algorithm_input_path, ground_truth_path,
     return success, error_json
 
 
-def get_relative_path(scene, descr, file_type=settings.fig_type):
+def get_relative_path(scene, descr, file_type=settings.FIG_TYPE):
     return "%s/%s_%s.%s" % (scene.get_category(), scene.get_name(), descr, file_type)
 
 
@@ -145,7 +145,7 @@ def add_scores(metrics, scene, algo_dir, tgt_dir, scores, visualize):
     gt = scene.get_gt()
     algo_result = misc.get_algo_result_from_dir(scene, algo_dir)
 
-    for idx_m, metric in enumerate(metrics):
+    for metric in metrics:
         log.info("Computing score for metric: %s, scale: %0.2f" %
                  (metric.get_display_name(), scene.gt_scale))
 

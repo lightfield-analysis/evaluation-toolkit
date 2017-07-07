@@ -100,7 +100,7 @@ def plot_scene_difficulty(scenes, subdir="overview", fs=10):
 
         idx_row = idx_s / n_scenes_per_row * 2
         idx_col = (idx_s % n_scenes_per_row)
-        add_ylabel = not (idx_s % n_scenes_per_row)  # is first column
+        add_ylabel = not idx_s % n_scenes_per_row  # is first column
         add_colorbar = idx_col == (n_scenes_per_row - 1)  # is last column
 
         # plot errors for median result
@@ -111,7 +111,7 @@ def plot_scene_difficulty(scenes, subdir="overview", fs=10):
         if add_ylabel:
             plt.ylabel("|GT - %s|" % median_algo.get_display_name(), fontsize=fs-2)
         if add_colorbar:
-            plotting.add_colorbar(grid[(idx_row) * cols + idx_col + 1], cb, **colorbar_args)
+            plotting.add_colorbar(grid[idx_row * cols + idx_col + 1], cb, **colorbar_args)
 
         # plot error for best result
         plt.subplot(grid[(idx_row+1) * cols + idx_col])
@@ -126,7 +126,7 @@ def plot_scene_difficulty(scenes, subdir="overview", fs=10):
     plotting.save_tight_figure(fig, fig_path, hide_frames=True, hspace=0.08, wspace=0.03)
 
 
-def plot_normals_explanation(scene, algorithm, fs=14, subdir="overview"):
+def plot_normals_explanation(algorithm, scene, fs=14, subdir="overview"):
     # prepare figure
     rows, cols = 1, 4
     fig = plt.figure(figsize=(10, 4))
@@ -240,7 +240,7 @@ def compare_relative_ranks(algorithms, scenes, metrics, all_but=0):
             if n_better == n_metrics - all_but:
                 worse_on_all_but_n.append(algorithm2)
 
-        if len(worse_on_all_but_n) > 0:
+        if worse_on_all_but_n:
             winners[algorithm1] = worse_on_all_but_n
 
     n_winners = len(winners.keys())
@@ -254,8 +254,8 @@ def compare_relative_ranks(algorithms, scenes, metrics, all_but=0):
     return winners
 
 
-def plot_normal_maps(algorithms, scenes, subdir="overview"):
-    metric_overviews.plot_normals(algorithms, scenes, subdir=subdir)
+def plot_normal_maps(algorithms, scene, subdir="overview"):
+    metric_overviews.plot_normals(algorithms, [scene], subdir=subdir)
 
 
 def plot_high_accuracy(algorithms, scenes, subdir="overview"):
@@ -295,7 +295,7 @@ def plot_discont_overview(algorithms, scene, n_rows=2, fs=15, subdir="overview",
         idx = idx_a + 1
 
         add_ylabel = not idx % n_entries_per_row  # is first column
-        add_colorbar = not ((idx + 1) % n_entries_per_row)  # is last column
+        add_colorbar = not (idx + 1) % n_entries_per_row  # is last column
         idx_row = (idx / n_entries_per_row) * n_vis_types
         idx_col = idx % n_entries_per_row
 
@@ -321,11 +321,10 @@ def plot_discont_overview(algorithms, scene, n_rows=2, fs=15, subdir="overview",
             plotting.add_colorbar(grid[(idx_row+1)*cols+idx_col+1], cb_error, **colorbar_args)
 
     fig_path = plotting.get_path_to_figure("discont_%s" % scene.get_name(), subdir=subdir)
-    plotting.save_tight_figure(fig, fig_path, hide_frames=True,  hspace=0.03, wspace=0.03, dpi=100)
+    plotting.save_tight_figure(fig, fig_path, hide_frames=True, hspace=0.03, wspace=0.03, dpi=100)
 
 
-def plot_median_diffs(scenes, algorithms, subdir, with_gt_row=True):
+def plot_median_diffs(algorithms, scenes, subdir, with_gt_row=True):
     median = PerPixMedianDiff()
-    median.compute_meta_results(scenes, algorithms)
-    meta_algo_comparisons.plot(scenes, algorithms, median, subdir=subdir, with_gt_row=with_gt_row)
-
+    median.compute_meta_results(algorithms, scenes)
+    meta_algo_comparisons.plot(algorithms, scenes, median, subdir=subdir, with_gt_row=with_gt_row)

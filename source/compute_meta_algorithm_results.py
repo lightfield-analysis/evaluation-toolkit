@@ -33,9 +33,13 @@
 from utils.option_parser import OptionParser, AlgorithmOps, SceneOps, MetaAlgorithmOps
 
 
-if __name__ == "__main__":
+def main():
     parser = OptionParser([AlgorithmOps(), SceneOps(), MetaAlgorithmOps(with_load_argument=False)])
     algorithms, scenes, meta_algorithms = parser.parse_args()
 
     from algorithms import MetaAlgorithm
     MetaAlgorithm.prepare_meta_algorithms(meta_algorithms, algorithms, scenes)
+
+
+if __name__ == "__main__":
+    main()

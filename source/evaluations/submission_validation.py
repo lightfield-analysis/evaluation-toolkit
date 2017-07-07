@@ -96,5 +96,3 @@ def validate_extracted_submission(submission_dir, data_path=None):
     if success:
         log.info("Validated submission successfully :)")
     return success, error_json
-
-

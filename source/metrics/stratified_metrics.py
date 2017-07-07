@@ -47,6 +47,7 @@ class StratifiedBadPix(BadPix):
     def get_display_name(self):
         if self.name == "BadPix":
             return "%s: BadPix(%0.2f)" % (self.scene_display_name, self.thresh)
+
         return "%s: %s" % (self.scene_display_name, self.name)
 
     def get_short_name(self):
@@ -61,7 +62,7 @@ class StratifiedBadPix(BadPix):
 class BackgammonFattening(StratifiedBadPix):
     def __init__(self, thresh=settings.BAD_PIX_THRESH, name="Fattening", vmin=0, vmax=22,
                  eval_on_high_res=True):
-        super(BackgammonFattening, self).__init__(thresh=thresh, eval_on_high_res=eval_on_high_res, 
+        super(BackgammonFattening, self).__init__(thresh=thresh, eval_on_high_res=eval_on_high_res,
                                                   name=name, vmin=vmin, vmax=vmax,
                                                   scene_display_name="Backgammon")
 
@@ -85,9 +86,9 @@ class BackgammonFattening(StratifiedBadPix):
 
         if not with_visualization:
             return score
-        else:
-            vis = np.ma.masked_array(plotting.adjust_binary_vis(m_fattening), mask=~mask)
-            return score, vis
+
+        vis = np.ma.masked_array(plotting.adjust_binary_vis(m_fattening), mask=~mask)
+        return score, vis
 
     @staticmethod
     def get_fattening(algo_result, gt, extrapolated_foreground):
@@ -124,10 +125,10 @@ class BackgammonThinning(StratifiedBadPix):
 
         if not with_visualization:
             return score
-        else:
-            m_thinning = plotting.adjust_binary_vis(m_thinning)
-            vis = np.ma.masked_array(m_thinning, mask=~mask)
-            return score, vis
+
+        m_thinning = plotting.adjust_binary_vis(m_thinning)
+        vis = np.ma.masked_array(m_thinning, mask=~mask)
+        return score, vis
 
     @staticmethod
     def get_thinning(algo_result, gt, extrapolated_background):
@@ -135,7 +136,7 @@ class BackgammonThinning(StratifiedBadPix):
         with np.errstate(invalid="ignore"):
             m_thinning = (algo_result < half_distance)
         return m_thinning
-    
+
 # --------------------------------------
 # PYRAMIDS
 # --------------------------------------
@@ -233,7 +234,7 @@ class MissedDots(StratifiedBadPix):
         total_dots = n_dots * n_boxes
         detected_dots = 0
 
-        for idx_b, box_id in enumerate(box_ids):
+        for box_id in box_ids:
             m_box = (grid == box_id)
 
             for idx_d in range(n_dots):
@@ -249,10 +250,10 @@ class MissedDots(StratifiedBadPix):
 
         if not with_visualization:
             return score
-        else:
-            vis = plotting.adjust_binary_vis(vis)
-            return score, vis
-        
+
+        vis = plotting.adjust_binary_vis(vis)
+        return score, vis
+
 
 class DotsBackgroundMSE(MSE):
     def __init__(self, factor=100, name="Background MSE", vmin=0, vmax=4, eval_on_high_res=True):

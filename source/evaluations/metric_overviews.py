@@ -77,7 +77,7 @@ def plot_normals(algorithms, scenes, n_rows=2, subdir=SUBDIR, fs=15):
 
         # plot ground truth column
         gt = scene.get_gt()
-        _plot_normals_entry(scene,  gt, gt, mask_planes, mask_contin,
+        _plot_normals_entry(scene, gt, gt, mask_planes, mask_contin,
                             "GT", metric_mae_contin, metric_mae_planes,
                             0, grid, n_entries_per_row, n_vis_types,
                             cols, colorbar_args, fs=fs)
@@ -99,12 +99,12 @@ def plot_normals(algorithms, scenes, n_rows=2, subdir=SUBDIR, fs=15):
 
 
 def _plot_normals_entry(scene, disp_map, gt, mask_planes, mask_contin,
-                        algo_name,  metric_mae_contin, metric_mae_planes,
+                        algo_name, metric_mae_contin, metric_mae_planes,
                         idx, grid, entries_per_row, n_vis_types,
                         cols, colorbar_args, fs):
 
     add_ylabel = not idx % entries_per_row  # is first column
-    add_colorbar = not ((idx + 1) % entries_per_row)  # is last column
+    add_colorbar = not (idx + 1) % entries_per_row  # is last column
     idx_row = (idx / entries_per_row) * n_vis_types
     idx_col = idx % entries_per_row
 

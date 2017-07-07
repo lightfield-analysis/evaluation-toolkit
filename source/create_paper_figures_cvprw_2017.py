@@ -35,12 +35,13 @@ from utils.option_parser import OptionParser, FigureOpsCVPR17
 
 SUBDIR = "paper_cvprw_2017"
 
-if __name__ == "__main__":
+
+def main():
     figure_options = OptionParser([FigureOpsCVPR17()]).parse_args()
 
     # delay imports to speed up usage response
     from algorithms import Algorithm
-    from evaluations import paper_cvprw_2017
+    from evaluations import paper_cvprw_2017 as cvprw
     from utils import log, misc
     from scenes import PhotorealisticScene
     import settings
@@ -64,8 +65,7 @@ if __name__ == "__main__":
 
     if "scenes" in figure_options:
         log.info("Creating scene overview figure.")
-        benchmark_scenes = misc.get_benchmark_scenes()
-        paper_cvprw_2017.plot_benchmark_scene_overview(benchmark_scenes, subdir=SUBDIR)
+        cvprw.plot_benchmark_scene_overview(misc.get_benchmark_scenes(), subdir=SUBDIR)
 
     if "difficulty" in figure_options:
         log.info("Creating scene difficulty figure.")
@@ -73,35 +73,33 @@ if __name__ == "__main__":
             scenes = misc.get_benchmark_scenes()
         else:
             scenes = misc.get_stratified_scenes() + misc.get_training_scenes()
-        paper_cvprw_2017.plot_scene_difficulty(scenes, subdir=SUBDIR)
+        cvprw.plot_scene_difficulty(scenes, subdir=SUBDIR)
 
     if "normalsdemo" in figure_options:
         log.info("Creating normals demo figure with Sideboard scene.")
         scene = PhotorealisticScene("sideboard")
-        paper_cvprw_2017.plot_normals_explanation(scene, Algorithm("epi1"), subdir=SUBDIR)
+        cvprw.plot_normals_explanation(Algorithm("epi1"), scene, subdir=SUBDIR)
 
     if "radar" in figure_options:
         log.info("Creating radar charts.")
-        paper_cvprw_2017.plot_radar_charts(algorithms, subdir=SUBDIR)
+        cvprw.plot_radar_charts(algorithms, subdir=SUBDIR)
 
     if "badpix" in figure_options:
         log.info("Creating figures with BadPix series.")
-        paper_cvprw_2017.plot_bad_pix_series(algorithms, with_cached_scores=False, subdir=SUBDIR)
+        cvprw.plot_bad_pix_series(algorithms, with_cached_scores=False, subdir=SUBDIR)
 
     if "median" in figure_options:
         log.info("Creating median comparison figures.")
-        paper_cvprw_2017.plot_median_diffs(misc.get_stratified_scenes(), algorithms, subdir=SUBDIR)
-        paper_cvprw_2017.plot_median_diffs(misc.get_training_scenes(), algorithms, subdir=SUBDIR)
+        cvprw.plot_median_diffs(algorithms, misc.get_stratified_scenes(), subdir=SUBDIR)
+        cvprw.plot_median_diffs(algorithms, misc.get_training_scenes(), subdir=SUBDIR)
 
     if "normals" in figure_options:
         log.info("Creating surface normal figure with Cotton scene.")
-        scene = PhotorealisticScene("cotton")
-        paper_cvprw_2017.plot_normal_maps(algorithms, [scene], subdir=SUBDIR)
+        cvprw.plot_normal_maps(algorithms, PhotorealisticScene("cotton"), subdir=SUBDIR)
 
     if settings.USE_TEST_SCENE_GT and "discont" in figure_options:
         log.info("Creating discontinuity figure with Bicycle scene.")
-        scene = PhotorealisticScene("bicycle")
-        paper_cvprw_2017.plot_discont_overview(algorithms, scene, subdir=SUBDIR)
+        cvprw.plot_discont_overview(algorithms, PhotorealisticScene("bicycle"), subdir=SUBDIR)
 
     if "accuracy" in figure_options:
         log.info("Creating high accuracy figure.")
@@ -109,4 +107,8 @@ if __name__ == "__main__":
                      "sc_gc", "spo_lf4cv", "rm3de", "ps_rf25"]
         high_accuracy_algorithms = [a for a in algorithms if a.get_name() in selection]
         scenes = [PhotorealisticScene("cotton"), PhotorealisticScene("boxes")]
-        paper_cvprw_2017.plot_high_accuracy(high_accuracy_algorithms, scenes, subdir=SUBDIR)
+        cvprw.plot_high_accuracy(high_accuracy_algorithms, scenes, subdir=SUBDIR)
+
+
+if __name__ == "__main__":
+    main()

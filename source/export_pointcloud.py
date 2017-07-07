@@ -35,7 +35,7 @@ import os.path as op
 from utils.option_parser import OptionParser, SceneOps, AlgorithmOps, MetaAlgorithmOps
 
 
-if __name__ == "__main__":
+def main():
     parser = OptionParser([SceneOps(), AlgorithmOps(with_gt=True), MetaAlgorithmOps(default=[])])
     scenes, algorithms, meta_algorithms, compute_meta_algos = parser.parse_args()
 
@@ -48,7 +48,6 @@ if __name__ == "__main__":
         MetaAlgorithm.prepare_meta_algorithms(meta_algorithms, algorithms, scenes)
 
     algorithms += meta_algorithms
-    algorithm_names = [algorithm.get_name() for algorithm in algorithms]
 
     for scene in scenes:
         center_view = scene.get_center_view()
@@ -67,3 +66,7 @@ if __name__ == "__main__":
             file_path = op.join(settings.EVAL_PATH, "point_clouds", file_name)
             log.info("Saving point cloud to: %s" % file_path)
             point_cloud.save(pc, file_path)
+
+
+if __name__ == "__main__":
+    main()

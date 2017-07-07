@@ -33,19 +33,20 @@ import gc
 import os.path as op
 import warnings
 
+
+from matplotlib import ticker
 import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy as np
 import scipy.ndimage.interpolation as sci
-from matplotlib import ticker
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 import settings
 from utils import log, file_io, misc
 
 
 def get_path_to_figure(fig_name, subdir=""):
-    return op.join(settings.FIG_PATH, subdir, fig_name + "." + settings.fig_type)
+    return op.join(settings.FIG_PATH, subdir, fig_name + "." + settings.FIG_TYPE)
 
 
 def save_fig(fig, fig_name, dpi=150, bbox_inches='tight',
