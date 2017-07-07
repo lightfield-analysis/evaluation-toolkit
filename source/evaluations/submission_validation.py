@@ -46,42 +46,49 @@ def validate_extracted_submission(submission_dir, data_path=None):
     errors = []
 
     # check disparity maps
-    disp_maps_dir = op.normpath(op.join(submission_dir, settings.DISP_MAP_DIR))
+    disp_maps_dir = op.normpath(op.join(submission_dir, settings.DIR_NAME_DISP_MAPS))
     if not op.isdir(disp_maps_dir):
-        errors.append('Could not find disparity map directory: "%s".' % settings.DISP_MAP_DIR)
+        errors.append('Could not find disparity map directory: "%s".' % settings.DIR_NAME_DISP_MAPS)
     else:
         log.info("Validating disparity map files.")
         for scene_name in scene_names:
-            fname_disp_map = op.join(disp_maps_dir, "%s.pfm" % scene_name)
-            relative_fname_disp_map = op.join(settings.DISP_MAP_DIR, "%s.pfm" % scene_name)
-            if not op.isfile(fname_disp_map):
-                errors.append('Frame %s: Could not find disparity file: "%s".' % (scene_name, relative_fname_disp_map))
+            path_disp_maps = op.join(disp_maps_dir, "%s.pfm" % scene_name)
+            relative_path_disp_maps = op.join(settings.DIR_NAME_DISP_MAPS, "%s.pfm" % scene_name)
+            if not op.isfile(path_disp_maps):
+                errors.append('Frame %s: Could not find disparity file: "%s".' %
+                              (scene_name, relative_path_disp_maps))
             else:
                 try:
-                    disp_map = file_io.read_pfm(fname_disp_map)
+                    disp_map = file_io.read_pfm(path_disp_maps)
                     height, width = np.shape(disp_map)
                     if height != exp_height or width != exp_width:
-                        errors.append("Frame %s, File %s: Resolution mismatch. Expected (%d, %d), got (%d, %d)."
-                                      % (scene_name, relative_fname_disp_map, exp_height, exp_width, height, width))
+                        errors.append("Frame %s, File %s: Resolution mismatch. "
+                                      "Expected (%d, %d), got (%d, %d)." %
+                                      (scene_name, relative_path_disp_maps,
+                                       exp_height, exp_width, height, width))
+
                 except file_io.PFMExeption as e:
-                    errors.append("Frame %s, File %s, PFM Error: %s." % (scene_name, relative_fname_disp_map, e))
+                    errors.append("Frame %s, File %s, PFM Error: %s." %
+                                  (scene_name, relative_path_disp_maps, e))
 
     # check runtimes
     runtimes_dir = op.normpath(op.join(submission_dir, "runtimes"))
     if not op.isdir(runtimes_dir):
-        errors.append('Could not find runtimes directory: "%s".' % settings.RUNTIME_DIR)
+        errors.append('Could not find runtimes directory: "%s".' % settings.DIR_NAME_RUNTIMES)
     else:
         log.info("Validating runtime files.")
         for scene_name in scene_names:
-            fname_runtime = op.join(runtimes_dir, "%s.txt" % scene_name)
-            relative_fname_runtime = op.join(settings.RUNTIME_DIR, "%s.txt" % scene_name)
-            if not op.isfile(fname_runtime):
-                errors.append('Frame %s: Could not find runtime file: "%s".' % (scene_name, relative_fname_runtime))
+            path_runtimes = op.join(runtimes_dir, "%s.txt" % scene_name)
+            relative_path_runtimes = op.join(settings.DIR_NAME_RUNTIMES, "%s.txt" % scene_name)
+            if not op.isfile(path_runtimes):
+                errors.append('Frame %s: Could not find runtime file: "%s".' %
+                              (scene_name, relative_path_runtimes))
             else:
                 try:
-                    file_io.read_runtime(fname_runtime)
+                    file_io.read_runtime(path_runtimes)
                 except IOError as error:
-                    errors.append("Frame %s, File %s, Error: %s." % (scene_name, relative_fname_runtime, error))
+                    errors.append("Frame %s, File %s, Error: %s." %
+                                  (scene_name, relative_path_runtimes, error))
 
     success = not errors
     error_json = {"messages": errors}

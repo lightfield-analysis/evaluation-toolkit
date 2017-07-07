@@ -73,12 +73,12 @@ if __name__ == "__main__":
 
     if "stratified" in figure_options:
         for scene in misc.get_stratified_scenes():
-            log.info("Creating metric visualization table for scene: %s." % scene.get_display_name())
+            log.info("Creating metric visualizations for scene: %s." % scene.get_display_name())
             scene.plot_algo_overview(algorithms, with_metric_vis=True, subdir=SUBDIR)
 
     if "training" in figure_options:
         for scene in misc.get_training_scenes():
-            log.info("Creating metric visualization table for scene: %s." % scene.get_display_name())
+            log.info("Creating metric visualizations for scene: %s." % scene.get_display_name())
             scene.plot_algo_overview(algorithms, subdir=SUBDIR)
 
 

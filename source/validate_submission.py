@@ -38,25 +38,26 @@ import shutil
 from utils import log
 
 
-def run_validation(path_to_submission):
-    is_unpacked = op.isdir(path_to_submission)
+def run_validation(submission_path):
+    is_unpacked = op.isdir(submission_path)
 
     try:
         if is_unpacked:
-            path_to_unpacked_submission = path_to_submission
+            unpacked_submission_path = submission_path
         else:
             # unpack zip archive
             from utils.file_io import unzip
             tmp_dir = op.normpath(op.join(os.getcwd(), "../tmp"))
             try:
                 log.info("Extracting archive.")
-                path_to_unpacked_submission = op.join(tmp_dir, op.splitext(op.basename(path_to_submission))[0])
-                unzip(path_to_submission, path_to_unpacked_submission)
+                submission_directory = op.splitext(op.basename(submission_path))[0]
+                unpacked_submission_path = op.join(tmp_dir, submission_directory)
+                unzip(submission_path, unpacked_submission_path)
             except IOError as e:
                 log.error('Zip Error: %s.\nTerminated submission validation.' % e)
 
         # validate submission
-        success, error_json = submission_validation.validate_extracted_submission(path_to_unpacked_submission)
+        success, error_json = validation.validate_extracted_submission(unpacked_submission_path)
 
         # report results
         print_validation_results(success, error_json)
@@ -69,7 +70,8 @@ def run_validation(path_to_submission):
 
 def print_validation_results(success, error_json):
     if success:
-        log.info("Yeah :) Congratulations, your submission archive is valid. Go ahead and submit it online!")
+        log.info("Yeah :) Congratulations, your submission archive is valid. "
+                 "Go ahead and submit it online!")
     else:
         error_messages = error_json["messages"]
         log.info('Validation found %d error(s).' % len(error_messages))
@@ -82,7 +84,7 @@ def print_validation_results(success, error_json):
 def parse_submission_validation_options():
     parser = argparse.ArgumentParser()
     action = parser.add_argument(type=str, dest="fname_submission",
-                                 help='path to the submission (zip archive or extracted submission)')
+                                 help='path to submission (zip archive or extracted submission)')
 
     namespace = parser.parse_args()
     fname_submission = getattr(namespace, action.dest)
@@ -103,5 +105,5 @@ if __name__ == "__main__":
     path_to_submission = parse_submission_validation_options()
 
     # delay imports to speed up usage response
-    from evaluations import submission_validation
+    from evaluations import submission_validation as validation
     run_validation(path_to_submission)

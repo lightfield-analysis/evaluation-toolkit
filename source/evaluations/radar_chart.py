@@ -37,7 +37,7 @@ from utils import log, misc, plotting
 
 
 def plot(algorithms, scenes, metrics, average="median", axis_labels=None, max_per_metric=None,
-         fig_name=None, subdir="radar", title=None, fs=16):
+         fig_name=None, subdir="radar", title=None):
 
     # prepare figure attributes
     if axis_labels is None:
@@ -47,7 +47,8 @@ def plot(algorithms, scenes, metrics, average="median", axis_labels=None, max_pe
         fig_name = "radar_%s" % "_".join(scene.get_name() for scene in scenes)
 
     if title is None:
-        title = "%s scores for scenes:\n%s" % (average.title(), ", ".join(scene.get_display_name() for scene in scenes))
+        title = "%s scores for scenes:\n%s" \
+                % (average.title(), ", ".join(s.get_display_name() for s in scenes))
 
     # get scores per scene
     scores_scenes_metrics_algos = misc.collect_scores(algorithms, scenes, metrics, masked=True)
@@ -62,19 +63,21 @@ def plot(algorithms, scenes, metrics, average="median", axis_labels=None, max_pe
 
     # remove metric axes without any valid scores (not all metrics are applicable to all scenes)
     if np.ma.is_masked(scores_metrics_algos):
-        mask_applicable_metrics = np.sum(scores_metrics_algos.mask, axis=1) < len(algorithms)
-        scores_metrics_algos = scores_metrics_algos[mask_applicable_metrics]
-        axis_labels = [label for idx, label in enumerate(axis_labels) if mask_applicable_metrics[idx]]
+        m_applicable_metrics = np.sum(scores_metrics_algos.mask, axis=1) < len(algorithms)
+        scores_metrics_algos = scores_metrics_algos[m_applicable_metrics]
+        axis_labels = [l for i, l in enumerate(axis_labels) if m_applicable_metrics[i]]
 
-        non_applicable_metrics = [metric for idx, metric in enumerate(metrics) if not mask_applicable_metrics[idx]]
+        non_applicable_metrics = [m for i, m in enumerate(metrics) if not m_applicable_metrics[i]]
         if non_applicable_metrics:
             log.info("Ignoring (non-applicable) metrics without valid values: %s" %
                      ", ".join(m.get_id() for m in non_applicable_metrics))
 
-    plot_scores(scores_metrics_algos, algorithms, axis_labels, fig_name, subdir, title, fs, max_per_metric)
+    plot_scores(scores_metrics_algos, algorithms, axis_labels, fig_name, subdir,
+                title, max_per_metric)
 
 
-def plot_scores(scores_metrics_algos, algorithms, axis_labels, fig_name, subdir, title, fs, max_per_metric=None):
+def plot_scores(scores_metrics_algos, algorithms, axis_labels, fig_name, subdir,
+                title, max_per_metric=None, fs=18):
 
     # prepare figure
     fig = plt.figure(figsize=(10, 10))
@@ -134,49 +137,20 @@ def plot_scores(scores_metrics_algos, algorithms, axis_labels, fig_name, subdir,
 
     # plot one line per algorithm, passing through all metrics
     for idx_a, algorithm in enumerate(algorithms):
-        metric_scores_cur_algo = np.full(np.shape(scores_metrics_algos[:, idx_a]), fill_value=np.nan)
+        metric_scores = np.full(np.shape(scores_metrics_algos[:, idx_a]), fill_value=np.nan)
 
         for idx_m in range(len(axis_labels)):
             step = axes_values[idx_m][1] - axes_values[idx_m][0]
             scale_factor = n_circles / (float(max_per_metric[idx_m]) + step)
             adjusted_value = (scores_metrics_algos[idx_m, idx_a] + step) * scale_factor
-            metric_scores_cur_algo[idx_m] = adjusted_value
+            metric_scores[idx_m] = adjusted_value
 
         # add first score at end to close the line-loop
-        metric_scores_cur_algo = np.r_[metric_scores_cur_algo, metric_scores_cur_algo[0]]
-        ax.plot(angle, metric_scores_cur_algo, label=algorithm.get_display_name(),
+        metric_scores = np.r_[metric_scores, metric_scores[0]]
+        ax.plot(angle, metric_scores, label=algorithm.get_display_name(),
                 ls=algorithm.get_line_style(), lw=2, alpha=1, color=algorithm.get_color())
 
-    ax.legend(loc='upper right', bbox_to_anchor=(1.45, 1.1), frameon=False, prop={'size': fs}, labelspacing=0.2)
+    ax.legend(loc='upper right', bbox_to_anchor=(1.45, 1.1), frameon=False,
+              prop={'size': fs}, labelspacing=0.2)
     plt.title(title + "\n\n", fontsize=fs+4)
     plotting.save_fig(fig, plotting.get_path_to_figure(fig_name, subdir=subdir))
-
-
-def compare_relative_performances(algorithms, scenes, metrics, all_but=0):
-    scores_scenes_metrics_algos = misc.collect_scores(algorithms, scenes, metrics, masked=True)
-    scores_metrics_algos = np.ma.median(scores_scenes_metrics_algos, axis=0)
-
-    n_metrics = np.shape(scores_metrics_algos)[0]
-    winners = dict()
-
-    for idx_a1, algorithm1 in enumerate(algorithms):
-        scores_a1 = scores_metrics_algos[:, idx_a1]
-        worse_on_all_but_n = []
-
-        for idx_a2, algorithm2 in enumerate(algorithms):
-            scores_a2 = scores_metrics_algos[:, idx_a2]
-            n_better = np.sum(scores_a1 < scores_a2)
-
-            if n_better == n_metrics - all_but:
-                worse_on_all_but_n.append(algorithm2)
-
-        if len(worse_on_all_but_n) > 0:
-            winners[algorithm1] = worse_on_all_but_n
-
-    n_winners = len(winners.keys())
-    log.info("%d Algorithm(s) better on all but %d score(s)." % (n_winners, all_but))
-
-    for idx_a, (algorithm, better_than) in enumerate(winners.items()):
-        log.info("%d) %s is better than: %s" % (idx_a+1, algorithm.get_display_name(), ", ".join(a.get_display_name() for a in better_than)))
-
-    return winners

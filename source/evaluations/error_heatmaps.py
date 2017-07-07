@@ -37,15 +37,16 @@ import settings
 from utils import plotting, misc
 
 
-def plot(algorithms, scenes, thresh=settings.BAD_PIX_THRESH, subdir="error_heatmaps", fs=18, max_per_row=4):
+def plot(algorithms, scenes,
+         thresh=settings.BAD_PIX_THRESH, subdir="error_heatmaps", fs=18, max_per_row=4):
 
     # prepare figure
     n_scenes = len(scenes)
     cols = min(n_scenes, max_per_row) + 1  # + 1 for colorbars
     rows = int(np.ceil(n_scenes / float(cols - 1)))
     fig = plt.figure(figsize=(2.7*cols, 3*rows))
-    grid, cb_height, cb_width = plotting.prepare_grid_with_colorbar(rows, cols, scenes[0], hscale=1, wscale=9)
-    colorbar_args = {"height": cb_height, "width": cb_width, "colorbar_bins": 5, "fontsize": 10, "scale": 0.8}
+    grid, cbh, cbw = plotting.get_grid_with_colorbar(rows, cols, scenes[0], hscale=1, wscale=9)
+    colorbar_args = {"height": cbh, "width": cbw, "colorbar_bins": 5, "fontsize": 10, "scale": 0.8}
 
     # plot heatmaps
     idx_scene = 0
@@ -55,8 +56,10 @@ def plot(algorithms, scenes, thresh=settings.BAD_PIX_THRESH, subdir="error_heatm
             # plot error heatmap for scene
             scene = scenes[idx_scene]
             idx_scene += 1
+
             plt.subplot(grid[idx])
-            cm = plt.imshow(get_bad_count(scene, algorithms, thresh, percentage=True), vmin=0, vmax=100, cmap="inferno")
+            bad_count = get_bad_count(scene, algorithms, thresh, percentage=True)
+            cm = plt.imshow(bad_count, vmin=0, vmax=100, cmap="inferno")
             plt.ylabel(scene.get_display_name(), fontsize=fs, labelpad=2.5)
         else:
             # plot colorbar
@@ -67,11 +70,12 @@ def plot(algorithms, scenes, thresh=settings.BAD_PIX_THRESH, subdir="error_heatm
                 plotting.add_colorbar(grid[idx+1], cm, **colorbar_args)
             break
 
-    plt.suptitle("Per Pixel: Percentage of %d Algorithms with abs(gt-algo) > %0.2f" % (len(algorithms), thresh),
-                 fontsize=fs)
+    plt.suptitle("Per Pixel: Percentage of %d Algorithms with abs(gt-algo) > %0.2f" %
+                 (len(algorithms), thresh), fontsize=fs)
 
-    fig_path = plotting.get_path_to_figure(("error_heatmaps_%.3f" % thresh).replace(".", ""), subdir=subdir)
-    plotting.save_tight_figure(fig, fig_path, hide_frames=True, remove_ticks=True, hspace=0.02)
+    fig_name = ("error_heatmaps_%.3f" % thresh).replace(".", "")
+    fig_path = plotting.get_path_to_figure(fig_name, subdir=subdir)
+    plotting.save_tight_figure(fig, fig_path, hide_frames=True, hspace=0.02)
 
 
 def get_bad_count(scene, algorithms, thresh, percentage=False):

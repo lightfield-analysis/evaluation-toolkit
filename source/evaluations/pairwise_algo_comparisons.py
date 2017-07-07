@@ -64,6 +64,7 @@ def plot_pairwise_comparison(algo1, algo2, scenes, n_scenes_per_row=4, subdir="p
     a2 = algo2.get_display_name()
     plt.suptitle("|%s - GT| - |%s - GT|\nblue: %s is better, red: %s is better" % (a1, a2, a1, a2))
 
-    fig_path = plotting.get_path_to_figure("pairwise_diffs_%s_%s" % (algo1.get_name(), algo2.get_name()), subdir=subdir)
-    plotting.save_tight_figure(fig, fig_path, hide_frames=True, remove_ticks=True,
-                               hspace=0.15, wspace=0.15, padding_top=0.85)
+    fig_name = "pairwise_diffs_%s_%s" % (algo1.get_name(), algo2.get_name())
+    fig_path = plotting.get_path_to_figure(fig_name, subdir=subdir)
+    plotting.save_tight_figure(fig, fig_path, hide_frames=True, padding_top=0.85,
+                               hspace=0.15, wspace=0.15)

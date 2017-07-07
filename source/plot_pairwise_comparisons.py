@@ -35,13 +35,13 @@ from utils.option_parser import OptionParser, SceneOps, AlgorithmOps, MetaAlgori
 
 if __name__ == "__main__":
     parser = OptionParser([AlgorithmOps(), SceneOps(), MetaAlgorithmOps(default=[])])
-    algorithms, scenes, meta_algorithms, load_meta_algorithm_files = parser.parse_args()
+    algorithms, scenes, meta_algorithms, compute_meta_algos = parser.parse_args()
 
     # delay imports to speed up usage response
     from algorithms import MetaAlgorithm
     from evaluations import pairwise_algo_comparisons
 
-    if not load_meta_algorithm_files and meta_algorithms:
+    if compute_meta_algos and meta_algorithms:
         MetaAlgorithm.prepare_meta_algorithms(meta_algorithms, algorithms, scenes)
 
     pairwise_algo_comparisons.plot_pairwise_comparisons(algorithms+meta_algorithms, scenes)

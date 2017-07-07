@@ -37,7 +37,7 @@ import numpy as np
 import scipy.ndimage.interpolation as sci
 
 import settings
-import file_io
+from utils import file_io
 
 
 def median_downsampling(img, tile_height=10, tile_width=10):
@@ -129,7 +129,8 @@ def get_available_scenes_with_categories(categories=None, data_path=settings.DAT
         category_dir = op.join(data_path, category)
 
         # at least parameter file is required for scene to be "available"
-        scene_names = [d for d in os.listdir(category_dir) if op.isfile(op.join(category_dir, d, "parameters.cfg"))]
+        scene_names = [d for d in os.listdir(category_dir) if
+                       op.isfile(op.join(category_dir, d, "parameters.cfg"))]
 
         for scene_name in scene_names:
             if scene_name not in scenes_to_categories:
@@ -156,28 +157,28 @@ def infer_scene_category(scene_name):
 
 
 def get_benchmark_scenes(gt_scale=1.0, data_path=None):
-    return get_test_scenes(gt_scale, data_path) + \
+    return get_stratified_scenes(gt_scale, data_path) + \
            get_training_scenes(gt_scale, data_path) + \
-           get_stratified_scenes(gt_scale, data_path)
+           get_test_scenes(gt_scale, data_path)
 
 
 def get_training_scenes(gt_scale=1.0, data_path=None):
     return _get_photorealistic_scenes_by_name(settings.get_scene_names_training(),
-                                              settings.TRAINING, gt_scale=gt_scale, data_path=data_path)
+                                              settings.TRAINING, gt_scale, data_path)
 
 
 def get_test_scenes(gt_scale=1.0, data_path=None):
     return _get_photorealistic_scenes_by_name(settings.get_scene_names_test(),
-                                              settings.TEST,  gt_scale=gt_scale, data_path=data_path)
+                                              settings.TEST,  gt_scale, data_path)
 
 
 def get_additional_scenes(gt_scale=1.0, data_path=None):
     return _get_photorealistic_scenes_by_name(settings.get_scene_names_additional(),
-                                              settings.ADDITIONAL, gt_scale=gt_scale, data_path=data_path)
+                                              settings.ADDITIONAL, gt_scale, data_path)
 
 
 def _get_photorealistic_scenes_by_name(scene_names, category, gt_scale=1.0, data_path=None):
-    scenes = [get_photorealistic_scene(scene_name, category, gt_scale, data_path) for scene_name in scene_names]
+    scenes = [get_photorealistic_scene(s, category, gt_scale, data_path) for s in scene_names]
     return scenes
 
 
@@ -189,15 +190,16 @@ def get_stratified_scenes(gt_scale=1.0, data_path=None):
 
 def get_scene(scene_name, category, gt_scale=1.0, data_path=None):
     if category == settings.STRATIFIED:
-        scene = get_stratified_scene(scene_name, gt_scale=gt_scale, data_path=data_path)
+        scene = get_stratified_scene(scene_name, gt_scale, data_path)
     else:
-        scene = get_photorealistic_scene(scene_name, category, gt_scale=gt_scale, data_path=data_path)
+        scene = get_photorealistic_scene(scene_name, category, gt_scale, data_path)
     return scene
 
 
 def get_photorealistic_scene(scene_name, category, gt_scale=1.0, data_path=None):
     from scenes import PhotorealisticScene
-    return PhotorealisticScene(name=scene_name, category=category, data_path=data_path, gt_scale=gt_scale)
+    return PhotorealisticScene(name=scene_name, category=category,
+                               data_path=data_path, gt_scale=gt_scale)
 
 
 def get_stratified_scene(scene_name, gt_scale=1.0, data_path=None):
@@ -250,7 +252,8 @@ def get_stratified_metrics():
 
 # scores
 def collect_scores(algorithms, scenes, metrics, masked=False):
-    scores_scenes_metrics_algos = np.full((len(scenes), len(metrics), len(algorithms)), fill_value=np.nan)
+    scores_scenes_metrics_algos = np.full((len(scenes), len(metrics), len(algorithms)),
+                                          fill_value=np.nan)
 
     for idx_a, algorithm in enumerate(algorithms):
         fname_json = op.join(settings.ALGO_EVAL_PATH, algorithm.get_name(), "results.json")
@@ -284,7 +287,9 @@ def get_path_to_algo_data(algorithm):
 
 
 def save_algo_result(algo_result, scene, algorithm):
-    fname = op.normpath(op.join(*[get_path_to_algo_data(algorithm), settings.DISP_MAP_DIR, "%s.pfm" % scene.get_name()]))
+    fname = op.normpath(op.join(get_path_to_algo_data(algorithm),
+                                settings.DIR_NAME_DISP_MAPS,
+                                "%s.pfm" % scene.get_name()))
     file_io.write_file(algo_result, fname)
 
 
@@ -293,7 +298,9 @@ def get_algo_result(scene, algorithm):
 
 
 def get_algo_result_from_dir(scene, algo_dir):
-    fname = op.normpath(op.join(*[algo_dir, settings.DISP_MAP_DIR, "%s.pfm" % scene.get_name()]))
+    fname = op.normpath(op.join(algo_dir,
+                                settings.DIR_NAME_DISP_MAPS,
+                                "%s.pfm" % scene.get_name()))
     algo_result = file_io.read_file(fname)
     if scene.gt_scale != 1:
         algo_result = sci.zoom(algo_result, scene.gt_scale, order=0)
@@ -301,7 +308,8 @@ def get_algo_result_from_dir(scene, algo_dir):
 
 
 def get_algo_results(scene, algorithms):
-    algo_results = np.full((scene.get_height(), scene.get_width(), len(algorithms)), fill_value=np.nan)
+    algo_results = np.full((scene.get_height(), scene.get_width(), len(algorithms)),
+                           fill_value=np.nan)
 
     for idx_a, algorithm in enumerate(algorithms):
         algo_results[:, :, idx_a] = get_algo_result(scene, algorithm)
@@ -315,7 +323,9 @@ def get_runtime(scene, algorithm):
 
 
 def get_runtime_from_dir(scene, algo_dir):
-    fname = op.normpath(op.join(*[algo_dir, settings.RUNTIME_DIR, "%s.txt" % scene.get_name()]))
+    fname = op.normpath(op.join(algo_dir,
+                                settings.DIR_NAME_RUNTIMES,
+                                "%s.txt" % scene.get_name()))
     return file_io.read_runtime(fname)
 
 
@@ -327,7 +337,9 @@ def get_runtimes(scene, algorithms):
 
 
 def save_runtime(runtime, scene, algorithm):
-    fname = op.normpath(op.join(*[get_path_to_algo_data(algorithm), settings.RUNTIME_DIR, "%s.txt" % scene.get_name()]))
+    fname = op.normpath(op.join(get_path_to_algo_data(algorithm),
+                                settings.DIR_NAME_RUNTIMES,
+                                "%s.txt" % scene.get_name()))
     file_io.write_runtime(runtime, fname)
 
 

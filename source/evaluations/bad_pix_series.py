@@ -49,14 +49,15 @@ def get_fname_scores(scenes=[]):
     return op.join(settings.TMP_PATH, "bad_pix_series_scores_%s.pickle" % descr)
 
 
-def plot(algorithms, scenes, thresholds=THRESHOLDS, with_cached_scores=False, penalize_missing_pixels=False,
-         title=None, subdir="bad_pix_series", fig_name=None,
+def plot(algorithms, scenes, thresholds=THRESHOLDS, with_cached_scores=False,
+         penalize_missing_pixels=False, title=None, subdir="bad_pix_series", fig_name=None,
          fig_size=(16, 6), legend_pos=(1.19, -0.04), marker_size=2.3, fs=16):
 
     # prepare scores
     fname_scores = get_fname_scores(scenes)
     if not op.isfile(fname_scores) or not with_cached_scores:
-        percentages_algo_thresh = compute_scores(algorithms, scenes, thresholds, penalize_missing_pixels=penalize_missing_pixels)
+        percentages_algo_thresh = compute_scores(algorithms, scenes, thresholds,
+                                                 penalize_missing_pixels=penalize_missing_pixels)
         if with_cached_scores:
             fname_scores = get_fname_scores(scenes)
             file_io.check_dir_for_fname(fname_scores)
@@ -96,7 +97,8 @@ def plot(algorithms, scenes, thresholds=THRESHOLDS, with_cached_scores=False, pe
         title = "Scenes: %s" % ", ".join(scene.get_display_name() for scene in scenes)
     plt.title(title, fontsize=fs)
     plotting.hide_upper_right()
-    plt.legend(frameon=False, loc="lower right", bbox_to_anchor=legend_pos, prop={'size': fs}, labelspacing=0.2)
+    plt.legend(frameon=False, loc="lower right", bbox_to_anchor=legend_pos,
+               prop={'size': fs}, labelspacing=0.2)
 
     # save figure
     if fig_name is None:
@@ -134,6 +136,7 @@ def compute_scores(algorithms, scenes, thresholds=THRESHOLDS, penalize_missing_p
         # compute BadPix score for each threshold
         for idx_t, t in enumerate(thresholds):
             bad_pix_metric.thresh = t
-            percentages_algo_thresh[idx_a, idx_t] = 100 - bad_pix_metric.get_score_from_diffs(combined_diffs)
+            bad_pix_score = bad_pix_metric.get_score_from_diffs(combined_diffs)
+            percentages_algo_thresh[idx_a, idx_t] = 100 - bad_pix_score
 
     return percentages_algo_thresh

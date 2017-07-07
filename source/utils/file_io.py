@@ -134,7 +134,8 @@ def read_pfm(fpath, expected_identifier="Pf", print_limit=30):
         identifier = _get_next_line(f)
         if identifier != expected_identifier:
             raise PFMExeption('Unknown identifier. '
-                              'Expected: "%s", got: "%s".' % (expected_identifier, identifier[:print_limit]))
+                              'Expected: "%s", got: "%s".' %
+                              (expected_identifier, identifier[:print_limit]))
 
         try:
             line_dimensions = _get_next_line(f)
@@ -143,7 +144,8 @@ def read_pfm(fpath, expected_identifier="Pf", print_limit=30):
             height = int(dimensions[1].strip())
         except:
             raise PFMExeption('Could not parse dimensions: "%s". '
-                              'Expected "width height", e.g. "512 512".' % line_dimensions[:print_limit])
+                              'Expected "width height", e.g. "512 512".' %
+                              line_dimensions[:print_limit])
 
         try:
             line_scale = _get_next_line(f)
@@ -164,7 +166,8 @@ def read_pfm(fpath, expected_identifier="Pf", print_limit=30):
             with np.errstate(invalid="ignore"):
                 data *= abs(scale)
         except:
-            raise PFMExeption('Invalid binary values. Could not create %dx%d array from input.' % (height, width))
+            raise PFMExeption('Invalid binary values. '
+                              'Could not create %dx%d array from input.' % (height, width))
 
         return data
 

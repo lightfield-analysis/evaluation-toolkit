@@ -54,8 +54,8 @@ BAD_PIX_THRESH = 0.07
 
 FIG_SIZE_EVALUATION = (8, 4)
 
-DISP_MAP_DIR = "disp_maps"
-RUNTIME_DIR = "runtimes"
+DIR_NAME_DISP_MAPS = "disp_maps"
+DIR_NAME_RUNTIMES = "runtimes"
 
 STRATIFIED_METRIC = "Stratified"
 PHOTOREALISTIC_METRIC = "Photorealistic"

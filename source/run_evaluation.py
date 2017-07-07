@@ -32,12 +32,14 @@
 
 import os.path as op
 
-from utils.option_parser import OptionParser, SceneOps, AlgorithmOps, MetricOps, VisualizationOps, MetaAlgorithmOps
+from utils.option_parser import OptionParser, SceneOps, AlgorithmOps, MetricOps, \
+    VisualizationOps, MetaAlgorithmOps
 
 
 if __name__ == "__main__":
-    parser = OptionParser([SceneOps(), AlgorithmOps(), MetricOps(), VisualizationOps(), MetaAlgorithmOps(default=[])])
-    scenes, algorithms, metrics, visualize, meta_algorithms, load_meta_algorithm_files = parser.parse_args()
+    parser = OptionParser([SceneOps(), AlgorithmOps(), MetricOps(),
+                           VisualizationOps(), MetaAlgorithmOps(default=[])])
+    scenes, algorithms, metrics, with_vis, meta_algorithms, compute_meta_algos = parser.parse_args()
 
     # delay import to speed up usage response
     from algorithms import MetaAlgorithm
@@ -45,14 +47,17 @@ if __name__ == "__main__":
     import settings
     from utils import misc
 
-    if not load_meta_algorithm_files and meta_algorithms:
+    if compute_meta_algos and meta_algorithms:
         MetaAlgorithm.prepare_meta_algorithms(meta_algorithms, algorithms, scenes)
 
     algorithms += meta_algorithms
+
     for algorithm in algorithms:
+        evaluation_output_path = op.join(settings.ALGO_EVAL_PATH, algorithm.get_name())
+        algorithm_input_path = misc.get_path_to_algo_data(algorithm)
         submission_evaluation.evaluate(scenes=scenes,
                                        metrics=metrics,
-                                       visualize=visualize,
+                                       visualize=with_vis,
                                        ground_truth_path=settings.DATA_PATH,
-                                       evaluation_output_path=op.join(settings.ALGO_EVAL_PATH, algorithm.get_name()),
-                                       algorithm_input_path=misc.get_path_to_algo_data(algorithm))
+                                       evaluation_output_path=evaluation_output_path,
+                                       algorithm_input_path=algorithm_input_path)

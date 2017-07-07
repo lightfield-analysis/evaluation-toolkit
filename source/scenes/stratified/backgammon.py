@@ -47,8 +47,9 @@ class Backgammon(BaseStratified):
     mn_fg_fat = "mask_foreground_fattening"
     mn_vertical_bins = "mask_vertical_bins"
 
-    def __init__(self, name="backgammon", eval_general_metrics_on_high_res=True, **kwargs):
-        super(Backgammon, self).__init__(name, eval_general_metrics_on_high_res=eval_general_metrics_on_high_res, **kwargs)
+    def __init__(self, name="backgammon", general_metrics_high_res=True, **kwargs):
+        super(Backgammon, self).__init__(name, general_metrics_high_res=general_metrics_high_res,
+                                         **kwargs)
 
     @staticmethod
     def get_scene_specific_metrics():
@@ -67,8 +68,8 @@ class Backgammon(BaseStratified):
         m_bins = self.get_vertical_bins()
 
         # prepare metrics
-        metric_fattening = BackgammonFattening()
-        metric_thinning = BackgammonThinning()
+        fattening = BackgammonFattening()
+        thinning = BackgammonThinning()
 
         fig = plt.figure(figsize=(15, 4))
         rows, cols = 1, 3
@@ -83,10 +84,18 @@ class Backgammon(BaseStratified):
         bin_vis[:, 1:] = (m_bins[:, 1:] - m_bins[:, :-1]) > 0
         bin_vis[:, 1:] += (m_bins[:, :-1] - m_bins[:, 1:]) > 0  # right most bar
         bin_vis = skmorph.binary_dilation(bin_vis, np.ones((3*self.gt_scale, 3*self.gt_scale)))
+
         plt.imshow(self.get_center_view(), cmap="gray")
-        plt.imshow(np.ma.masked_array(m_fg_fat, mask=~m_fg_fat), alpha=alpha, vmin=0.4, vmax=2, cmap="jet")
-        plt.imshow(np.ma.masked_array(m_fg_thin, mask=~m_fg_thin), alpha=alpha, vmin=-1, vmax=1.4, cmap="jet")
-        plt.imshow(np.ma.masked_array(bin_vis, mask=~bin_vis), alpha=1, vmin=0, vmax=1, cmap="gray")
+
+        plt.imshow(np.ma.masked_array(m_fg_fat, mask=~m_fg_fat),
+                   alpha=alpha, vmin=0.4, vmax=2, cmap="jet")
+
+        plt.imshow(np.ma.masked_array(m_fg_thin, mask=~m_fg_thin),
+                   alpha=alpha, vmin=-1, vmax=1.4, cmap="jet")
+
+        plt.imshow(np.ma.masked_array(bin_vis, mask=~bin_vis),
+                   alpha=1, vmin=0, vmax=1, cmap="gray")
+
         plt.yticks([])
         plt.xticks([])
 
@@ -98,16 +107,16 @@ class Backgammon(BaseStratified):
                      "alpha": 0.8, "markersize": 7, "markeredgewidth": 0}
 
             plt.subplot(rows, cols, 2)
-            m_fattening = metric_fattening.get_fattening(algo_result, gt, m_extrapolated_fg) * m_eval
-            y_values_fat = self.get_bin_scores(x_values, m_bins, n_bins, m_fg_fat, m_fattening)
+            mask_fattening = fattening.get_fattening(algo_result, gt, m_extrapolated_fg) * m_eval
+            y_values_fat = self.get_bin_scores(x_values, m_bins, n_bins, m_fg_fat, mask_fattening)
             plt.plot(x_values, y_values_fat, "o-", **props)
 
             plt.subplot(rows, cols, 3)
-            m_thinning = metric_thinning.get_thinning(algo_result, gt, m_extrapolated_bg) * m_eval
-            y_values_thin = self.get_bin_scores(x_values, m_bins, n_bins, m_fg_thin, m_thinning)
+            mask_thinning = thinning.get_thinning(algo_result, gt, m_extrapolated_bg) * m_eval
+            y_values_thin = self.get_bin_scores(x_values, m_bins, n_bins, m_fg_thin, mask_thinning)
             plt.plot(x_values, y_values_thin, "o-", label=algorithm.get_display_name(), **props)
 
-        for idx_m, metric in enumerate([metric_fattening, metric_thinning]):
+        for idx_m, metric in enumerate([fattening, thinning]):
             plt.subplot(rows, cols, idx_m+2)
             plt.xlabel("%d columns from left to right" % n_bins)
             plt.ylabel(metric.get_short_name(), labelpad=-5)

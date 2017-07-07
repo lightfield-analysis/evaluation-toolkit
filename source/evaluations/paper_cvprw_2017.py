@@ -46,7 +46,7 @@ def plot_benchmark_scene_overview(benchmark_scenes, subdir="overview", fs=16):
     # prepare grid figure
     rows, cols = 2, 12
     fig = plt.figure(figsize=(21.6, 4))
-    grids = plotting.prepare_grid(rows, cols)
+    grids = plotting.get_grid(rows, cols)
 
     # plot center view and ground truth for each scene
     for idx_s, scene in enumerate(benchmark_scenes):
@@ -78,7 +78,7 @@ def plot_benchmark_scene_overview(benchmark_scenes, subdir="overview", fs=16):
 
     # save figure
     fig_path = plotting.get_path_to_figure("benchmark_scenes", subdir=subdir)
-    plotting.save_tight_figure(fig, fig_path, hide_frames=True, remove_ticks=True, hspace=0.02, wspace=0.02, dpi=200)
+    plotting.save_tight_figure(fig, fig_path, hide_frames=True, hspace=0.02, wspace=0.02, dpi=200)
 
 
 def plot_scene_difficulty(scenes, subdir="overview", fs=10):
@@ -86,7 +86,7 @@ def plot_scene_difficulty(scenes, subdir="overview", fs=10):
     n_scenes_per_row = 4
     rows, cols = 6, n_scenes_per_row + 1
     fig = plt.figure(figsize=(6, 9))
-    grid, cb_height, cb_width = plotting.prepare_grid_with_colorbar(rows, cols, scenes[0])
+    grid, cb_height, cb_width = plotting.get_grid_with_colorbar(rows, cols, scenes[0])
     colorbar_args = {"height": cb_height, "width": cb_width, "colorbar_bins": 2, "fontsize": fs}
 
     median_algo = PerPixMedianDiff()
@@ -123,14 +123,14 @@ def plot_scene_difficulty(scenes, subdir="overview", fs=10):
             plotting.add_colorbar(grid[(idx_row+1) * cols + idx_col + 1], cb, **colorbar_args)
 
     fig_path = plotting.get_path_to_figure("scene_difficulty", subdir=subdir)
-    plotting.save_tight_figure(fig, fig_path, hide_frames=True, remove_ticks=True, hspace=0.08, wspace=0.03)
+    plotting.save_tight_figure(fig, fig_path, hide_frames=True, hspace=0.08, wspace=0.03)
 
 
 def plot_normals_explanation(scene, algorithm, fs=14, subdir="overview"):
     # prepare figure
     rows, cols = 1, 4
     fig = plt.figure(figsize=(10, 4))
-    grid, cb_height, cb_width = plotting.prepare_grid_with_colorbar(rows, cols, scene)
+    grid, cb_height, cb_width = plotting.get_grid_with_colorbar(rows, cols, scene)
 
     # prepare metrics
     normals_contin = MAEContinSurf()
@@ -161,16 +161,21 @@ def plot_normals_explanation(scene, algorithm, fs=14, subdir="overview"):
     plotting.add_colorbar(grid[3], cb, cb_height, cb_width, colorbar_bins=4, fontsize=fs)
 
     # save figure
-    fig_path = plotting.get_path_to_figure("metrics_%s_%s" % (scene.get_name(), algorithm.get_name()), subdir=subdir)
-    plotting.save_tight_figure(fig, fig_path, hide_frames=False, remove_ticks=True, hspace=0.04, wspace=0.03)
+    fig_name = "metrics_%s_%s" % (scene.get_name(), algorithm.get_name())
+    fig_path = plotting.get_path_to_figure(fig_name, subdir=subdir)
+    plotting.save_tight_figure(fig, fig_path, hide_frames=False, hspace=0.04, wspace=0.03)
 
 
-def plot_bad_pix_series(algorithms, with_cached_scores=False, penalize_missing_pixels=False, subdir="bad_pix"):
+def plot_bad_pix_series(algorithms, with_cached_scores=False,
+                        penalize_missing_pixels=False, subdir="bad_pix"):
+
     scene_sets = [[misc.get_stratified_scenes(), "Stratified Scenes", "stratified"]]
     if settings.USE_TEST_SCENE_GT:
-        scene_sets.append([misc.get_training_scenes()+misc.get_test_scenes(), "Test and Training Scenes", "photorealistic"])
+        scene_sets.append([misc.get_training_scenes() + misc.get_test_scenes(),
+                           "Test and Training Scenes", "photorealistic"])
     else:
-        scene_sets.append([misc.get_training_scenes(), "Training Scenes", "training"])
+        scene_sets.append([misc.get_training_scenes(),
+                           "Training Scenes", "training"])
 
     for scene_set, title, fig_name in scene_sets:
         bad_pix_series.plot(algorithms, scene_set,
@@ -213,20 +218,54 @@ def plot_radar_charts(algorithms, log_runtime=True, subdir="radar"):
                      fig_name="radar_photorealistic",
                      subdir=subdir)
 
-    radar_chart.compare_relative_performances(algorithms, misc.get_training_scenes(), metrics, all_but=0)
-    radar_chart.compare_relative_performances(algorithms, misc.get_training_scenes(), metrics, all_but=1)
+    compare_relative_ranks(algorithms, misc.get_training_scenes(), metrics, all_but=0)
+    compare_relative_ranks(algorithms, misc.get_training_scenes(), metrics, all_but=1)
 
 
-def plot_normals_overview(algorithms, scenes, subdir="overview"):
+def compare_relative_ranks(algorithms, scenes, metrics, all_but=0):
+    scores_scenes_metrics_algos = misc.collect_scores(algorithms, scenes, metrics, masked=True)
+    scores_metrics_algos = np.ma.median(scores_scenes_metrics_algos, axis=0)
+
+    n_metrics = np.shape(scores_metrics_algos)[0]
+    winners = dict()
+
+    for idx_a1, algorithm1 in enumerate(algorithms):
+        scores_a1 = scores_metrics_algos[:, idx_a1]
+        worse_on_all_but_n = []
+
+        for idx_a2, algorithm2 in enumerate(algorithms):
+            scores_a2 = scores_metrics_algos[:, idx_a2]
+            n_better = np.sum(scores_a1 < scores_a2)
+
+            if n_better == n_metrics - all_but:
+                worse_on_all_but_n.append(algorithm2)
+
+        if len(worse_on_all_but_n) > 0:
+            winners[algorithm1] = worse_on_all_but_n
+
+    n_winners = len(winners.keys())
+    log.info("%d Algorithm(s) better on all but %d score(s)." % (n_winners, all_but))
+
+    for idx_a, (algorithm, better_than) in enumerate(winners.items()):
+        inferior_algorithms = ", ".join(a.get_display_name() for a in better_than)
+        log.info("%d) %s is better than: %s" %
+                 (idx_a+1, algorithm.get_display_name(), inferior_algorithms))
+
+    return winners
+
+
+def plot_normal_maps(algorithms, scenes, subdir="overview"):
     metric_overviews.plot_normals(algorithms, scenes, subdir=subdir)
 
 
 def plot_high_accuracy(algorithms, scenes, subdir="overview"):
     metrics = [BadPix(0.07), BadPix(0.01), Quantile(25)]
-    metric_overviews.plot_general_overview(algorithms, scenes, metrics, fig_name="high_accuracy", subdir=subdir)
+    metric_overviews.plot_general_overview(algorithms, scenes, metrics,
+                                           fig_name="high_accuracy", subdir=subdir)
 
 
-def plot_discont_overview(algorithms, scene, n_rows=2, fs=15, subdir="overview", xmin=150, ymin=230, ww=250):
+def plot_discont_overview(algorithms, scene, n_rows=2, fs=15, subdir="overview",
+                          xmin=150, ymin=230, ww=250):
 
     # prepare figure grid
     n_vis_types = 2
@@ -234,7 +273,7 @@ def plot_discont_overview(algorithms, scene, n_rows=2, fs=15, subdir="overview",
     rows, cols = (n_vis_types * n_rows), n_entries_per_row + 1
 
     fig = plt.figure(figsize=(cols * 1.7, 1.45 * rows * 1.5))
-    grid, cb_height, cb_width = plotting.prepare_grid_with_colorbar(rows, cols, scene)
+    grid, cb_height, cb_width = plotting.get_grid_with_colorbar(rows, cols, scene)
     colorbar_args = {"height": cb_height, "width": cb_width, "colorbar_bins": 7, "fontsize": fs}
 
     # prepare data
@@ -262,30 +301,31 @@ def plot_discont_overview(algorithms, scene, n_rows=2, fs=15, subdir="overview",
 
         # top row with algorithm disparity map
         plt.subplot(grid[idx_row * cols + idx_col])
-        cb_depth = plt.imshow(algo_result[ymin:ymin + ww, xmin:xmin + ww], **settings.disp_map_args(scene))
+        algo_result_crop = algo_result[ymin:ymin+ww, xmin:xmin+ww]
+        cb_depth = plt.imshow(algo_result_crop, **settings.disp_map_args(scene))
         plt.title(algorithm.get_display_name(), fontsize=fs)
 
         if add_ylabel:
             plt.ylabel("DispMap", fontsize=fs)
         if add_colorbar:
-            plotting.add_colorbar(grid[idx_row * cols + idx_col + 1], cb_depth, **colorbar_args)
+            plotting.add_colorbar(grid[idx_row*cols+idx_col+1], cb_depth, **colorbar_args)
 
         # second row with median diff
         plt.subplot(grid[(idx_row + 1) * cols + idx_col])
-        median_diff = (np.abs(median_result - gt) - np.abs(algo_result - gt))[ymin:ymin + ww, xmin:xmin + ww]
-        cb_error = plt.imshow(median_diff, interpolation="none", cmap=cm.RdYlGn, vmin=-.05, vmax=.05)
+        diff = (np.abs(median_result-gt)-np.abs(algo_result-gt))[ymin:ymin+ww, xmin:xmin+ww]
+        cb_error = plt.imshow(diff, interpolation="none", cmap=cm.RdYlGn, vmin=-.05, vmax=.05)
 
         if add_ylabel:
             plt.ylabel("MedianDiff", fontsize=fs)
         if add_colorbar:
-            plotting.add_colorbar(grid[(idx_row + 1) * cols + idx_col + 1], cb_error, **colorbar_args)
+            plotting.add_colorbar(grid[(idx_row+1)*cols+idx_col+1], cb_error, **colorbar_args)
 
     fig_path = plotting.get_path_to_figure("discont_%s" % scene.get_name(), subdir=subdir)
-    plotting.save_tight_figure(fig, fig_path, hide_frames=True, remove_ticks=True, hspace=0.03, wspace=0.03, dpi=100)
+    plotting.save_tight_figure(fig, fig_path, hide_frames=True,  hspace=0.03, wspace=0.03, dpi=100)
 
 
-def plot_median_comparisons(scenes, algorithms, subdir, with_gt_row=True):
-    median_algo = PerPixMedianDiff()
-    median_algo.compute_meta_results(scenes, algorithms)
-    meta_algo_comparisons.plot(scenes, algorithms, median_algo, subdir=subdir, with_gt_row=with_gt_row)
+def plot_median_diffs(scenes, algorithms, subdir, with_gt_row=True):
+    median = PerPixMedianDiff()
+    median.compute_meta_results(scenes, algorithms)
+    meta_algo_comparisons.plot(scenes, algorithms, median, subdir=subdir, with_gt_row=with_gt_row)
 

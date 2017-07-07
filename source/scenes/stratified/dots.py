@@ -44,8 +44,9 @@ class Dots(BaseStratified):
     mn_dots_by_size = "mask_dots_by_size"
     mn_boxes = "mask_boxes"
 
-    def __init__(self, name="dots", eval_general_metrics_on_high_res=True, **kwargs):
-        super(Dots, self).__init__(name, eval_general_metrics_on_high_res=eval_general_metrics_on_high_res, **kwargs)
+    def __init__(self, name="dots", general_metrics_high_res=True, **kwargs):
+        super(Dots, self).__init__(name, general_metrics_high_res=general_metrics_high_res,
+                                   **kwargs)
 
     @staticmethod
     def get_scene_specific_metrics():
@@ -74,8 +75,8 @@ class Dots(BaseStratified):
                 m_current = m_eval * (grid == box_id)
                 y_values[idx_b] = mse.get_masked_score(algo_result, gt, m_current)
 
-            plt.plot(x_values, y_values, "o-", color=algorithm.get_color(), label=algorithm.get_display_name(),
-                     lw=2, alpha=0.9, markeredgewidth=0)
+            plt.plot(x_values, y_values, "o-", color=algorithm.get_color(),
+                     label=algorithm.get_display_name(), lw=2, alpha=0.9, markeredgewidth=0)
 
         plt.legend(frameon=False, loc="upper right", ncol=1,
                    title="Algorithms:", bbox_to_anchor=(1.25, 1), borderaxespad=0.0)

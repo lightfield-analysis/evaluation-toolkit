@@ -91,7 +91,8 @@ class Algorithm(object):
         return algorithms
 
     @staticmethod
-    def initialize_algorithms(file_names_algorithms, set_colors=True, is_baseline=False, is_meta=False):
+    def initialize_algorithms(file_names_algorithms,
+                              set_colors=True, is_baseline=False, is_meta=False):
         try:
             meta_data = file_io.read_file(settings.PATH_TO_ALGO_META_DATA)
         except IOError:

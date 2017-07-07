@@ -37,7 +37,9 @@ MIN = 0.
 MAX = 255.
 
 if __name__ == "__main__":
-    parser = OptionParser([ConverterOps(input="path to png disparity map", output="path to pfm disparity map")])
+    parser = OptionParser([ConverterOps(input="path to png disparity map",
+                                        output="path to pfm disparity map")])
+
     image_path, config_path, pfm_path = parser.parse_args()
 
     from scenes import PhotorealisticScene

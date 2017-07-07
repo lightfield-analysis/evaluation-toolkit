@@ -45,7 +45,7 @@ class BaseScene(object):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, name, category=None, gt_scale=1, boundary_offset=15, display_name=None,
-                 eval_general_metrics_on_high_res=False, data_path=None, path_to_config=None):
+                 general_metrics_high_res=False, data_path=None, path_to_config=None):
 
         self.name = name  # corresponds to the file name
 
@@ -58,30 +58,33 @@ class BaseScene(object):
         self.category = category
 
         self.gt_scale = gt_scale
-        self.boundary_offset = boundary_offset  # how many pixels to ignore on each side during evaluation on gt_scale=1
-        self.eval_general_metrics_on_high_res = eval_general_metrics_on_high_res
+        # how many pixels to ignore on each side during evaluation on gt_scale=1
+        self.boundary_offset = boundary_offset
+        self.general_metrics_high_res = general_metrics_high_res
 
         if data_path is None:
             data_path = settings.DATA_PATH
-        self.data_path = op.join(*[data_path, self.get_category(), self.get_name()])
+        self.data_path = op.join(data_path, self.get_category(), self.get_name())
 
         # set scene params from file
-        path_to_config = op.join(self.data_path, "parameters.cfg") if path_to_config is None else path_to_config
+        if path_to_config is None:
+            path_to_config = op.join(self.data_path, "parameters.cfg")
+
         with open(path_to_config, "r") as f:
             parser = ConfigParser.ConfigParser()
             parser.readfp(f)
 
             section = "intrinsics"
-            self.original_width = int(parser.get(section, 'image_resolution_x_px'))
-            self.original_height = int(parser.get(section, 'image_resolution_y_px'))
+            self.width = int(parser.get(section, 'image_resolution_x_px'))
+            self.height = int(parser.get(section, 'image_resolution_y_px'))
             self.focal_length_mm = float(parser.get(section, 'focal_length_mm'))
-            self.sensor_size_mm = float(parser.get(section, 'sensor_size_mm'))
+            self.sensor_mm = float(parser.get(section, 'sensor_size_mm'))
 
             section = "extrinsics"
             self.num_cams_x = int(parser.get(section, 'num_cams_x'))
             self.num_cams_y = int(parser.get(section, 'num_cams_y'))
             self.baseline_mm = float(parser.get(section, 'baseline_mm'))
-            self.focus_distance_m = float(parser.get(section, 'focus_distance_m'))
+            self.focus_dist_m = float(parser.get(section, 'focus_distance_m'))
 
             section = "meta"
             self.disp_min = float(parser.get(section, 'disp_min'))
@@ -110,10 +113,10 @@ class BaseScene(object):
         return self.display_name
 
     def get_width(self):
-        return int(self.original_width * self.gt_scale)
+        return int(self.width * self.gt_scale)
 
     def get_height(self):
-        return int(self.original_height * self.gt_scale)
+        return int(self.height * self.gt_scale)
 
     def get_boundary_offset(self):
         return int(self.boundary_offset * self.gt_scale)
@@ -144,7 +147,8 @@ class BaseScene(object):
         fname = "input_Cam%03d.png" % self.get_center_cam()
         center_view = file_io.read_file(op.join(self.data_path, fname))
         if self.gt_scale != 1.0:
-            center_view = misc.resize_to_shape(center_view, self.get_height(), self.get_width(), order=0)
+            center_view = misc.resize_to_shape(center_view,
+                                               self.get_height(), self.get_width(), order=0)
         return center_view
 
     def get_gt(self):
@@ -188,21 +192,21 @@ class BaseScene(object):
         return mask
 
     def disp2depth(self, disp_map):
-        q = self.baseline_mm * self.focal_length_mm * max(self.original_width, self.original_height)
-        depth_map = 1.0 / ((1000.0 * self.sensor_size_mm) * disp_map / q + (1.0 / self.focus_distance_m))
+        q = self.baseline_mm * self.focal_length_mm * max(self.width, self.height)
+        depth_map = 1.0 / ((1000.0 * self.sensor_mm) * disp_map / q + (1.0 / self.focus_dist_m))
         return depth_map
 
     def depth2disp(self, depth_map):
-        factor = (self.baseline_mm / 1000.) * self.focal_length_mm * max(self.original_width, self.original_height)
-        disp_map = (factor * self.focus_distance_m / depth_map - factor) / self.focus_distance_m / self.sensor_size_mm
+        f = (self.baseline_mm / 1000.) * self.focal_length_mm * max(self.width, self.height)
+        disp_map = (f * self.focus_dist_m / depth_map - f) / self.focus_dist_m / self.sensor_mm
         return disp_map
 
     def get_depth_normals(self, depth_map):
         h, w = np.shape(depth_map)
         zz = depth_map
         xx, yy = np.meshgrid(range(0, h), range(0, w))
-        xx = (xx / (h - 1.0) * 0.5) * self.sensor_size_mm * zz / self.focal_length_mm
-        yy = (yy / (w - 1.0) * 0.5) * self.sensor_size_mm * zz / self.focal_length_mm
+        xx = (xx / (h - 1.0) * 0.5) * self.sensor_mm * zz / self.focal_length_mm
+        yy = (yy / (w - 1.0) * 0.5) * self.sensor_mm * zz / self.focal_length_mm
 
         kernel = np.asarray([[3., 10., 3.], [0., 0., 0.], [-3., -10., -3.]])
         kernel /= 64.
@@ -257,7 +261,7 @@ class BaseScene(object):
             general_metrics = misc.get_general_metrics()
 
         for metric in general_metrics:
-            if self.eval_general_metrics_on_high_res:
+            if self.general_metrics_high_res:
                 metric.eval_on_high_res = True
             else:
                 metric.eval_on_high_res = False
@@ -266,8 +270,8 @@ class BaseScene(object):
 
     def get_applicable_metrics_low_res(self, metrics=None):
         return [m for m in self.get_applicable_metrics(metrics) if
-                m.evaluate_on_low_scene_resolution() and m.evaluation_mask_exists(self, settings.LOWRES)]
+                m.evaluate_on_low_scene_resolution() and m.mask_exists(self, settings.LOWRES)]
 
     def get_applicable_metrics_high_res(self, metrics=None):
         return [m for m in self.get_applicable_metrics(metrics) if
-                m.evaluate_on_high_scene_resolution() and m.evaluation_mask_exists(self, settings.HIGHRES)]
+                m.evaluate_on_high_scene_resolution() and m.mask_exists(self, settings.HIGHRES)]

@@ -35,7 +35,8 @@ from mpl_toolkits.axes_grid1 import ImageGrid
 import numpy as np
 
 import settings
-from metrics import MSE, BadPix, BumpinessPlanes, BumpinessContinSurf, Discontinuities, FineFattening, FineThinning
+from metrics import MSE, BadPix, BumpinessPlanes, BumpinessContinSurf, \
+    Discontinuities, FineFattening, FineThinning
 from scenes import BaseScene
 from utils import log, misc, plotting
 
@@ -47,16 +48,15 @@ class PhotorealisticScene(BaseScene):
 
     def get_scene_specific_metrics(self):
         return [m for m in misc.get_region_metrics() if
-                m.evaluation_mask_exists(self, settings.LOWRES) or m.evaluation_mask_exists(self, settings.HIGHRES)]
+                m.mask_exists(self, settings.LOWRES) or m.mask_exists(self, settings.HIGHRES)]
 
-    def plot_algo_overview(self, algorithms, subdir="algo_overview"):
+    def plot_algo_overview(self, algorithms, subdir="algo_overview", fs=6):
         accv_metrics = [MSE(), BadPix(0.07), BumpinessPlanes(), BumpinessContinSurf(),
                         Discontinuities(), FineFattening(), FineThinning()]
         metrics_low_res = [m for m in self.get_applicable_metrics_low_res() if m in accv_metrics]
         metrics_high_res = [m for m in self.get_applicable_metrics_high_res() if m in accv_metrics]
 
         # prepare figure
-        fontsize = 6
         rows = len(metrics_low_res + metrics_high_res) + 1
         cols = len(algorithms) + 1
         fig = plt.figure(figsize=(cols, rows*1.1))
@@ -66,23 +66,24 @@ class PhotorealisticScene(BaseScene):
         self.set_high_gt_scale()
         plt.sca(grids[0][0])
         plt.imshow(self.get_center_view())
-        plt.title("Center View", fontsize=fontsize)
-        plt.ylabel("Disparity Map", fontsize=fontsize)
+        plt.title("Center View", fontsize=fs)
+        plt.ylabel("Disparity Map", fontsize=fs)
 
         # mask visualizations + algorithm disparity maps + metric visualizations
         log.info("Computing scores and visualizations for LOW resolution metrics.")
         self.set_low_gt_scale()
-        self.plot_metric_rows(grids, algorithms, metrics_low_res, offset=0, fontsize=fontsize)
+        self.plot_metric_rows(grids, algorithms, metrics_low_res, offset=0, fontsize=fs)
 
         log.info("Computing scores and visualizations for HIGH resolution metrics.")
         self.set_high_gt_scale()
-        self.plot_metric_rows(grids, algorithms, metrics_high_res, offset=len(metrics_low_res), fontsize=fontsize)
+        self.plot_metric_rows(grids, algorithms, metrics_high_res,
+                              offset=len(metrics_low_res), fontsize=fs)
 
         # finalize figure
         for grid in grids:
             plotting.remove_ticks_from_axes(grid.axes_all)
             plotting.remove_frames_from_axes(grid.axes_all)
-        plt.suptitle(self.get_display_name(), fontsize=fontsize+2)
+        plt.suptitle(self.get_display_name(), fontsize=fs+2)
 
         fig_path = plotting.get_path_to_figure("algo_overview_%s" % self.get_name(), subdir=subdir)
         plotting.save_fig(fig, fig_path, pad_inches=0.1)
@@ -118,7 +119,8 @@ class PhotorealisticScene(BaseScene):
 
             # add colorbar to last disparity map in row
             if idx_a == (len(algorithms) - 1):
-                plotting.create_colorbar(cm, cax=grids[0].cbar_axes[0], colorbar_bins=7, fontsize=fontsize)
+                plotting.create_colorbar(cm, cax=grids[0].cbar_axes[0],
+                                         colorbar_bins=7, fontsize=fontsize)
 
             # add algorithm metric visualizations
             for idx_m, metric in enumerate(metrics):
@@ -126,7 +128,8 @@ class PhotorealisticScene(BaseScene):
                 mask = metric.get_evaluation_mask(self)
 
                 plt.sca(grids[idx_m + offset + 1][idx_a + 1])
-                cm = self.plot_algo_vis_for_metric(metric, algo_result, gt, mask, self.hidden_gt(), fontsize)
+                cm = self.plot_algo_vis_for_metric(metric, algo_result, gt, mask,
+                                                   self.hidden_gt(), fontsize)
 
                 # add colorbar to last metric visualization in row
                 if idx_a == len(algorithms) - 1:
@@ -136,7 +139,8 @@ class PhotorealisticScene(BaseScene):
                 # add mask visualizations as 1st column
                 if idx_a == 0:
                     plt.sca(grids[idx_m + offset + 1][0])
-                    plotting.plot_img_with_transparent_mask(center_view, mask, alpha=0.7, color=settings.color_mask)
+                    plotting.plot_img_with_transparent_mask(center_view, mask,
+                                                            alpha=0.7, color=settings.color_mask)
                     plt.ylabel(metric.get_short_name(), fontsize=fontsize)
                     plt.title("Region Mask", fontsize=fontsize)
 

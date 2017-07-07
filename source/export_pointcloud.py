@@ -37,14 +37,14 @@ from utils.option_parser import OptionParser, SceneOps, AlgorithmOps, MetaAlgori
 
 if __name__ == "__main__":
     parser = OptionParser([SceneOps(), AlgorithmOps(with_gt=True), MetaAlgorithmOps(default=[])])
-    scenes, algorithms, meta_algorithms, load_meta_algorithm_files = parser.parse_args()
+    scenes, algorithms, meta_algorithms, compute_meta_algos = parser.parse_args()
 
     # delay imports to speed up usage response
     from algorithms import MetaAlgorithm
     import settings
     from utils import log, misc, point_cloud
 
-    if not load_meta_algorithm_files and meta_algorithms:
+    if compute_meta_algos and meta_algorithms:
         MetaAlgorithm.prepare_meta_algorithms(meta_algorithms, algorithms, scenes)
 
     algorithms += meta_algorithms
@@ -59,9 +59,11 @@ if __name__ == "__main__":
             else:
                 disp_map = misc.get_algo_result(scene, algorithm)
 
-            log.info("Creating point cloud for scene '%s' with '%s' disparity map." % (scene.get_name(), algorithm.get_name()))
+            log.info("Creating point cloud for scene '%s' with '%s' disparity map." %
+                     (scene.get_name(), algorithm.get_name()))
             pc = point_cloud.convert(scene, disp_map, center_view)
 
-            fpath = op.join(*[settings.EVAL_PATH, "point_clouds", "%s_%s.ply" % (scene.get_name(), algorithm.get_name())])
-            log.info("Saving point cloud to: %s" % fpath)
-            point_cloud.save(pc, fpath)
+            file_name = "%s_%s.ply" % (scene.get_name(), algorithm.get_name())
+            file_path = op.join(settings.EVAL_PATH, "point_clouds", file_name)
+            log.info("Saving point cloud to: %s" % file_path)
+            point_cloud.save(pc, file_path)

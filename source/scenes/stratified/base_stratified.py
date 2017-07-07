@@ -50,7 +50,7 @@ class BaseStratified(BaseScene):
     def set_scale_for_algo_overview(self):
         self.set_high_gt_scale()
 
-    def plot_algo_overview(self, algorithms, with_metric_vis=True, subdir="algo_overview"):
+    def plot_algo_overview(self, algorithms, with_metric_vis=True, subdir="algo_overview", fs=14):
         self.set_scale_for_algo_overview()
         metrics = self.get_scene_specific_metrics()
         n_metrics = len(metrics)
@@ -64,32 +64,30 @@ class BaseStratified(BaseScene):
             fig = plt.figure(figsize=(2.6*len(algorithms), rows+3))
             offset = n_metrics
 
-        fontsize = 14
         labelpad = -15
-        hscale = 7
-        wscale = 5
+        hscale, wscale = 7, 5
         width_ratios = [wscale] * (len(algorithms) + 1) + [1]
         height_ratios = [hscale] * (rows - n_metrics) + [1] * n_metrics
         gs = gridspec.GridSpec(rows, cols, height_ratios=height_ratios, width_ratios=width_ratios)
 
         gt = self.get_gt()
         dummy = np.ones((self.get_height() / hscale, self.get_width()))
-        colorbar_height, w = np.shape(gt)
-        colorbar_width = w / float(wscale)
+        cb_height, w = np.shape(gt)
+        cb_width = w / float(wscale)
 
         # first column (gt, center view, ...)
         plt.subplot(gs[0])
         plt.imshow(gt, **settings.disp_map_args(self))
-        plt.title("Ground Truth", fontsize=fontsize)
-        plt.ylabel("Disparity Map", fontsize=fontsize)
+        plt.title("Ground Truth", fontsize=fs)
+        plt.ylabel("Disparity Map", fontsize=fs)
 
         plt.subplot(gs[cols])
         plt.imshow(self.get_center_view())
-        plt.ylabel("diff: GT - Algo", fontsize=fontsize)
+        plt.ylabel("diff: GT - Algo", fontsize=fs)
 
         for idx_m, metric in enumerate(metrics):
             plt.subplot(gs[(2+idx_m+offset)*cols])
-            plt.xlabel(metric.get_short_name(), labelpad=labelpad, fontsize=fontsize)
+            plt.xlabel(metric.get_short_name(), labelpad=labelpad, fontsize=fs)
             plt.imshow(dummy, cmap="gray_r")
 
         # algorithm columns
@@ -99,7 +97,7 @@ class BaseStratified(BaseScene):
 
             # algorithm disparities
             plt.subplot(gs[idx_a+1])
-            plt.title(algorithm.get_display_name(), fontsize=fontsize)
+            plt.title(algorithm.get_display_name(), fontsize=fs)
             cm1 = plt.imshow(algo_result, **settings.disp_map_args(self))
 
             # algorithm diff map
@@ -108,10 +106,10 @@ class BaseStratified(BaseScene):
 
             # add colorbar if last column
             if idx_a == (len(algorithms) - 1):
-                plotting.add_colorbar(gs[idx_a + 2], cm1, colorbar_height, colorbar_width,
-                                      colorbar_bins=5, fontsize=10, img_width=1)
-                plotting.add_colorbar(gs[cols + idx_a + 2], cm2, colorbar_height, colorbar_width,
-                                      colorbar_bins=5, fontsize=10, img_width=1)
+                plotting.add_colorbar(gs[idx_a + 2], cm1, cb_height, cb_width,
+                                      colorbar_bins=5, fontsize=fs-4)
+                plotting.add_colorbar(gs[cols + idx_a + 2], cm2, cb_height, cb_width,
+                                      colorbar_bins=5, fontsize=fs-4)
 
             # score + background color for metrics
             for idx_m, metric in enumerate(metrics):
@@ -122,18 +120,19 @@ class BaseStratified(BaseScene):
                     cm3 = plt.imshow(vis, **settings.metric_args(metric))
 
                     if idx_a == 0:
-                        plt.ylabel(metric.get_short_name(), fontsize=fontsize)
+                        plt.ylabel(metric.get_short_name(), fontsize=fs)
                     elif idx_a == (len(algorithms) - 1):
-                        plotting.add_colorbar(gs[(2+idx_m)*cols+idx_a+2], cm3, colorbar_height, colorbar_width,
-                                              colorbar_bins=metric.colorbar_bins, fontsize=10, img_width=1)
+                        plotting.add_colorbar(gs[(2+idx_m)*cols+idx_a+2], cm3, cb_height, cb_width,
+                                              colorbar_bins=metric.colorbar_bins, fontsize=fs-4)
 
                 else:
                     score = metric.get_score(algo_result, gt, self)
 
                 plt.subplot(gs[(2+idx_m+offset)*cols+idx_a+1])
-                plt.imshow(dummy * score, **settings.score_color_args(vmin=metric.vmin, vmax=metric.vmax))
-                plt.xlabel(metric.format_score(score), labelpad=labelpad, fontsize=fontsize)
+                plt.imshow(dummy*score,
+                           **settings.score_color_args(vmin=metric.vmin, vmax=metric.vmax))
+                plt.xlabel(metric.format_score(score), labelpad=labelpad, fontsize=fs)
 
         fig_name = "algo_overview_" + self.get_name() + with_metric_vis * "_vis"
         fig_path = plotting.get_path_to_figure(fig_name, subdir=subdir)
-        plotting.save_tight_figure(fig, fig_path, wspace=0.04, hide_frames=True, remove_ticks=True)
+        plotting.save_tight_figure(fig, fig_path, wspace=0.04, hide_frames=True)

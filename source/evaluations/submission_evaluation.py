@@ -40,13 +40,14 @@ from utils import file_io, log, misc, plotting
 
 
 def evaluate(evaluation_output_path, algorithm_input_path, ground_truth_path,
-             scenes, metrics=None, visualize=False):
+             scenes, metrics, visualize=False):
     """
     :param evaluation_output_path: target directory for all evaluation results
-    :param algorithm_input_path: input directory for algorithm results with expected directories: runtimes, disp_maps
+    :param algorithm_input_path: input directory for algorithm results,
+                                 expected directories: runtimes, disp_maps
     :param ground_truth_path: input directory for ground truth data
-    :param scenes: the given subset of the scenes
-    :param metrics: the given subset of the metrics, otherwise: all applicable metrics
+    :param scenes: scenes to be evaluated
+    :param metrics: metrics to be evaluated
     :param visualize: whether to save visualizations (otherwise just the scores)
     :return: success, {"messages": ["error 1", "error 2", ...]}
     """
@@ -54,16 +55,10 @@ def evaluate(evaluation_output_path, algorithm_input_path, ground_truth_path,
     admin_errors = []
     eval_json = dict()
 
-    log.info("Evaluating algorithm results in: %s" % algorithm_input_path)
-    log.info("Writing results to: %s" % evaluation_output_path)
-    log.info("Using ground truth data from: %s" % ground_truth_path)
-
-    # prepare metrics
-    if metrics is None:
-        metrics = misc.get_all_metrics()
+    log.info("Evaluating algorithm results in:\n  %s" % algorithm_input_path)
+    log.info("Writing results to:\n  %s" % evaluation_output_path)
+    log.info("Using ground truth data from:\n  %s" % ground_truth_path)
     log.info("Metrics: %s" % ", ".join(m.get_display_name() for m in metrics))
-
-    # prepare scenes
     log.info("Scenes: %s" % ", ".join(s.get_display_name() for s in scenes))
 
     # evaluate
@@ -73,11 +68,13 @@ def evaluate(evaluation_output_path, algorithm_input_path, ground_truth_path,
         try:
             if visualize:
                 log.info("Visualizing algorithm result on %s" % scene.get_display_name())
-                scene_data["algorithm_result"] = visualize_algo_result(scene, algorithm_input_path, evaluation_output_path)
+                scene_data["algorithm_result"] = visualize_algo_result(scene, algorithm_input_path,
+                                                                       evaluation_output_path)
 
             log.info("Processing scene: %s" % scene.get_display_name())
-            log.info("Using data from: %s" % scene.get_data_path())
-            scene_data["scores"] = compute_scores(scene, metrics, algorithm_input_path, evaluation_output_path, visualize)
+            log.info("Using data from:\n  %s" % scene.get_data_path())
+            scene_data["scores"] = compute_scores(scene, metrics, algorithm_input_path,
+                                                  evaluation_output_path, visualize)
 
         except IOError as e:
             admin_errors.append(e)
@@ -110,7 +107,7 @@ def visualize_algo_result(scene, algo_dir, tgt_dir):
     # save fig
     relative_fname = get_relative_path(scene, "dispmap")
     fpath = op.normpath(op.join(tgt_dir, relative_fname))
-    plotting.save_tight_figure(fig, fpath, hide_frames=True, remove_ticks=True, pad_inches=0.01)
+    plotting.save_tight_figure(fig, fpath, hide_frames=True, pad_inches=0.01)
 
     # path info for django importer
     disp_map_data = {"thumb": relative_fname}
@@ -149,7 +146,8 @@ def add_scores(metrics, scene, algo_dir, tgt_dir, scores, visualize):
     algo_result = misc.get_algo_result_from_dir(scene, algo_dir)
 
     for idx_m, metric in enumerate(metrics):
-        log.info("Computing score for metric: %s, scale: %0.2f" % (metric.get_display_name(), scene.gt_scale))
+        log.info("Computing score for metric: %s, scale: %0.2f" %
+                 (metric.get_display_name(), scene.gt_scale))
 
         if visualize:
             score, vis = metric.get_score(algo_result, gt, scene, with_visualization=True)
@@ -179,7 +177,7 @@ def save_visualization(algo_result, metric_vis, metric, scene, tgt_dir):
     # save fig
     relative_fname = get_relative_path(scene, metric.get_id())
     fpath = op.normpath(op.join(tgt_dir, relative_fname))
-    plotting.save_tight_figure(fig, fpath, hide_frames=True, remove_ticks=True, pad_inches=0.01)
+    plotting.save_tight_figure(fig, fpath, hide_frames=True, pad_inches=0.01)
 
     return relative_fname
 

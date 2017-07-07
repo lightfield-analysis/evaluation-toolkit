@@ -44,7 +44,7 @@ def plot(scenes, algorithms, meta_algo,
     # prepare figure
     rows, cols = len(algorithms) + int(with_gt_row), len(scenes)*3+1
     fig = plt.figure(figsize=(cols * 1.3, rows * 1.5))
-    grid, cb_height, cb_width = plotting.prepare_grid_with_colorbar(rows, cols, scenes[0])
+    grid, cb_height, cb_width = plotting.get_grid_with_colorbar(rows, cols, scenes[0])
     cb_height *= 0.8
 
     for idx_s, scene in enumerate(scenes):
@@ -106,7 +106,8 @@ def plot(scenes, algorithms, meta_algo,
                                       cb_width, colorbar_bins=4, fontsize=fs)
 
     if fig_name is None:
-        fig_name ="%s_comparison_%s" % (meta_algo.get_name(), "_".join(scene.get_name() for scene in scenes))
+        scene_names = "_".join(s.get_name() for s in scenes)
+        fig_name = "%s_comparison_%s" % (meta_algo.get_name(), scene_names)
     fig_path = plotting.get_path_to_figure(fig_name, subdir=subdir)
-    plotting.save_tight_figure(fig, fig_path, hide_frames=True, remove_ticks=True, hspace=0.02, wspace=0.0)
+    plotting.save_tight_figure(fig, fig_path, hide_frames=True, hspace=0.02, wspace=0.0)
 

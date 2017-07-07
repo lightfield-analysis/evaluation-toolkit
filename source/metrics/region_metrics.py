@@ -39,8 +39,10 @@ from utils import misc, plotting
 
 
 class Discontinuities(BadPix):
-    def __init__(self, thresh=settings.BAD_PIX_THRESH, name="Discontinuities", eval_on_high_res=True):
-        super(Discontinuities, self).__init__(name=name, thresh=thresh, eval_on_high_res=eval_on_high_res)
+    def __init__(self, thresh=settings.BAD_PIX_THRESH, name="Discontinuities",
+                 eval_on_high_res=True):
+        super(Discontinuities, self).__init__(name=name, thresh=thresh,
+                                              eval_on_high_res=eval_on_high_res)
         self.category = settings.PHOTOREALISTIC_METRIC
         self.mask_name = "mask_discontinuities"
 
@@ -48,7 +50,8 @@ class Discontinuities(BadPix):
         return ("discontinuities_%0.3f" % self.thresh).replace(".", "")
 
     def get_description(self):
-        return "The percentage of pixels at discontinuity regions with abs(gt - algo) > %0.2f." % self.thresh
+        return "The percentage of pixels at discontinuity regions " \
+               "with abs(gt - algo) > %0.2f." % self.thresh
 
     def get_short_name(self):
         return "Discont."
@@ -58,9 +61,11 @@ class Discontinuities(BadPix):
 
 
 class BumpinessPlanes(BaseMetric):
-    def __init__(self, clip=0.05, factor=100, name="Bumpiness Planes", vmin=0, vmax=5, eval_on_high_res=False):
-        super(BumpinessPlanes, self).__init__(name=name, vmin=vmin, vmax=vmax, eval_on_high_res=eval_on_high_res,
-                                              colorbar_bins=5, cmap=settings.disp_cmap)
+    def __init__(self, clip=0.05, factor=100, name="Bumpiness Planes", vmin=0, vmax=5,
+                 eval_on_high_res=False):
+        super(BumpinessPlanes, self).__init__(name=name, vmin=vmin, vmax=vmax,
+                                              colorbar_bins=5, cmap=settings.disp_cmap,
+                                              eval_on_high_res=eval_on_high_res)
         self.clip = clip
         self.factor = factor
         self.category = settings.PHOTOREALISTIC_METRIC
@@ -109,7 +114,8 @@ class BumpinessPlanes(BaseMetric):
 
 class BumpinessContinSurf(BumpinessPlanes):
 
-    def __init__(self, clip=0.05, factor=100, name="Bumpiness Contin. Surfaces", eval_on_high_res=False):
+    def __init__(self, clip=0.05, factor=100, name="Bumpiness Contin. Surfaces",
+                 eval_on_high_res=False):
         super(BumpinessContinSurf, self).__init__(clip=clip, factor=factor, name=name,
                                                   eval_on_high_res=eval_on_high_res)
         self.category = settings.PHOTOREALISTIC_METRIC
@@ -128,7 +134,8 @@ class BumpinessContinSurf(BumpinessPlanes):
 
 class MAEPlanes(BaseMetric):
     def __init__(self, name="MAE Planes", vmin=0, vmax=80, eval_on_high_res=False):
-        super(MAEPlanes, self).__init__(name=name, vmin=vmin, vmax=vmax, eval_on_high_res=eval_on_high_res,
+        super(MAEPlanes, self).__init__(name=name, vmin=vmin, vmax=vmax,
+                                        eval_on_high_res=eval_on_high_res,
                                         colorbar_bins=5, cmap=settings.abs_error_cmap)
         self.category = settings.PHOTOREALISTIC_METRIC
         self.mask_name = "mask_planes"
@@ -150,7 +157,8 @@ class MAEPlanes(BaseMetric):
 
     def get_score(self, algo_result, gt, scene, with_visualization=False):
         mask = self.get_evaluation_mask(scene)
-        return self.get_score_from_mask(algo_result, gt, scene, mask, with_visualization=with_visualization)
+        return self.get_score_from_mask(algo_result, gt, scene, mask,
+                                        with_visualization=with_visualization)
 
     def get_score_from_mask(self, algo_result, gt, scene, mask, with_visualization=False):
         angular_error = self.get_angular_error(algo_result, gt, scene)
@@ -193,7 +201,8 @@ class MAEContinSurf(MAEPlanes):
 
 class FineFattening(BadPix):
     def __init__(self, thresh=-0.15, name="Fine Fattening", eval_on_high_res=True):
-        super(FineFattening, self).__init__(thresh=thresh, name=name, eval_on_high_res=eval_on_high_res)
+        super(FineFattening, self).__init__(thresh=thresh, name=name,
+                                            eval_on_high_res=eval_on_high_res)
         self.category = settings.PHOTOREALISTIC_METRIC
         self.mask_name = "mask_fine_surrounding"
 
@@ -204,7 +213,8 @@ class FineFattening(BadPix):
         return "Fine Fat"
 
     def get_description(self):
-        return "The percentage of pixels around fine structures with (gt - algo) < %0.2f." % self.thresh
+        return "The percentage of pixels around fine structures " \
+               "with (gt - algo) < %0.2f." % self.thresh
 
     def get_score(self, algo_result, gt, scene, with_visualization=False):
         m_fattening = self.get_fattening(algo_result, gt)
@@ -228,7 +238,8 @@ class FineFattening(BadPix):
 
 class FineThinning(BadPix):
     def __init__(self, thresh=0.15, name="Fine Thinning", eval_on_high_res=True):
-        super(FineThinning, self).__init__(thresh=thresh, name=name, eval_on_high_res=eval_on_high_res)
+        super(FineThinning, self).__init__(thresh=thresh, name=name,
+                                           eval_on_high_res=eval_on_high_res)
         self.category = settings.PHOTOREALISTIC_METRIC
         self.mask_name = "mask_fine"
 
@@ -239,7 +250,8 @@ class FineThinning(BadPix):
         return "Fine Thin"
 
     def get_description(self):
-        return "The percentage of pixels at fine structures with (gt - algo) > %0.2f." % self.thresh
+        return "The percentage of pixels at fine structures " \
+               "with (gt - algo) > %0.2f." % self.thresh
 
     def get_score(self, algo_result, gt, scene, with_visualization=False):
         m_thinning = self.get_thinning(algo_result, gt)

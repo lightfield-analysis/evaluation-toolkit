@@ -43,8 +43,9 @@ class Stripes(BaseStratified):
     mn_low_contrast = "mask_low_contrast"
     mn_low_texture = "mask_low_texture"
 
-    def __init__(self, name="stripes", eval_general_metrics_on_high_res=True, **kwargs):
-        super(Stripes, self).__init__(name, eval_general_metrics_on_high_res=eval_general_metrics_on_high_res, **kwargs)
+    def __init__(self, name="stripes", general_metrics_high_res=True, **kwargs):
+        super(Stripes, self).__init__(name, general_metrics_high_res=general_metrics_high_res,
+                                      **kwargs)
 
     @staticmethod
     def get_scene_specific_metrics():
@@ -61,16 +62,22 @@ class Stripes(BaseStratified):
         m_eval = self.get_boundary_mask()
 
         plt.subplot(rows, cols, 1)
-        plotting.plot_img_with_transparent_mask(center_view, self.get_low_texture()*m_eval, **settings.mask_vis_args())
         plt.title("Low Texture")
+        plotting.plot_img_with_transparent_mask(center_view,
+                                                self.get_low_texture()*m_eval,
+                                                **settings.mask_vis_args())
 
         plt.subplot(rows, cols, 2)
-        plotting.plot_img_with_transparent_mask(center_view, self.get_high_contrast()*m_eval, **settings.mask_vis_args())
         plt.title("High Contrast\n(Dark Stripes)")
+        plotting.plot_img_with_transparent_mask(center_view,
+                                                self.get_high_contrast()*m_eval,
+                                                **settings.mask_vis_args())
 
         plt.subplot(rows, cols, 3)
-        plotting.plot_img_with_transparent_mask(center_view, self.get_low_contrast()*m_eval, **settings.mask_vis_args())
         plt.title("Low Contrast\n(Bright Stripes)")
+        plotting.plot_img_with_transparent_mask(center_view,
+                                                self.get_low_contrast()*m_eval,
+                                                **settings.mask_vis_args())
 
         fig_path = plotting.get_path_to_figure("stripes_masks", subdir=subdir)
         plotting.save_tight_figure(fig, fig_path, hide_frames=True)

@@ -40,17 +40,16 @@ import scipy.ndimage.interpolation as sci
 from matplotlib import ticker
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-import file_io
-import misc
 import settings
-from utils import log
+from utils import log, file_io, misc
 
 
 def get_path_to_figure(fig_name, subdir=""):
     return op.join(settings.FIG_PATH, subdir, fig_name + "." + settings.fig_type)
 
 
-def save_fig(fig, fig_name, dpi=150, bbox_inches='tight', hide_frames=False, remove_ticks=False, **kwargs):
+def save_fig(fig, fig_name, dpi=150, bbox_inches='tight',
+             hide_frames=False, remove_ticks=False, **kwargs):
     log.info("Saving figure...")
 
     if remove_ticks:
@@ -70,7 +69,8 @@ def save_tight_figure(fig, fig_name, remove_ticks=True, wspace=0.0, hspace=0.0,
                       pad_inches=0.1, padding_top=0.92, hide_frames=False, dpi=150):
     plt.tight_layout()
     plt.subplots_adjust(wspace=wspace, hspace=hspace, top=padding_top)
-    save_fig(fig, fig_name, pad_inches=pad_inches, hide_frames=hide_frames, remove_ticks=remove_ticks, dpi=dpi)
+    save_fig(fig, fig_name, pad_inches=pad_inches, hide_frames=hide_frames,
+             remove_ticks=remove_ticks, dpi=dpi)
 
 
 def remove_ticks_from_axes(axes):
@@ -102,7 +102,8 @@ def add_colorbar(idx, cm, height, width, colorbar_bins=8, fontsize=None, img_wid
     axis = plt.subplot(idx)
     plt.imshow(np.ones((height*scale, img_width)), alpha=0)
 
-    # colorbar width must be given as a percentage of the img width, both together should be equal to w/wscale
+    # colorbar width must be given as a percentage of the img width,
+    # both together should be equal to w/wscale
     width_factor = 100 * (width - img_width) / float(img_width)
 
     divider = make_axes_locatable(axis)
@@ -121,13 +122,17 @@ def create_colorbar(cm, cax, colorbar_bins=8, fontsize=None, linewidth=0):
     cb.update_ticks()
 
 
-def prepare_grid(rows, cols, hscale=5, wscale=7):
-    grid = gridspec.GridSpec(rows, cols, height_ratios=[hscale] * rows, width_ratios=[wscale] * cols)
+def get_grid(rows, cols, hscale=5, wscale=7):
+    grid = gridspec.GridSpec(rows, cols,
+                             height_ratios=[hscale] * rows,
+                             width_ratios=[wscale] * cols)
     return grid
 
 
-def prepare_grid_with_colorbar(rows, cols, scene, hscale=5, wscale=7):
-    grid = gridspec.GridSpec(rows, cols, height_ratios=[hscale] * rows, width_ratios=[wscale] * (cols - 1) + [1])
+def get_grid_with_colorbar(rows, cols, scene, hscale=5, wscale=7):
+    grid = gridspec.GridSpec(rows, cols,
+                             height_ratios=[hscale] * rows,
+                             width_ratios=[wscale] * (cols - 1) + [1])
     cb_height, w = scene.get_height(), scene.get_width()
     cb_width = w / float(wscale)
     return grid, cb_height, cb_width

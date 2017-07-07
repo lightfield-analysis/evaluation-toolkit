@@ -39,7 +39,8 @@ from utils import misc
 class MetaAlgorithm(Algorithm):
 
     def __init__(self, file_name, display_name, is_meta=True, **kwargs):
-        super(MetaAlgorithm, self).__init__(file_name=file_name, display_name=display_name, is_meta=is_meta, **kwargs)
+        super(MetaAlgorithm, self).__init__(file_name=file_name, display_name=display_name,
+                                            is_meta=is_meta, **kwargs)
 
     @staticmethod
     def prepare_meta_algorithms(meta_algorithms, algorithms, scenes):
@@ -53,8 +54,10 @@ class MetaAlgorithm(Algorithm):
 
 class PerPixMean(MetaAlgorithm):
 
-    def __init__(self, file_name="per_pix_mean", display_name="PerPixMean", color=(0.6, 0.6, 0.6), **kwargs):
-        super(PerPixMean, self).__init__(file_name=file_name, display_name=display_name, color=color, **kwargs)
+    def __init__(self, file_name="per_pix_mean", display_name="PerPixMean",
+                 color=(0.6, 0.6, 0.6), **kwargs):
+        super(PerPixMean, self).__init__(file_name=file_name, display_name=display_name,
+                                         color=color, **kwargs)
 
     def compute_meta_results(self, scenes, algorithms):
         for idx_s, scene in enumerate(scenes):
@@ -69,8 +72,10 @@ class PerPixMean(MetaAlgorithm):
 
 class PerPixMedianDisp(MetaAlgorithm):
 
-    def __init__(self, file_name="per_pix_median_disp", display_name="PerPixMedianDisp", color=(0.4, 0.4, 0.4),  **kwargs):
-        super(PerPixMedianDisp, self).__init__(file_name=file_name, display_name=display_name, color=color, **kwargs)
+    def __init__(self, file_name="per_pix_median_disp", display_name="PerPixMedianDisp",
+                 color=(0.4, 0.4, 0.4),  **kwargs):
+        super(PerPixMedianDisp, self).__init__(file_name=file_name, display_name=display_name,
+                                               color=color, **kwargs)
 
     def compute_meta_results(self, scenes, algorithms):
         for idx_s, scene in enumerate(scenes):
@@ -85,8 +90,10 @@ class PerPixMedianDisp(MetaAlgorithm):
 
 class PerPixMedianDiff(MetaAlgorithm):
 
-    def __init__(self, file_name="per_pix_median_diff", display_name="PerPixMedian", color=(0.2, 0.2, 0.2), **kwargs):
-        super(PerPixMedianDiff, self).__init__(file_name=file_name, display_name=display_name, color=color, **kwargs)
+    def __init__(self, file_name="per_pix_median_diff", display_name="PerPixMedian",
+                 color=(0.2, 0.2, 0.2), **kwargs):
+        super(PerPixMedianDiff, self).__init__(file_name=file_name, display_name=display_name,
+                                               color=color, **kwargs)
 
     def compute_meta_results(self, scenes, algorithms):
         for idx_s, scene in enumerate(scenes):
@@ -100,7 +107,8 @@ class PerPixMedianDiff(MetaAlgorithm):
             algo_results = misc.get_algo_results(scene, algorithms)
             gt_stacked = misc.get_stacked_gt(scene, len(algorithms))
 
-            abs_diffs = np.ma.masked_array(np.abs(gt_stacked - algo_results), mask=misc.get_mask_invalid(algo_results))
+            mask = misc.get_mask_invalid(algo_results)
+            abs_diffs = np.ma.masked_array(np.abs(gt_stacked - algo_results), mask=mask)
             idx_sorted_diffs = np.argsort(abs_diffs)
             xx, yy = np.meshgrid(np.arange(w, dtype=np.int), np.arange(h, dtype=np.int))
 
@@ -119,8 +127,10 @@ class PerPixMedianDiff(MetaAlgorithm):
 
 
 class PerPixBest(MetaAlgorithm):
-    def __init__(self, file_name="per_pix_best", display_name="PerPixBest", color=(0., 0., 0.), **kwargs):
-        super(PerPixBest, self).__init__(file_name=file_name, display_name=display_name, color=color, **kwargs)
+    def __init__(self, file_name="per_pix_best", display_name="PerPixBest",
+                 color=(0., 0., 0.), **kwargs):
+        super(PerPixBest, self).__init__(file_name=file_name, display_name=display_name,
+                                         color=color, **kwargs)
 
     def compute_meta_results(self, scenes, algorithms):
         for idx_s, scene in enumerate(scenes):
@@ -134,7 +144,8 @@ class PerPixBest(MetaAlgorithm):
             algo_results = misc.get_algo_results(scene, algorithms)
             gt_stacked = misc.get_stacked_gt(scene, len(algorithms))
 
-            abs_diffs = np.ma.masked_array(np.abs(gt_stacked - algo_results), mask=misc.get_mask_invalid(algo_results))
+            mask = misc.get_mask_invalid(algo_results)
+            abs_diffs = np.ma.masked_array(np.abs(gt_stacked - algo_results), mask=mask)
             idx_best_algo_per_pix = np.asarray(np.ma.argmin(abs_diffs, axis=2), dtype=np.int)
             xx, yy = np.meshgrid(np.arange(w, dtype=np.int), np.arange(h, dtype=np.int))
             best_disp_per_pixel = algo_results[yy, xx, idx_best_algo_per_pix]

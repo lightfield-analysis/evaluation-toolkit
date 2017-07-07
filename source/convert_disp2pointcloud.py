@@ -34,9 +34,12 @@ from utils.option_parser import OptionParser, ConverterOpsExt
 
 
 if __name__ == "__main__":
-    parser = OptionParser([ConverterOpsExt(input="path to disparity map", output="path to point cloud",
+    parser = OptionParser([ConverterOpsExt(input="path to disparity map",
+                                           output="path to point cloud",
                                            optional_input=[("-c", "color_map_file",
-                                                            "path to color map, e.g. to center view of the scene")])])
+                                                            "path to color map, "
+                                                            "e.g. to center view of the scene")])])
+
     disp_map_path, config_path, point_cloud_path, color_map_path = parser.parse_args()
 
     from scenes import PhotorealisticScene

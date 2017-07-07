@@ -45,8 +45,9 @@ class Pyramids(BaseStratified):
     mn_sphere_in = "mask_sphere_in"
     mn_pyramids = "mask_pyramids"
 
-    def __init__(self, name="pyramids", eval_general_metrics_on_high_res=False, **kwargs):
-        super(Pyramids, self).__init__(name,  eval_general_metrics_on_high_res=eval_general_metrics_on_high_res, **kwargs)
+    def __init__(self, name="pyramids", general_metrics_high_res=False, **kwargs):
+        super(Pyramids, self).__init__(name,  general_metrics_high_res=general_metrics_high_res,
+                                       **kwargs)
 
     @staticmethod
     def get_scene_specific_metrics():
@@ -84,14 +85,16 @@ class Pyramids(BaseStratified):
                 current_disp = disp_values[idx_d]
                 m_disp = (gt_rounded == current_disp)
 
-                # find median disparity of algorithm result at image regions of given ground truth disparity value
+                # find median disparity of algorithm result at image regions
+                # of given ground truth disparity value
                 for idx_m, (mask, mask_name) in enumerate(zip(masks, mask_names)):
                     algo_disps = algo_result[m_disp * mask]
 
                     if np.size(algo_disps) > 0:
                         median = np.median(algo_disps)
                         plt.subplot(rows, cols, idx_m+1)
-                        s = plt.scatter(current_disp/factor, median, marker="o", c=algorithm.get_color(), alpha=0.8, s=5, lw=0)
+                        s = plt.scatter(current_disp/factor, median,
+                                        marker="o", c=algorithm.get_color(), alpha=0.8, s=5, lw=0)
 
             legend_lines.append(s)
             legend_labels.append(algorithm.get_display_name())
@@ -115,7 +118,8 @@ class Pyramids(BaseStratified):
         plt.suptitle("Ground Truth Disparities vs. Algorithm Disparities", fontsize=fontsize)
 
         fig_path = plotting.get_path_to_figure("pyramids_disp_disp", subdir=subdir)
-        plotting.save_tight_figure(fig, fig_path, remove_ticks=False, hspace=0.2, wspace=0.3, padding_top=0.88)
+        plotting.save_tight_figure(fig, fig_path, remove_ticks=False,
+                                   hspace=0.2, wspace=0.3, padding_top=0.88)
 
     # -------------------------
     # evaluation masks

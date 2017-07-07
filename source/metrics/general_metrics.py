@@ -112,8 +112,8 @@ class BaseMetric(object):
     def is_general(self):
         return self.category == settings.GENERAL_METRIC
 
-    def evaluation_mask_exists(self, scene, resolution):
-        # general metrics don't have a mask name as they don't require a mask file with a specific region
+    def mask_exists(self, scene, resolution):
+        # general metrics don't require a mask file with a specific region
         if self.mask_name is None:
             return True
         else:
@@ -144,7 +144,8 @@ class BadPix(BaseMetric):
         return self.name
 
     def get_description(self):
-        return "The percentage of pixels at the given mask with abs(gt - algo) > %0.2f." % self.thresh
+        return "The percentage of pixels at the given mask " \
+               "with abs(gt - algo) > %0.2f." % self.thresh
 
     def get_legend(self):
         return "green = good, red = bad"
@@ -180,8 +181,8 @@ class BadPix(BaseMetric):
 class MSE(BaseMetric):
     def __init__(self, factor=100, name="MSE", eval_on_high_res=False,
                  vmin=settings.DMIN, vmax=settings.DMAX, cmap=settings.error_cmap, colorbar_bins=4):
-        super(MSE, self).__init__(name=name, vmin=vmin, vmax=vmax, eval_on_high_res=eval_on_high_res,
-                                  cmap=cmap, colorbar_bins=colorbar_bins)
+        super(MSE, self).__init__(name=name, vmin=vmin, vmax=vmax, cmap=cmap,
+                                  colorbar_bins=colorbar_bins, eval_on_high_res=eval_on_high_res)
         self.factor = factor
         self.category = settings.GENERAL_METRIC
 
@@ -189,13 +190,16 @@ class MSE(BaseMetric):
         return "mse_%d" % self.factor
 
     def get_description(self):
-        return "The mean squared error over all pixels at the given mask, multiplied with %d." % self.factor
+        return "The mean squared error over all pixels " \
+               "at the given mask, multiplied with %d." % self.factor
 
     def get_legend(self):
         return "white = correct, red = too far, blue = too close"
 
     def get_score(self, algo_result, gt, scene, with_visualization=False):
-        mask = self.get_evaluation_mask(scene) * misc.get_mask_valid(algo_result) * misc.get_mask_valid(gt)
+        mask = self.get_evaluation_mask(scene) * \
+               misc.get_mask_valid(algo_result) * \
+               misc.get_mask_valid(gt)
         score = self.get_masked_score(algo_result, gt, mask)
 
         if not with_visualization:
@@ -215,10 +219,10 @@ class MSE(BaseMetric):
 
 
 class Quantile(BaseMetric):
-    def __init__(self, percentage, factor=100, eval_on_high_res=False,
-                 name="Quantile", vmin=0, vmax=0.5, colorbar_bins=5, cmap=settings.quantile_cmap, **kwargs):
-        super(Quantile, self).__init__(name=name, vmin=vmin, vmax=vmax, cmap=cmap, colorbar_bins=colorbar_bins,
-                                       eval_on_high_res=eval_on_high_res, **kwargs)
+    def __init__(self, percentage, factor=100, name="Quantile", eval_on_high_res=False,
+                 vmin=0, vmax=0.5, colorbar_bins=5, cmap=settings.quantile_cmap, **kwargs):
+        super(Quantile, self).__init__(name=name, vmin=vmin, vmax=vmax, colorbar_bins=colorbar_bins,
+                                       cmap=cmap, eval_on_high_res=eval_on_high_res, **kwargs)
         self.percentage = percentage
         self.category = settings.GENERAL_METRIC
         self.cmin = 0
@@ -232,15 +236,19 @@ class Quantile(BaseMetric):
         return "Q%d" % self.percentage
 
     def get_description(self):
-        return "The %dth percentile of the disparity errors: The maximum absolute disparity error of the best %d%% " \
-               "of pixels for each algorithm, multiplied by 100." % (self.percentage, self.percentage)
+        return "The %dth percentile of the disparity errors: " \
+               "The maximum absolute disparity error of the best %d%% of pixels " \
+               "for each algorithm, multiplied by 100." % (self.percentage, self.percentage)
 
     def get_legend(self):
-        return "gray = errors above %dth percentile, white/yellow = good, red = relatively bad" % self.percentage
+        return "gray = errors above %dth percentile, " \
+               "white/yellow = good, red = relatively bad" % self.percentage
 
     def get_score(self, algo_result, gt, scene, with_visualization=False):
         diffs = np.abs(algo_result - gt) * self.factor
-        mask = self.get_evaluation_mask(scene) * misc.get_mask_valid(diffs) * misc.get_mask_valid(algo_result)
+        mask = self.get_evaluation_mask(scene) * \
+               misc.get_mask_valid(diffs) * \
+               misc.get_mask_valid(algo_result)
         sorted_diffs = np.sort(diffs[mask])
         idx = np.size(sorted_diffs) * self.percentage / 100.
         score = sorted_diffs[int(idx)]
@@ -273,8 +281,8 @@ class Runtime(BaseMetric):
 
     def get_description(self):
         if self.log:
-            return "Decadic logarithm of the runtime in seconds as reported by the authors (hence runtime scores " \
-                   "below 1 second are negative)."
+            return "Decadic logarithm of the runtime in seconds as reported by the authors " \
+                   "(hence runtime scores below 1 second are negative)."
         else:
             return "The runtime in seconds as reported by the authors."
 
