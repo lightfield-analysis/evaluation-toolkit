@@ -7,7 +7,7 @@ You may use this toolkit to:
 3. [Convert between depth and disparity maps](#3-convert-between-depth-and-disparity-maps)
 4. [Convert between pfm and png files](#4-convert-between-pfm-and-png-files)
 5. [Create figures](#5-create-figures)
-6. [Create point clouds](6-create-point-clouds)
+6. [Create point clouds](#6-create-point-clouds)
 
 For details on how to prepare your submission for the 4D Light Field Benchmark, please read the [submission instructions](SUBMISSION_INSTRUCTIONS).
 Please don't hesitate to contact us for any kind of questions, feedback, or bug reports: contact at lightfield-analysis.net
