@@ -39,13 +39,12 @@ from toolkit import settings
 from toolkit.utils import file_io, log, misc, plotting
 
 
-def evaluate(evaluation_output_path, algorithm_input_path, ground_truth_path,
-             scenes, metrics, visualize=False, add_to_existing_results=True):
+def evaluate(evaluation_output_path, algorithm_input_path, scenes, metrics,
+             visualize=False, add_to_existing_results=True):
     """
     :param evaluation_output_path: target directory for all evaluation results
     :param algorithm_input_path: input directory for algorithm results,
                                  expected directories: runtimes, disp_maps
-    :param ground_truth_path: input directory for ground truth data
     :param scenes: scenes to be evaluated
     :param metrics: metrics to be evaluated
     :param visualize: whether to save visualizations (otherwise just the scores)
@@ -56,7 +55,7 @@ def evaluate(evaluation_output_path, algorithm_input_path, ground_truth_path,
 
     log.info("Evaluating algorithm results in:\n  %s" % algorithm_input_path)
     log.info("Writing results to:\n  %s" % evaluation_output_path)
-    log.info("Using ground truth data from:\n  %s" % ground_truth_path)
+    log.info("Using ground truth data from:\n  %s" % settings.DATA_PATH)
     log.info("Metrics:\n  %s" % ", ".join(m.get_display_name() for m in metrics))
     log.info("Scenes:\n  %s" % ", ".join(s.get_display_name() for s in scenes))
 

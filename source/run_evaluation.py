@@ -58,7 +58,6 @@ def main():
         submission_evaluation.evaluate(scenes=scenes,
                                        metrics=metrics,
                                        visualize=with_vis,
-                                       ground_truth_path=settings.DATA_PATH,
                                        evaluation_output_path=evaluation_output_path,
                                        algorithm_input_path=algorithm_input_path,
                                        add_to_existing_results=add_to_existing)
