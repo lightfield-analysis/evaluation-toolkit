@@ -41,7 +41,7 @@ The benchmark consists of 12 scenes:
 
 You may use our evaluation toolkit to validate submissions and to evaluate
 your method on the stratified and training scenes. Please check out the
-TOOLKIT_INSTRUCTIONS for further information on the software features.
+README for further information on the software features.
 
 
 SUBMISSION INSTRUCTIONS
