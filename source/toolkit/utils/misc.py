@@ -163,9 +163,9 @@ def get_stratified_scene(scene_name, gt_scale=1.0, data_path=None):
 
 # metrics
 
-def get_all_metrics(log_runtime=True):
+def get_all_metrics():
     from toolkit.metrics import Runtime
-    return get_all_metrics_wo_runtime() + [Runtime(log=log_runtime)]
+    return get_all_metrics_wo_runtime() + [Runtime(log=True), Runtime(log=False)]
 
 
 def get_all_metrics_wo_runtime():
@@ -309,5 +309,3 @@ def get_runtimes(algorithms, scene):
 def save_runtime(runtime, algorithm, scene):
     fname = get_fname_runtime(get_path_to_algo_data(algorithm), scene)
     file_io.write_runtime(runtime, fname)
-
-

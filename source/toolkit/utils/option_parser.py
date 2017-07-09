@@ -279,13 +279,12 @@ class MetricOps(Ops):
 
     def add_arguments(self, parser):
         from toolkit.utils import misc
-        from toolkit.metrics import Runtime
 
         # prepare metric groups with names: {"stratified": stratified_metrics, ...}
         metric_groups_by_name = misc.get_metric_groups_by_name()
 
         # prepare individual metrics with short keys: {"fine_thinning": [FineThinning()], ...}
-        all_metrics = misc.get_all_metrics_wo_runtime() + [Runtime(log=True), Runtime(log=False)]
+        all_metrics = misc.get_all_metrics()
         ignored_chars = "".join(["(", ")", ".", ":"])
 
         metrics_by_name = {}
