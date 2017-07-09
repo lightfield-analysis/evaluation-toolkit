@@ -30,7 +30,7 @@
 ############################################################################
 
 
-from utils.option_parser import OptionParser, FigureOpsCVPR17
+from toolkit.utils.option_parser import OptionParser, FigureOpsCVPR17
 
 
 SUBDIR = "paper_cvprw_2017"
@@ -41,10 +41,10 @@ def main():
     figure_options = OptionParser([FigureOpsCVPR17()]).parse_args()
 
     # delay imports to speed up usage response
-    from algorithms import Algorithm, PerPixBest
-    from evaluations import paper_cvprw_2017 as cvprw
-    from utils import log, misc
-    from scenes import PhotorealisticScene
+    from toolkit.algorithms import Algorithm, PerPixBest
+    from toolkit.evaluations import paper_cvprw_2017 as cvprw
+    from toolkit.utils import log, misc
+    from toolkit.scenes import PhotorealisticScene
 
     # prepare scenes
     if USE_TEST_SCENE_GT:

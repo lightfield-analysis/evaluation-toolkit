@@ -30,14 +30,14 @@
 ############################################################################
 
 
-from utils.option_parser import OptionParser, AlgorithmOps, SceneOps, MetaAlgorithmOps
+from toolkit.utils.option_parser import OptionParser, AlgorithmOps, SceneOps, MetaAlgorithmOps
 
 
 def main():
     parser = OptionParser([AlgorithmOps(), SceneOps(), MetaAlgorithmOps(with_load_argument=False)])
     algorithms, scenes, meta_algorithms = parser.parse_args()
 
-    from algorithms import MetaAlgorithm
+    from toolkit.algorithms import MetaAlgorithm
     MetaAlgorithm.prepare_meta_algorithms(meta_algorithms, algorithms, scenes)
 
 

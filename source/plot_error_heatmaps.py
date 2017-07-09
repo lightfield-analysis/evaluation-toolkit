@@ -30,7 +30,7 @@
 ############################################################################
 
 
-from utils.option_parser import OptionParser, SceneOps, AlgorithmOps, ThresholdOps
+from toolkit.utils.option_parser import OptionParser, SceneOps, AlgorithmOps, ThresholdOps
 
 
 def main():
@@ -38,7 +38,7 @@ def main():
     scenes, algorithms, threshold = parser.parse_args()
 
     # delay imports to speed up usage response
-    from evaluations import error_heatmaps
+    from toolkit.evaluations import error_heatmaps
     error_heatmaps.plot(algorithms, scenes, thresh=threshold)
 
 

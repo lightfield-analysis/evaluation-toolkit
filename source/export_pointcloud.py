@@ -32,7 +32,7 @@
 
 import os.path as op
 
-from utils.option_parser import OptionParser, SceneOps, AlgorithmOps, MetaAlgorithmOps
+from toolkit.utils.option_parser import OptionParser, SceneOps, AlgorithmOps, MetaAlgorithmOps
 
 
 def main():
@@ -40,9 +40,9 @@ def main():
     scenes, algorithms, meta_algorithms, compute_meta_algos = parser.parse_args()
 
     # delay imports to speed up usage response
-    from algorithms import MetaAlgorithm
-    import settings
-    from utils import log, misc, point_cloud
+    from toolkit import settings
+    from toolkit.algorithms import MetaAlgorithm
+    from toolkit.utils import log, misc, point_cloud
 
     if compute_meta_algos and meta_algorithms:
         MetaAlgorithm.prepare_meta_algorithms(meta_algorithms, algorithms, scenes)

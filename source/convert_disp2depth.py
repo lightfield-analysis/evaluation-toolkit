@@ -30,7 +30,7 @@
 ############################################################################
 
 
-from utils.option_parser import OptionParser, ConverterOps
+from toolkit.utils.option_parser import OptionParser, ConverterOps
 
 
 def main():
@@ -39,8 +39,8 @@ def main():
 
     disp_map_path, config_path, depth_map_path = parser.parse_args()
 
-    from scenes import PhotorealisticScene
-    from utils import file_io
+    from toolkit.scenes import PhotorealisticScene
+    from toolkit.utils import file_io
 
     scene = PhotorealisticScene("demo", path_to_config=config_path)
     disp_map = file_io.read_file(disp_map_path)

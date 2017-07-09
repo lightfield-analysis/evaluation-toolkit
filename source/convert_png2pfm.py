@@ -30,7 +30,7 @@
 ############################################################################
 
 
-from utils.option_parser import OptionParser, ConverterOps
+from toolkit.utils.option_parser import OptionParser, ConverterOps
 
 
 MIN = 0.
@@ -43,8 +43,8 @@ def main():
 
     image_path, config_path, pfm_path = parser.parse_args()
 
-    from scenes import PhotorealisticScene
-    from utils import file_io, log
+    from toolkit.scenes import PhotorealisticScene
+    from toolkit.utils import log, file_io
     import numpy as np
 
     scene = PhotorealisticScene("demo", path_to_config=config_path)

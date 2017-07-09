@@ -30,7 +30,7 @@
 ############################################################################
 
 
-from utils.option_parser import OptionParser, SceneOps, AlgorithmOps, MetaAlgorithmOps
+from toolkit.utils.option_parser import OptionParser, SceneOps, AlgorithmOps, MetaAlgorithmOps
 
 
 def main():
@@ -38,13 +38,13 @@ def main():
     algorithms, scenes, meta_algorithms, compute_meta_algos = parser.parse_args()
 
     # delay imports to speed up usage response
-    from algorithms import MetaAlgorithm
-    from evaluations import pairwise_algo_comparisons
+    from toolkit.algorithms import MetaAlgorithm
+    from toolkit.evaluations import pairwise_algo_comparisons
 
     if compute_meta_algos and meta_algorithms:
         MetaAlgorithm.prepare_meta_algorithms(meta_algorithms, algorithms, scenes)
 
-    pairwise_algo_comparisons.plot_pairwise_comparisons(algorithms+meta_algorithms, scenes)
+    pairwise_algo_comparisons.plot_pairwise_comparisons(algorithms + meta_algorithms, scenes)
 
 
 if __name__ == "__main__":

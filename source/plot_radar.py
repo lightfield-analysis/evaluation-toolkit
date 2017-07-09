@@ -30,7 +30,7 @@
 ############################################################################
 
 
-from utils.option_parser import OptionParser, SceneOps, AlgorithmOps, MetricOps, MetaAlgorithmOps
+from toolkit.utils.option_parser import OptionParser, SceneOps, AlgorithmOps, MetricOps, MetaAlgorithmOps
 
 
 def main():
@@ -38,8 +38,8 @@ def main():
     scenes, algorithms, metrics, meta_algorithms, compute_meta_algos = parser.parse_args()
 
     # delay imports to speed up usage response
-    from algorithms import MetaAlgorithm
-    from evaluations import radar_chart
+    from toolkit.algorithms import MetaAlgorithm
+    from toolkit.evaluations import radar_chart
 
     if compute_meta_algos and meta_algorithms:
         MetaAlgorithm.prepare_meta_algorithms(meta_algorithms, algorithms, scenes)

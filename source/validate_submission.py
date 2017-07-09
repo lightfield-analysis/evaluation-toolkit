@@ -35,12 +35,12 @@ import os
 import os.path as op
 import shutil
 
-from utils import log
+from toolkit.utils import log
 
 
 def run_validation(submission_path):
     # delay imports to speed up usage response
-    from evaluations import submission_validation as validation
+    from toolkit.evaluations import submission_validation as validation
 
     is_unpacked = op.isdir(submission_path)
 
@@ -49,7 +49,7 @@ def run_validation(submission_path):
             unpacked_submission_path = submission_path
         else:
             # unpack zip archive
-            from utils.file_io import unzip
+            from toolkit.utils.file_io import unzip
             tmp_dir = op.normpath(op.join(os.getcwd(), "../tmp"))
             try:
                 log.info("Extracting archive.")
