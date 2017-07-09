@@ -366,6 +366,16 @@ class VisualizationOps(Ops):
         return [action]
 
 
+class OverwriteOps(Ops):
+
+    def add_arguments(self, parser):
+        action = parser.add_argument("-d", "--delete_existing_results",
+                                     dest="add_to_existing_results", action="store_false",
+                                     help="set flag to create a new results.json, \n"
+                                          "deleting all previously computed scores")
+        return [action]
+
+
 class ThresholdOps(Ops):
 
     def __init__(self, threshold=0.07):

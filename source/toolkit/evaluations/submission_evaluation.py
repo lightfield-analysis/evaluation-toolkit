@@ -35,13 +35,12 @@ import os.path as op
 import matplotlib.pyplot as plt
 from matplotlib import ticker
 
-
 from toolkit import settings
 from toolkit.utils import file_io, log, misc, plotting
 
 
 def evaluate(evaluation_output_path, algorithm_input_path, ground_truth_path,
-             scenes, metrics, visualize=False):
+             scenes, metrics, visualize=False, add_to_existing_results=True):
     """
     :param evaluation_output_path: target directory for all evaluation results
     :param algorithm_input_path: input directory for algorithm results,
@@ -50,11 +49,10 @@ def evaluate(evaluation_output_path, algorithm_input_path, ground_truth_path,
     :param scenes: scenes to be evaluated
     :param metrics: metrics to be evaluated
     :param visualize: whether to save visualizations (otherwise just the scores)
+    :param add_to_existing_results: if set to True, will try to read results.json and add/replace entries,
+                                    keeping existing scores of other scenes/metrics as is
     :return: success, {"messages": ["error 1", "error 2", ...]}
     """
-
-    admin_errors = []
-    eval_json = dict()
 
     log.info("Evaluating algorithm results in:\n  %s" % algorithm_input_path)
     log.info("Writing results to:\n  %s" % evaluation_output_path)
@@ -62,9 +60,19 @@ def evaluate(evaluation_output_path, algorithm_input_path, ground_truth_path,
     log.info("Metrics:\n  %s" % ", ".join(m.get_display_name() for m in metrics))
     log.info("Scenes:\n  %s" % ", ".join(s.get_display_name() for s in scenes))
 
+    file_name_results = op.join(evaluation_output_path, "results.json")
+    admin_errors = []
+
+    eval_json = dict()
+    if add_to_existing_results:
+        try:
+            eval_json = file_io.read_file(file_name_results)
+        except IOError:
+            pass
+
     # evaluate
     for scene in scenes:
-        scene_data = dict()
+        scene_data = eval_json.get(scene.get_name(), dict())
 
         try:
             if visualize:
@@ -74,8 +82,14 @@ def evaluate(evaluation_output_path, algorithm_input_path, ground_truth_path,
 
             log.info("Processing scene: %s" % scene.get_display_name())
             log.info("Using data from:\n  %s" % scene.get_data_path())
-            scene_data["scores"] = compute_scores(scene, metrics, algorithm_input_path,
-                                                  evaluation_output_path, visualize)
+            scene_scores = compute_scores(scene, metrics, algorithm_input_path, evaluation_output_path, visualize)
+
+            if add_to_existing_results:
+                existing_scores = scene_data.get("scores", dict())
+                existing_scores.update(scene_scores)
+                scene_scores = existing_scores
+
+            scene_data["scores"] = scene_scores
 
         except IOError as e:
             admin_errors.append(e)
@@ -85,7 +99,7 @@ def evaluate(evaluation_output_path, algorithm_input_path, ground_truth_path,
         eval_json[scene.get_name()] = scene_data
 
     # save json with scores and paths to visualizations
-    file_io.write_file(eval_json, op.join(evaluation_output_path, "results.json"))
+    file_io.write_file(eval_json, file_name_results)
     log.info("Done!")
 
     success = not admin_errors
@@ -138,7 +152,10 @@ def compute_scores(scene, metrics, algo_dir, tgt_dir, visualize):
 def add_runtime(scene, algo_dir, scores, metrics):
     runtime_metrics = [m for m in metrics if "runtime" in m.get_id()]
     for metric in runtime_metrics:
-        scores[metric.get_id()] = {"value": metric.get_score_from_dir(scene, algo_dir)}
+        score = metric.get_score_from_dir(scene, algo_dir)
+        scores[metric.get_id()] = {"value": score}
+        log.info("Score %5.2f for: %s, %s, Scale: %0.2f" %
+                 (score, metric.get_display_name(), scene.get_display_name(), scene.gt_scale))
     return scores
 
 

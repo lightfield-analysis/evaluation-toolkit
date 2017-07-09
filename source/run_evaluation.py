@@ -33,13 +33,13 @@
 import os.path as op
 
 from toolkit.utils.option_parser import OptionParser, SceneOps, AlgorithmOps, MetricOps, \
-    VisualizationOps, MetaAlgorithmOps
+    VisualizationOps, MetaAlgorithmOps, OverwriteOps
 
 
 def main():
     parser = OptionParser([SceneOps(), AlgorithmOps(), MetricOps(),
-                           VisualizationOps(), MetaAlgorithmOps(default=[])])
-    scenes, algorithms, metrics, with_vis, meta_algorithms, compute_meta_algos = parser.parse_args()
+                           VisualizationOps(), OverwriteOps(), MetaAlgorithmOps(default=[])])
+    scenes, algorithms, metrics, with_vis, add_to_existing, meta_algorithms, compute_meta_algos = parser.parse_args()
 
     # delay import to speed up usage response
     from toolkit import settings
@@ -60,7 +60,8 @@ def main():
                                        visualize=with_vis,
                                        ground_truth_path=settings.DATA_PATH,
                                        evaluation_output_path=evaluation_output_path,
-                                       algorithm_input_path=algorithm_input_path)
+                                       algorithm_input_path=algorithm_input_path,
+                                       add_to_existing_results=add_to_existing)
 
 
 if __name__ == "__main__":
