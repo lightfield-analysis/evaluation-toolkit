@@ -44,7 +44,8 @@ Per default, the toolkit expects the following file structure. You may adjust th
 |-- source
 ```
 
-`algo_results:` Contains runtimes and disparity maps of five baseline algorithms for the training and stratified scenes. Add the results of your method next to the baseline algorithms to include it into the evaluation. Go to the tools section of the [website](http://lightfield-analysis.net) if you want to add disparity maps and scores of the public benchmark algorithms.
+`algo_results:` Place the results and runtimes of our method into this directory to run the evaluation on your method. If you want to compare your results to other benchmark participants, download their disparity maps of the stratified and training scenes
+[here](http://lightfield-analysis.net/benchmark/downloads/algo_results.zip") (snapshot 10.07.2017) and place it next to your method. 
 
 `data:` Contains the config files for all scenes, but no light field data. If you want to run the evaluation please download the scene data from our [website](http://lightfield-analysis.net) and place it into this directory. The easiest way is to download and extract the "benchmark.zip" from the list of download links that you receive via email.
 
