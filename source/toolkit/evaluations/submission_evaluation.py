@@ -30,17 +30,19 @@
 ############################################################################
 
 
+import shutil
 import os.path as op
 
 import matplotlib.pyplot as plt
 from matplotlib import ticker
+import numpy as np
 
 from toolkit import settings
 from toolkit.utils import file_io, log, misc, plotting
 
 
 def evaluate(evaluation_output_path, algorithm_input_path, scenes, metrics,
-             visualize=False, add_to_existing_results=True):
+             visualize=False, add_to_existing_results=True, add_pfms_to_result=True):
     """
     :param evaluation_output_path: target directory for all evaluation results
     :param algorithm_input_path: input directory for algorithm results,
@@ -50,6 +52,7 @@ def evaluate(evaluation_output_path, algorithm_input_path, scenes, metrics,
     :param visualize: whether to save visualizations (otherwise just the scores)
     :param add_to_existing_results: if set to True, will try to read results.json and add/replace entries,
                                     keeping existing scores of other scenes/metrics as is
+    :param add_pfms_to_result: when executed on evaluation server, pfms are prepared for 3D point cloud view
     :return: success, {"messages": ["error 1", "error 2", ...]}
     """
 
@@ -77,7 +80,7 @@ def evaluate(evaluation_output_path, algorithm_input_path, scenes, metrics,
             if visualize:
                 log.info("Visualizing algorithm result on %s" % scene.get_display_name())
                 scene_data["algorithm_result"] = visualize_algo_result(scene, algorithm_input_path,
-                                                                       evaluation_output_path)
+                                                                       evaluation_output_path, add_pfms_to_result)
 
             log.info("Processing scene: %s" % scene.get_display_name())
             log.info("Using data from:\n  %s" % scene.get_data_path())
@@ -110,7 +113,7 @@ def get_relative_path(scene, descr, file_type=settings.FIG_TYPE):
     return "%s/%s_%s.%s" % (scene.get_category(), scene.get_name(), descr, file_type)
 
 
-def visualize_algo_result(scene, algo_dir, tgt_dir):
+def visualize_algo_result(scene, algo_dir, tgt_dir, add_pfms_to_result):
     algo_result = misc.get_algo_result_from_dir(algo_dir, scene)
 
     # visualize
@@ -119,12 +122,25 @@ def visualize_algo_result(scene, algo_dir, tgt_dir):
     add_colorbar(cm, bins=8)
 
     # save fig
-    relative_fname = get_relative_path(scene, "dispmap")
-    fpath = op.normpath(op.join(tgt_dir, relative_fname))
+    relative_fname_thumb = get_relative_path(scene, "dispmap")
+    fpath = op.normpath(op.join(tgt_dir, relative_fname_thumb))
     plotting.save_tight_figure(fig, fpath, hide_frames=True, pad_inches=0.01)
 
-    # path info for django importer
-    disp_map_data = {"thumb": relative_fname}
+    # path info
+    height, width = np.shape(algo_result)[:2]
+    disp_map_data = {"thumb": relative_fname_thumb,
+                     "channels": 3,
+                     "height": height,
+                     "width": width}
+
+    # save raw disparity map
+    if add_pfms_to_result and not scene.is_test():
+        relative_fname_raw = get_relative_path(scene, "dispmap", file_type="pfm")
+        fpath_tgt = op.normpath(op.join(tgt_dir, relative_fname_raw))
+        fpath_src = misc.get_fname_algo_result(algo_dir, scene)
+        log.info("Copying disp map file from %s to %s" % (fpath_src, fpath_tgt))
+        shutil.copyfile(fpath_src, fpath_tgt)
+        disp_map_data["raw"] = relative_fname_raw
 
     return disp_map_data
 
