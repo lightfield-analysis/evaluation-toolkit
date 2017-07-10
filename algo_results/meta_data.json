@@ -1,0 +1,347 @@
+{
+    "bsl_m": {
+        "acronym": "BSL_M", 
+        "camera_setup": "crosshair", 
+        "method_description": "Combined approach with Semi-Global Matching as an initialization and the conception of Line Fitting.", 
+        "parameter_description": "P1 = 21, P2 = 45, disparity range set accordingly to range from parameters.cfg", 
+        "programming_language": "C", 
+        "project_website": "", 
+        "runtime_environment": "Windows 7 64-bit, E3-1245 V2 @ 3.40 GHz (single-thread)", 
+        "source_code_url": "", 
+        "title": "BMVC 2017 submission #424"
+    }, 
+    "epi1": {
+        "acronym": "*EPI1", 
+        "camera_setup": "crosshair", 
+        "method_description": "The algorithm constructs a depth aware dictionary and uses sparse coding on patches of the epipolar plane images to estimate depth. The initial depth estimation is refined using weighted variational regularization and can also be used to estimate depth at reflective or transparent surfaces (i.e. superimposed line patterens in the epipolar plane image).", 
+        "parameter_description": "", 
+        "programming_language": "Matlab,C++", 
+        "project_website": "https://www.informatik.uni-konstanz.de/cvia/publications/", 
+        "publication": {
+            "authors": "O. Johannsen, A. Sulc, B. Goldluecke", 
+            "bib": "@inproceedings{johannsen2016sparse,\r\n title={What sparse light field coding reveals about scene structure},\r\n author={Johannsen, Ole and Sulc, Antonin and Goldluecke, Bastian},\r\n booktitle={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition},\r\n pages={3262--3270},\r\n year={2016}\r\n}", 
+            "conference": "IEEE Conference on Computer Vision and Pattern Recognition (CVPR)", 
+            "link": "http://merkur229.inf.uni-konstanz.de/publications/JSG16_cvpr.pdf", 
+            "title": "What sparse light field coding reveals about scene structure"
+        }, 
+        "runtime_environment": "i7-4770 @3.40GHz, GTX TITAN Black", 
+        "source_code_url": "", 
+        "title": "What sparse light field coding reveals about scene structure"
+    }, 
+    "epi2": {
+        "acronym": "*EPI2", 
+        "camera_setup": "crosshair", 
+        "method_description": "This method utilizes the structure tensor to estimate the slope of lines in epipolar plane images. Afterwards variational regularization is performed.", 
+        "parameter_description": "", 
+        "programming_language": "Matlab", 
+        "project_website": "https://www.informatik.uni-konstanz.de/cvia/research/light-field-analysis/consistent-depth-estimation/", 
+        "publication": {
+            "authors": "S. Wanner, B. Goldluecke", 
+            "bib": "@inproceedings{wanner2012globally, \r\n title={Globally consistent depth labeling of 4D light fields}, \r\n author={Wanner, Sven and Goldluecke, Bastian},\r\n booktitle={Computer Vision and Pattern Recognition (CVPR), 2012 IEEE Conference on}, \r\n pages={41--48}, \r\n year={2012}, \r\n organization={IEEE}\r\n}", 
+            "conference": "IEEE Conference on Computer Vision and Pattern Recognition (CVPR)", 
+            "link": "http://merkur229.inf.uni-konstanz.de/publications/WG12_cvpr.pdf", 
+            "title": "Globally Consistent Depth Labeling of 4D Light Fields"
+        }, 
+        "runtime_environment": "i7-4770 @3.40GHz, GTX TITAN Black", 
+        "source_code_url": "", 
+        "title": "Globally Consistent Depth Labeling of 4D Light Fields"
+    }, 
+    "epinet_f3": {
+        "acronym": "EpiNet-cross-fast", 
+        "camera_setup": "partial crosshair (horizontal and vertical inner 7 views)", 
+        "method_description": "EpiNet fast version", 
+        "parameter_description": "network 2->3(123)->3\r\nfilter num=30", 
+        "programming_language": "", 
+        "project_website": "", 
+        "runtime_environment": "Windows10 64bit, i7-7700 @3.6GHz, 32GB RAM, GTX1080", 
+        "source_code_url": "", 
+        "title": "EpiNet-cross-fast"
+    }, 
+    "epinet_v2": {
+        "acronym": "EpiNet-star", 
+        "camera_setup": "Cross + X shape (horizontal and vertical and X inner 7 views)", 
+        "method_description": "EpiNet version 2:\r\nStar shape camera setup instead of cross as input.\r\nNetwork with additional convolution layers.", 
+        "parameter_description": "network (first 3 -> mid(123)3*3 -> end 4)\r\n\r\nfilter num=30", 
+        "programming_language": "", 
+        "project_website": "", 
+        "runtime_environment": "Windows10 64bit, i7-7700 @3.6GHz, 32GB RAM, GTX1080", 
+        "source_code_url": "", 
+        "title": "EpiNet-star"
+    }, 
+    "epinet_v2_mf": {
+        "acronym": "EpiNet-star+MF", 
+        "camera_setup": "Cross + X shape (horizontal and vertical and X inner 7 views)", 
+        "method_description": "EpiNet version 2:\r\nStar shape camera setup instead of cross as input.\r\nNetwork with additional convolution layers.\r\n\r\n+\r\n\r\n\"100+ Times Faster Weighted Median Filter\", Qi Zhang, Li Xu, Jiaya Jia, IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 2014", 
+        "parameter_description": "network (first 3 -> mid(123)3*3 -> end 4)\r\n\r\nfilter num=30\r\n\r\nmedian filter r=3, sigma=25, iter=2 ", 
+        "programming_language": "", 
+        "project_website": "", 
+        "runtime_environment": "Windows10 64bit, i7-7700 @3.6GHz, 32GB RAM, GTX1080", 
+        "source_code_url": "", 
+        "title": "EpiNet-star + median filter"
+    }, 
+    "epnosgc": {
+        "acronym": "EPN+OS+GC", 
+        "camera_setup": "cross", 
+        "method_description": "epi+patch(9*13)+CNN+oversample+GC", 
+        "parameter_description": "patch size: 9*13\r\nconvolutional layer + BN + ReLu, \r\nfully connection layer + dropout\r\n\r\ntraining data: 16 additional scenes\r\n", 
+        "programming_language": "python(tensorflow)+matlab", 
+        "project_website": "", 
+        "runtime_environment": "Intel Core i7-4720HQ 2.60GHz + TITAN X", 
+        "source_code_url": "", 
+        "title": "epi_patch_network+oversample+GC"
+    }, 
+    "fbs3": {
+        "acronym": "FBS*", 
+        "camera_setup": "full grid", 
+        "method_description": "-", 
+        "parameter_description": "", 
+        "programming_language": "Matlab", 
+        "project_website": "", 
+        "runtime_environment": "Intel(R)Core(TM) i5-4690 CPU @ 3.5 GHz", 
+        "source_code_url": "", 
+        "title": "foreground and background separation"
+    }, 
+    "glfcv2": {
+        "acronym": "GLFCV", 
+        "camera_setup": "Full grid", 
+        "method_description": "A GPU light field depth estimation implementation", 
+        "parameter_description": "", 
+        "programming_language": "C++", 
+        "project_website": "", 
+        "runtime_environment": "Xeon(R) E5-1650 v4 @ 3.6GHz + TitanX (Pascal)", 
+        "source_code_url": "", 
+        "title": "Light Field Depth Estimation"
+    }, 
+    "lf": {
+        "acronym": "*LF", 
+        "camera_setup": "full", 
+        "method_description": "This paper introduces an algorithm to estimate accurate depth map from a lenslet light field camera. Our algorithm estimates multi-view stereo correspondences at sub-pixel accuracy using a cost volume. Our key idea to build accurate costs is threefold. First, sub-aperture images are displaced using the phase shift theorem. Second, gradient costs are adaptively aggregated using the angular coordinate of the light field. Third, feature correspondences between the sub-aperture images are utilized as an additional constraint. With the cost volume, a multi-label optimization propagates and corrects depth map at weak texture regions. Finally, we iteratively refine local depth map by fitting local quadratic function to estimate a non-discrete depth map. Since a micro-lens image contains unexpected distortions, we also present a method to correct the error. The effectiveness of our algorithm is demonstrated through challenging real world examples, with comparisons to the performance of state-of-the-art depth estimation algorithms.", 
+        "parameter_description": "labels=100\r\nalpha=0.9\r\ntau1=tau2=0.3\r\ndatatype=1\r\n\r\nfor a certain disparity range we calculate delta as\r\ndelta = maximum_absolute_disparity/number_of_labels*2", 
+        "programming_language": "Matlab", 
+        "project_website": "https://sites.google.com/site/hgjeoncv/home/depthfromlf_cvpr15", 
+        "publication": {
+            "authors": "Jeon, Hae-Gon and Park, Jaesik and Choe, Gyeongmin and Park, Jinsun and Bok, Yunsu and Tai, Yu-Wing and Kweon, In So", 
+            "bib": "@inproceedings{jeon2015accurate, \r\n title={Accurate depth map estimation from a lenslet light field camera},\r\n author={Jeon, Hae-Gon and Park, Jaesik and Choe, Gyeongmin and Park, Jinsun and Bok, Yunsu and Tai, Yu-Wing and Kweon, In So}, \r\n booktitle={2015 IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},\r\n pages={1547--1555},\r\n year={2015},\r\n organization={IEEE}\r\n}", 
+            "conference": "IEEE Conference on Computer Vision and Pattern Recognition (CVPR)", 
+            "link": "https://docs.google.com/open?authuser=earboll%40gmail.com&id=0B2553ggh3QTcVjRpM0lmbTFoMm8", 
+            "title": "Accurate Depth Map Estimation from a Lenslet Light Field Camera"
+        }, 
+        "runtime_environment": "i7-4770 @3.40GHz", 
+        "source_code_url": "https://sites.google.com/site/hgjeoncv/home/depthfromlf_cvpr15", 
+        "title": "Accurate Depth Map Estimation from a Lenslet Light Field Camera"
+    }, 
+    "lf_occ": {
+        "acronym": "*LF_OCC", 
+        "camera_setup": "full", 
+        "method_description": "In this paper, we develop a depth estimation algorithm for light field cameras that treats occlusion explicitly; the method also enables identification of occlusion edges, which may be useful in other applications. We show that, although pixels at occlusions do not preserve photo-consistency in general, they are still consistent in approximately half the viewpoints. ", 
+        "parameter_description": "", 
+        "programming_language": "Matlab", 
+        "project_website": "https://people.eecs.berkeley.edu/~tcwang0509/research.html", 
+        "publication": {
+            "authors": "Ting-Chun Wang, Alexei Efros, Ravi Ramamoorthi", 
+            "bib": "@inproceedings{wang2015occlusion, \r\n title={Occlusion-aware Depth Estimation Using Light-field Cameras}, \r\n author={Wang, Ting-Chun and Efros, Alexei A and Ramamoorthi, Ravi}, \r\n booktitle={Proceedings of the IEEE International Conference on Computer Vision}, \r\n pages={3487--3495},\r\n year={2015}\r\n }", 
+            "conference": "International Conference on Computer Vision (ICCV)", 
+            "link": "https://people.eecs.berkeley.edu/~tcwang0509/papers/ICCV15/LF_occlusion_ICCV15.pdf", 
+            "title": "Occlusion-aware depth estimation using light-field cameras"
+        }, 
+        "runtime_environment": "i7-4770 @3.40GHz", 
+        "source_code_url": "https://people.eecs.berkeley.edu/~tcwang0509/papers/ICCV15/occCode.zip", 
+        "title": "Occlusion-aware depth estimation using light-field cameras"
+    }, 
+    "lf_occ26": {
+        "acronym": "LF_OCC", 
+        "camera_setup": "full", 
+        "method_description": "In this paper, we develop a depth estimation algorithm for light field cameras that treats occlusion explicitly; the method also enables identification of occlusion edges, which may be useful in other applications. We show that, although pixels at occlusions do not preserve photo-consistency in general, they are still consistent in approximately half the viewpoints. ", 
+        "parameter_description": "", 
+        "programming_language": "Matlab", 
+        "project_website": "https://people.eecs.berkeley.edu/~tcwang0509/research.html", 
+        "publication": {
+            "authors": "Ting-Chun Wang, Alexei Efros, Ravi Ramamoorthi", 
+            "bib": "@inproceedings{wang2015occlusion, \r\n title={Occlusion-aware Depth Estimation Using Light-field Cameras}, \r\n author={Wang, Ting-Chun and Efros, Alexei A and Ramamoorthi, Ravi}, \r\n booktitle={Proceedings of the IEEE International Conference on Computer Vision}, \r\n pages={3487--3495},\r\n year={2015}\r\n }", 
+            "conference": "International Conference on Computer Vision (ICCV)", 
+            "link": "https://people.eecs.berkeley.edu/~tcwang0509/papers/ICCV15/LF_occlusion_ICCV15.pdf", 
+            "title": "Occlusion-aware depth estimation using light-field cameras"
+        }, 
+        "runtime_environment": "Macbook Pro with 2.4 GHz Intel Core i7 and 8 GB memory", 
+        "source_code_url": "https://people.eecs.berkeley.edu/~tcwang0509/papers/ICCV15/occCode.zip", 
+        "title": "Occlusion-aware depth estimation using light-field cameras"
+    }, 
+    "mv": {
+        "acronym": "*MV", 
+        "camera_setup": "crosshair", 
+        "method_description": "This is a lab code implementation of a straight forward multi-label multi view algorithm. For a distinct set of disparities the error is calculated and the disparity with the lowest error is chosen. This initial estimation is refined using variational TGV-L1 regularization.", 
+        "parameter_description": "", 
+        "programming_language": "Matlab", 
+        "project_website": "", 
+        "runtime_environment": "i7-4770 @3.40GHz", 
+        "source_code_url": "", 
+        "title": "Lab code: Multi View Stereo with TGV-L1 regularization"
+    }, 
+    "mvcmv0": {
+        "acronym": "MVCMv0", 
+        "camera_setup": "Uses only four views: top/bottom/left/right view", 
+        "method_description": "CPU-only implementation of SGBM inspired stereo matching engine applied to horizontal and vertical baselines. Results get shifted into the center view and merged using the shifted confidence measures in a simple winner-takes-all approach.\r\nThe disparity calculation is sliced and all slices for both baselines are calculated in parallel ", 
+        "parameter_description": "only tunable parameter is the number of threads = number of slices to use; Submission uses 4 Slices (2 per Image)\r\nSAD Aggregation Size: 9x9\r\nDisparity scaling exponent: 6\r\n\r\nall other parameters are kept at defaults (  no texture filtering, no speckle-removal); \r\ninitial offset for compare images of 33 pixels is used to have only positive disparities.", 
+        "programming_language": "C++", 
+        "project_website": "http://ait.ac.at", 
+        "runtime_environment": "Usage of four x64 Cores (i7-5600U @2.6GHz, 2Cores with Hyperthreading, 16GB RAM) on Dell Laptop (Windows 7)", 
+        "source_code_url": "http://ait.ac.at", 
+        "title": "Multiview Confidence Merging Version Zero"
+    }, 
+    "ober": {
+        "acronym": "OBER", 
+        "camera_setup": "horizontal line", 
+        "method_description": "The method is based on a regularization scheme which consists of a bilateral filter as smoothing term, and an error metric which evaluates the variance in the image domain for a given 3D point.\r\n\r\nThe implementation currently operates in the EPI domain of a single 3D lightfield, hence only 9 horizontal views of the full 81 views are used.\r\n\r\nThe error metric includes an explicit occlusion term which handles single and double occlusions. Due to hard cutoff thresholds in the bilateral smoothing and the occlusion term this yields very fine details and sharp occlusion borders. The optimization is performed using trial and error evaluation of random disparity estimates and propagation of neighboring disparities. Due to the highly non-smooth and non-differential nature of the minimization term, convergence is problematic and requires careful initialization. The initialization therefore uses the results of the zero-crossing (ZCTV) method as a starting point for the optimization.", 
+        "parameter_description": "", 
+        "programming_language": "C++", 
+        "project_website": "", 
+        "runtime_environment": "GNU/Linux 4.10.2 , i7-2600K @ 3.4Ghz, ", 
+        "source_code_url": "", 
+        "title": "Occluded Bilateral EPI Regularization"
+    }, 
+    "obercross": {
+        "acronym": "OBER-cross", 
+        "camera_setup": "cross", 
+        "method_description": "The method is based on a regularization scheme which consists of a bilateral filter as smoothing term, and an error metric which evaluates the variance in the image domain for a given 3D point.\r\n\r\nThe error metric includes an explicit occlusion term which handles single and double occlusions. Due to hard cutoff thresholds in the bilateral smoothing and the occlusion term this yields very fine details and sharp occlusion borders. The optimization is performed using trial and error evaluation of random disparity estimates and propagation of neighboring disparities. Due to the highly non-smooth and non-differential nature of the minimization term, convergence is problematic and requires careful initialization. The initialization therefore uses the results of the zero-crossing (ZCTV) method as a starting point for the optimization.\r\n\r\nThis is the cross-setup version, using 17 from 81 views.", 
+        "parameter_description": "", 
+        "programming_language": "C++", 
+        "project_website": "", 
+        "runtime_environment": "GNU/Linux 4.10.2 , i7-2600K @ 3.4Ghz", 
+        "source_code_url": "", 
+        "title": "Occluded Bilateral EPI Regularization"
+    }, 
+    "obercrossanp": {
+        "acronym": "OBER-cross+ANP", 
+        "camera_setup": "cross", 
+        "method_description": "The method is based on a regularization scheme which consists of a bilateral filter as smoothing term, and an error metric which evaluates the variance in the image domain for a given 3D point.\r\n\r\nThe error metric includes an explicit occlusion term which handles single and double occlusions. Due to hard cutoff thresholds in the bilateral smoothing and the occlusion term this yields very fine details and sharp occlusion borders. The optimization is performed using trial and error evaluation of random disparity estimates and propagation of neighboring disparities. Due to the highly non-smooth and non-differential nature of the minimization term, convergence is problematic and requires careful initialization. The initialization therefore uses the results of the zero-crossing (also used by ZCTV) method as a starting point for the optimization.\r\n\r\nThis is the cross-setup version, using 17 from 81 views.\r\n\r\nThis version extends the original OBER with an adaptive filter strength + normal and plane regularization.\r\n", 
+        "parameter_description": "", 
+        "programming_language": "C++", 
+        "project_website": "", 
+        "runtime_environment": "GNU/Linux 4.10.11 , i7-2600K @ 3.4Ghz", 
+        "source_code_url": "", 
+        "title": "Occluded Bilateral EPI Regularization + adaptive filter strength + normal + plane regularization"
+    }, 
+    "ofsy_330dnr2": {
+        "acronym": "OFSY_330/DNR", 
+        "camera_setup": "crosshair", 
+        "method_description": "Cost volume computed with occlusion-aware focal stack symmetry plus joint depth/normal map regularization based on a minimal surface prior and piecewise smoothness of the normal map.\r\n", 
+        "parameter_description": "330 labels for the cost volume.\r\nParameters tuned for optimum BadPix(0.07) on training set. See paper for details.", 
+        "programming_language": "Matlab", 
+        "project_website": "https://www.cvia.uni-konstanz.de/", 
+        "publication": {
+            "authors": "Michael Strecke, Anna Alperovich, Bastian Goldluecke", 
+            "bib": "@string{cvpr=\"IEEE Conference on Computer Vision and Pattern Recognition (CVPR)\"}\r\n@InProceedings{SAG17:cvpr,\r\n author = {M. Strecke and A. Alperovich and B. Goldluecke},\r\n title = {Accurate depth and normal maps from occlusion-aware focal stack symmetry},\r\n booktitle = cvpr,\r\n year = {2017}, \r\n TITLEURL  = {SAG17_cvpr.pdf},\r\n}\r\n\r\n", 
+            "conference": "CVPR 2017", 
+            "link": "http://publications.lightfield-analysis.net/SAG17_cvpr.pdf", 
+            "title": "Accurate depth and normal maps from occlusion-aware focal stack symmetry"
+        }, 
+        "runtime_environment": "Intel(R) Core(TM) i7-3770 CPU @ 3.40GHz + Nvidia GeForce Titan X", 
+        "source_code_url": "https://www.cvia.uni-konstanz.de/", 
+        "title": "Accurate depth and normal maps from occlusion-aware focal stack symmetry"
+    }, 
+    "omg_occ": {
+        "acronym": "OMG_occ", 
+        "camera_setup": "full grid", 
+        "method_description": "The method models the occlusion-consistency between the spatial and angular space in occlusion boundaries. With the guidance of the consistency, the un-occluded views for each possible occlusion  boundary point are accurately selected. Finally, an anti-occlusion energy function is built with these un-occluded views and the possible occlusion map.", 
+        "parameter_description": "There are 100 labels in the MRF.", 
+        "programming_language": "Matlab", 
+        "project_website": "", 
+        "runtime_environment": "", 
+        "source_code_url": "", 
+        "title": "Occlusion-Model Guided Anti-Occlusion Depth Estimation in Light Field"
+    }, 
+    "ps_rf25": {
+        "acronym": "PS_RF", 
+        "camera_setup": "full grid", 
+        "method_description": "One of the core applications of lenslet based light field imaging is accurate depth estimation. To recover depth, various photo consistency terms have been developed. However, a globally defined matching cost cannot be adapted to lenslet 4D light field images because of the non-uniform degradations produced by hardware design limitations, such as non-uniform exposures within a microlens. In this paper, we introduce an end-to-end pipeline that automatically determines the best configuration for photo consistency measurement, which leads to the most reliable depth label from the light field. We analyzed the practical factors affecting degradation in lenslet light field cameras, and designed a learning based framework that can retrieve the best cost measure and optimal depth label. To enhance the reliability of our method, we augment an existing light field benchmark to simulate realistic source dependent noise, aberrations, and vignetting artifacts. The augmented dataset was used for the training and validation of the proposed approach. Our method was competitive with several state-of-the-art methods for the benchmark and real-world light field datasets.", 
+        "parameter_description": "", 
+        "programming_language": "MATLAB", 
+        "project_website": "", 
+        "publication": {
+            "authors": "Hae-Gon Jeon et al.", 
+            "bib": "...", 
+            "conference": "Submitted to IEEE TPAMI", 
+            "link": "", 
+            "title": "Depth from a Light Field Image with Learning-based Matching Costs"
+        }, 
+        "runtime_environment": "", 
+        "source_code_url": "", 
+        "title": "Depth from a Light Field Image with Learning-based Matching Costs"
+    }, 
+    "rm3de": {
+        "acronym": "RM3DE", 
+        "camera_setup": "horizontal and vertical views crossing in the central view, + and - 45 degrees diagonals crossing in the central view ", 
+        "method_description": "Short Summary\r\n\r\nIn this work, a multi-resolution method for depth estimation from dense image arrays is presented.   To reduce the computational complexity associated to the optimal maximum posterior probability estimator of the depth map, we perform a local estimate based on the maximization of a smoothed version of the Likelihood functional. Basically, at each resolution level, the depth estimation is obtained by locally minimizing a smoothed version of the Maximum Likelihood (ML) functional. To face the potential accuracy losses associated to the ambiguity problem arising in flat surface regions, while preserving bandwidth in correspondence of edges, we adopt a multi-resolution scheme. In practice, depth map resolution is reduced in regions where maximizing higher resolution likelihood functional is ill-conditioned. Since local  optimization produces noisy depth maps, the denoising is performed by means of 2D weighted median filters to avoid resolution losses associated to linear smoothing. \r\nThe main advantages of the proposed system are the reduced computational complexity and the high accuracy of the estimated depth.\r\n\r\nStrengths and weaknesses\r\n\r\nThe proposed metric achieves good results as demonstrated by the average scores of MSE (2.87) and BadPix (9.68). Furthermore, good performances are also shown for Training image set as shown by Discontinuities (average score is 23.9 ). With respect to other estimation algorithms, good performances have also been achieved for Stripes image, since the proposed method is not based on gradient evaluation (MSE 0.99, BadPix 4.17, and LowTexture 1.19). Concerning the image Dots, thanks to the multiresolution framework, the proposed method is robust vs additive Gaussian noise. We have performed a parameter optimization obtaining (Missed dots 39.16). The method can also be applied to realistic computer generated images (such as Cotton or Dino, MSE 0.35 and 0.58 respectively, BadPixel 3.82 and 8.4).\r\n\r\nThe weakness point is the accuracy in reconstructing very fine structures as shown by FineFattening, and FineThinning (average values 47.13  and 16.53 respectively).   Even for Bumpiness the system does not perform well due to the reduce median filtering applied to the reconstructed image, as shown by  Bumpiness continuous surfaces and Bumpiness plane (average values 1.73 and 1.84 respectively).  However, this choice results in a good Discontinuity score (average value 23.9,  best score 12.4 for cotton image).\r\n", 
+        "parameter_description": "", 
+        "programming_language": "Matlab", 
+        "project_website": "", 
+        "publication": {
+            "authors": "A. Neri, M. Carli, and F. Battisti", 
+            "bib": "@INPROCEEDINGS{7351426, \r\nauthor={A. Neri and M. Carli and F. Battisti}, \r\nbooktitle={2015 IEEE International Conference on Image Processing (ICIP)}, \r\ntitle={A multi-resolution approach to depth field estimation in dense image arrays}, \r\nyear={2015}, \r\npages={3358-3362}, \r\nkeywords={cameras;edge detection;image resolution;optimisation;ambiguity problems;bandwidth preserving;dense-image arrays;edge correspondence;flat surface regions;local optimization method;multiresolution depth field estimation algorithm;plenoptic cameras;Cameras;Image resolution;Maximum likelihood estimation;Optimization;Sensors;Depth Field Estimation;Large Image Arrays;Light fields;Plenoptic function}, \r\ndoi={10.1109/ICIP.2015.7351426}, \r\nmonth={Sept},}\r\n\r\n", 
+            "conference": "2015 IEEE International Conference on Image Processing (ICIP), Quebec City, QC, 2015, pp. 3358-3362.", 
+            "link": "http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=7351426&isnumber=7350743", 
+            "title": "A multi-resolution approach to depth field estimation in dense image arrays"
+        }, 
+        "runtime_environment": "Windows 10 Enterprise, 64 bit, i7 5820k, NVIDIA GeForce1070, 64 GB RAM", 
+        "source_code_url": "", 
+        "title": "MULTI-RESOLUTION DEPTH FIELD ESTIMATION"
+    }, 
+    "sc_gc": {
+        "acronym": "SC_GC", 
+        "camera_setup": "full grid", 
+        "method_description": "The method is addressed in a global energy minimization framework via Graph cuts. The energy function contains data term and smooth term. The data term is based on statistical analysis of Surface camera (SCam) model. The SCam  shows statistically clustering-consistency, so part pixels of SCam is selected with an adaptive threshold on the probability measure of being on focus surface, then a photo-consistency measure of the on-surface part is calculated as the data cost. The smooth term encodes a 2nd order smoothness regularizer to allow local curvature variation of neighboring pixels . Each pixel is assigned a label with a plane parameters in 3D space, then not only depth but also normal direction is estimated at each pixel. Label proposal is elegantly designed to make the problem could be solved by Graph cuts.", 
+        "parameter_description": "", 
+        "programming_language": "C++", 
+        "project_website": "", 
+        "publication": {
+            "authors": "Lipeng Si\r\nQing Wang", 
+            "bib": "@inproceedings{Lipeng2016Dense,\r\n  title={Dense Depth-Map Estimation and Geometry Inference from Light Fields via Global Optimization},\r\n  author={Lipeng Si and Qing Wang},\r\n  booktitle={Asian Conference on Computer Vision},\r\n  year={2016},\r\n}", 
+            "conference": "ACCV 2016", 
+            "link": "", 
+            "title": "Dense Depth-map Estimation and Geometry Inference from Light Fields via Global Optimization"
+        }, 
+        "runtime_environment": "i7-3770@3.40GHz,16GB RAM", 
+        "source_code_url": "", 
+        "title": "Surface camera analysis based pixel-wise plane inference via Graph cuts"
+    }, 
+    "spo_lf4cv": {
+        "acronym": "SPO", 
+        "camera_setup": "cross", 
+        "method_description": "The method is published in \"Robust Depth Estimation for Light Field via Spinning Parallelogram Operator\",  which is supported by Hawk-eye Group, Beihang University.\r\n\r\nUtilizing the regions divided by the Spinning Parallelogram Operator (SPO) in an Epipolar Plane Image (EPI), the lines that indicate depth information are located by maximizing the distribution distances of the regions. The distance measure is able to keep the correct depth information even if they are occluded or noisy. The discrete labelling problem is then solved by a filter-based algorithm to fast approximate the optimal solution.\r\n\r\nThe major advantage of the proposed method is that it is insensitive to occlusion, noise,  aliasing, and has no requirement for depth range and angular resolution. It therefore can be used in various light field images. ", 
+        "parameter_description": "number of bins = 64\r\nalpha = 0.8, in Eq (3)\r\nsigma = 0.26, in Eq (6)", 
+        "programming_language": "Matlab", 
+        "project_website": "", 
+        "publication": {
+            "authors": "Shuo Zhang, Hao Sheng*, Chao Li, Jun Zhang, Zhang Xiong", 
+            "bib": "@article{Zhang2016Robust,\r\ntitle={Robust depth estimation for light field via spinning parallelogram operator},\r\nauthor={Zhang, Shuo and Sheng, Hao and Li, Chao and Zhang, Jun and Xiong, Zhang},\r\njournal={Computer Vision and Image Understanding},\r\nvolume={145},\r\npages={148-159},\r\nyear={2016},\r\n}", 
+            "conference": "Computer Vision and Image Understanding ", 
+            "link": "http://www.sciencedirect.com/science/article/pii/S1077314215002714", 
+            "title": "Robust Depth Estimation for Light Field via Spinning Parallelogram Operator"
+        }, 
+        "runtime_environment": "Intel\u00ae Core\u2122 i7-4790 CPU @ 3.60GHz \u00d7 8 ", 
+        "source_code_url": "https://github.com/shuozh/Spinning-Parallelogram-Operator", 
+        "title": "Spinning Parallelogram Operator (SPO) for Light Field Depth Estimation by Hawk-eye Group"
+    }, 
+    "spomo": {
+        "acronym": "SPO-MO", 
+        "camera_setup": "33 views", 
+        "method_description": "The method is showed in \"Occlusion-Aware Depth Estimation for Light Field Using Multi-Orientation EPIs\", which has been submitted to Pattern Recognition. This work is supported by Hawkeye Group, Beihang University.\r\n\r\nIn order to make full use of the regular grid light field images, we develop a strategy to extract epipolar plane images in all available directions. Based on the multi-orientation EPIs, a specific EPI in which the point is not occluded is found and used to calculate robust depth estimation. We also design a novel framework to estimate the depth information which combines the local depth with edge orientation. The multi-orientation EPIs and optimal orientation selection are proved to be effective in detecting and excluding occlusions. Experimental results show that the proposed method outperforms state-of-the-art depth estimation methods, especially near occlusion boundaries.", 
+        "parameter_description": "", 
+        "programming_language": "Matlab", 
+        "project_website": "", 
+        "runtime_environment": "Intel\u00ae Core\u2122 i7-4790 CPU @ 3.60GHz \u00d7 8", 
+        "source_code_url": "", 
+        "title": "Spinning Parallelogram Operator (SPO) for Depth Estimation Using Multi-Orientation EPIs by Hawk-eye Group"
+    }, 
+    "zctv1": {
+        "acronym": "ZCTV", 
+        "camera_setup": "horizontal line", 
+        "method_description": "The method uses zero crossing information to determine orientations only on significant region. The resulting parameter space becomes projected onto a disparity map. Onto this map a second order total variation approach is applied.", 
+        "parameter_description": "", 
+        "programming_language": "C++", 
+        "project_website": "", 
+        "runtime_environment": "Ubuntu 64bit, E5-2620 @2.0GHz, 128GB RAM, Radeon HD 5450", 
+        "source_code_url": "", 
+        "title": "Zero Crossings with Total Variation"
+    }
+}
