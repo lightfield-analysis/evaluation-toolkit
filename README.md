@@ -8,6 +8,7 @@ You may use this toolkit to:
 4. [Convert between pfm and png files](#4-convert-between-pfm-and-png-files)
 5. [Create figures](#5-create-figures)
 6. [Create point clouds](#6-create-point-clouds)
+7. [Compute pixel offset](#7-compute-pixel-offset)
 
 For details on how to prepare your submission for the 4D Light Field Benchmark, please read the [submission instructions](SUBMISSION_INSTRUCTIONS).
 Please don't hesitate to contact us for any kind of questions, feedback, or bug reports: contact at lightfield-analysis.net
@@ -195,6 +196,19 @@ Example:
 python convert_disp2pointcloud.py /path/to/dispmap.pfm /path/to/parameters.cfg /path/to/pointcloud.ply
 ```
 
+### 7. Compute pixel offset
+
+Our light fields are created with shifted cameras (see our [supplemental material](http://lightfield-analysis.net/benchmark/paper/lightfield_benchmark_accv_2016_supp.pdf) of the ACCV 2016 paper for details). The cameras have parallel optical axes but their sensors are shifted so that they see the same area of the scene. You can also think of it that the non-center views are moved by a certain amount of pixels. To compute this pixel offset for "one step" (between two adjacent views), run `compute_offset.py` with a list of scenes.
+
+Example:
+```bash
+python compute_offset.py -s dino cotton
+```
+
+The corresponding formula is:
+```bash
+offset = baseline_mm * focal_length_mm / focus_dist_m / 1000. / sensor_mm * max(width, height)
+```
 
 # License
 
