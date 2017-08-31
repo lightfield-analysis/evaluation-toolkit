@@ -139,6 +139,11 @@ class BaseScene(object):
     def is_stratified(self):
         return self.category == settings.STRATIFIED
 
+    def compute_offset(self):
+        offset = self.baseline_mm * self.focal_length_mm / self.focus_dist_m / 1000. / \
+                 self.sensor_mm * max(self.width, self.height)
+        return offset
+
     # ----------------------------------------------------------
     # depth - disparity conversion
     # ----------------------------------------------------------
