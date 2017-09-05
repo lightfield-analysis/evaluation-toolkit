@@ -95,7 +95,20 @@ Please not that your zip archive should directly contain a disp_maps and a runti
 ### 3. Convert between depth and disparity maps
 
 Run `convert_depth2disp.py` and `convert_disp2depth.py` to convert between depth and disparity maps. You need to provide paths to the input and output map and to the scene parameter file.
-If you just want to see the formulas, have a look at the `disp2depth` and `depth2disp` methods in the [base_scene.py](source/scenes/base_scene.py).
+
+The corresponding formulas are:
+
+```bash 
+
+depth_mm = beta * focus_distance_mm / (disp_px * focus_distance_mm * sensor_size_mm + beta)
+
+disp_px = (beta * focus_distance_mm / depth_mm - beta) / (focus_distance_mm * sensor_size_mm)
+ 
+where beta = baseline_mm * focal_length_mm * max(width_px, height_px)
+```
+
+The config files provide the image width and height in pixels and the sensor size of the larger of both dimensions in mm. 
+
 
 
 ### 4. Convert between pfm and png files
