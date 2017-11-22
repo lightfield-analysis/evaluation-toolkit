@@ -101,7 +101,7 @@ def hide_upper_right():
 # adds a colorbar to a separate grid field
 def add_colorbar(idx, cm, height, width, colorbar_bins=8, fontsize=None, img_width=1, scale=0.9):
     axis = plt.subplot(idx)
-    plt.imshow(np.ones((height*scale, img_width)), alpha=0)
+    plt.imshow(np.ones((int(height*scale), img_width)), alpha=0)
 
     # colorbar width must be given as a percentage of the img width,
     # both together should be equal to w/wscale
